@@ -1,9 +1,11 @@
-import { createTheme } from '@mui/material/styles'
+import { createTheme } from '@material-ui/core/styles'
 
 const light = createTheme({
   palette: {
     primary: {
-      main: '#283663'
+      light: '#4f5964',
+      dark: '#283663',
+      main: '#24292e'
     },
     secondary: {
       main: '#ffdd00'
