@@ -58,7 +58,7 @@ export default function Index() {
         <Grid
           container
           direction="row"
-          justify="space-between"
+          justifyContent="space-between"
           alignItems="flex-start"
           className={classes.container}
         >
@@ -102,7 +102,7 @@ export default function Index() {
       <div className={classes.main}>
         <Grid
           container
-          justify="center"
+          justifyContent="center"
           alignItems="stretch"
           className={classes.interfaceContainer}
         >

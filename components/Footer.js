@@ -11,17 +11,17 @@ function Footer() {
       <Grid
         container
         direction="row"
-        justify="space-between"
+        justifyContent="space-between"
         alignItems="center"
       >
         <Grid item className={classes.marginItem}>
-          <Typography color="contrastText">
+          <Typography>
             <span className={classes.poweredBy}>Development</span>{' '}
             <span className={classes.versionLink}>1.0.0</span>
           </Typography>
         </Grid>
         <Grid item className={classes.marginItem}>
-          <Typography color="contrastText">
+          <Typography>
             <span className={classes.poweredBy}>Powered by</span>
             <a
               href="https://www.linea.gov.br/"
