@@ -32,10 +32,18 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
         {/* Overwriting some global CSS. */}
-        <Navbar />
-
-        <Component {...pageProps} />
-        <Footer />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            height: '100%'
+          }}
+        >
+          <Navbar />
+          <Component {...pageProps} />
+          <Footer />
+        </div>
       </ThemeProvider>
     </>
   )

@@ -3,8 +3,8 @@ import { makeStyles } from '@material-ui/core/styles'
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
-    height: 'calc(100% - 128px)',
     flexDirection: 'column'
+    // height: '100%'
   },
   banner: {
     position: 'relative',
@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
     background: 'url(/header.jpg)',
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover',
-    height: '50%'
+    height: '30%'
     // marginBottom: theme.spacing(4)
   },
   container: {
@@ -32,11 +32,13 @@ const useStyles = makeStyles(theme => ({
     margin: 0,
     [theme.breakpoints.down('sm')]: {
       fontSize: 48,
-      margin: `0 ${theme.spacing(2)}px`
+      margin: `${theme.spacing(5)}px ${theme.spacing(2)}px`
     },
+
     textShadow: 'black 0.1em 0.1em 0.2em'
   },
   titleWrapper: {
+    minHeight: 240,
     [theme.breakpoints.up('sm')]: {
       display: 'flex',
       justifyContent: 'center',
@@ -74,7 +76,7 @@ const useStyles = makeStyles(theme => ({
     textShadow: '0.1em 0.1em 0.1em black'
   },
   media: {
-    minHeight: 220
+    minHeight: 260
   },
 
   gridApplicationLg: {

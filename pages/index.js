@@ -50,11 +50,11 @@ export default function Index() {
   ]
 
   return (
-    <Grid className={classes.root}>
+    <div className={classes.root}>
       <Head>
         <title>Photo-Z Server | Home</title>
       </Head>
-      <div className={classes.banner}>
+      <Grid className={classes.banner}>
         <Grid
           container
           direction="row"
@@ -98,8 +98,8 @@ export default function Index() {
             <GitHub />
           </IconButton>
         </div>
-      </div>
-      <div className={classes.main}>
+      </Grid>
+      <Grid className={classes.main}>
         <Grid
           container
           justifyContent="center"
@@ -138,7 +138,7 @@ export default function Index() {
             </Grid>
           ))}
         </Grid>
-      </div>
-    </Grid>
+      </Grid>
+    </div>
   )
 }
