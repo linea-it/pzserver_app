@@ -4,7 +4,7 @@ import Head from 'next/head'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import light from '../themes/light'
-import Navbar from '../components/Navbar'
+import Header from '../components/Header'
 import Footer from '../components/Footer'
 import '../styles/global.css'
 
@@ -40,7 +40,7 @@ export default function MyApp(props) {
             height: '100%'
           }}
         >
-          <Navbar />
+          <Header />
           <Component {...pageProps} />
           <Footer />
         </div>
