@@ -86,6 +86,9 @@ const useStyles = makeStyles(theme => ({
     right: 0,
     bottom: 0,
     zIndex: 2
+  },
+  social: {
+    margin: '0 12px'
   }
 }))
 

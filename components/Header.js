@@ -6,7 +6,7 @@ import {
   List,
   ListItem,
   Grid,
-  IconButton
+  Link as MuiLink
 } from '@material-ui/core'
 import { YouTube, Twitter, GitHub } from '@material-ui/icons'
 import Link from './Link'
@@ -34,24 +34,6 @@ function Header() {
       href: '/contact'
     }
   ]
-
-  // const handlerClick = socialMedia => {
-  //   let uri = ''
-  //   switch (socialMedia) {
-  //     case 'YouTube':
-  //       uri = 'https://www.youtube.com/user/lineamcti'
-  //       break
-  //     case 'Twitter':
-  //       uri = 'https://twitter.com/LIneA_mcti'
-  //       break
-  //     case 'GitHub':
-  //       uri = 'https://github.com/linea-it/tno'
-  //       break
-  //     default:
-  //       uri = 'https://www.youtube.com/user/lineamcti'
-  //   }
-  //   window.open(uri, '_blank')
-  // }
 
   return (
     <div>
@@ -85,15 +67,33 @@ function Header() {
             </Grid>
           </Grid>
           <div className={classes.socialWrapper}>
-            <IconButton color="inherit" aria-label="YouTube" component="span">
+            <MuiLink
+              className={classes.social}
+              href="https://www.youtube.com/user/lineamcti"
+              target="_blank"
+              color="inherit"
+              rel="noreferrer"
+            >
               <YouTube />
-            </IconButton>
-            <IconButton color="inherit" aria-label="Twitter" component="span">
+            </MuiLink>
+            <MuiLink
+              className={classes.social}
+              href="https://twitter.com/LIneA_mcti"
+              target="_blank"
+              color="inherit"
+              rel="noreferrer"
+            >
               <Twitter />
-            </IconButton>
-            <IconButton color="inherit" aria-label="GitHub" component="span">
+            </MuiLink>
+            <MuiLink
+              className={classes.social}
+              href="https://github.com/linea-it/tno"
+              target="_blank"
+              color="inherit"
+              rel="noreferrer"
+            >
               <GitHub />
-            </IconButton>
+            </MuiLink>
           </div>
         </Grid>
       )}
