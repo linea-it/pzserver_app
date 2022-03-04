@@ -5,12 +5,8 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
     float: 'right',
     height: 64,
-    position: 'relative'
-  },
-  appBarDrawerClose: {
-    top: 'auto',
+    position: 'relative',
     zIndex: 2,
-    bottom: 0,
     backgroundColor: '#212121',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
@@ -41,8 +37,7 @@ const useStyles = makeStyles(theme => ({
   },
   logoFooter: {
     cursor: 'pointer',
-    marginLeft: '10px',
-    maxWidth: 52
+    marginLeft: '10px'
   },
   marginItem: {
     marginLeft: 20,

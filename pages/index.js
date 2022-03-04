@@ -6,6 +6,7 @@ import {
   CardMedia,
   Typography
 } from '@material-ui/core'
+import Link from '../components/Link'
 import useStyles from '../styles/pages/index'
 
 export default function Index() {
@@ -51,25 +52,27 @@ export default function Index() {
               lg={3}
               className={classes.gridApplicationLg}
             >
-              <Card>
-                <CardActionArea to={item.path}>
-                  <CardMedia
-                    alt={item.title}
-                    className={classes.media}
-                    image={item.background}
-                    title={item.title}
-                  >
-                    <Typography
-                      gutterBottom
-                      className={classes.titleItem}
-                      variant="h4"
-                      component="h2"
+              <Link href={item.path}>
+                <Card>
+                  <CardActionArea>
+                    <CardMedia
+                      alt={item.title}
+                      className={classes.media}
+                      image={item.background}
+                      title={item.title}
                     >
-                      {item.title}
-                    </Typography>
-                  </CardMedia>
-                </CardActionArea>
-              </Card>
+                      <Typography
+                        gutterBottom
+                        className={classes.titleItem}
+                        variant="h4"
+                        component="h2"
+                      >
+                        {item.title}
+                      </Typography>
+                    </CardMedia>
+                  </CardActionArea>
+                </Card>
+              </Link>
             </Grid>
           ))}
         </Grid>
