@@ -1,5 +1,5 @@
 import React from 'react'
-import clsx from 'clsx'
+import Image from 'next/image'
 import { Typography, Grid } from '@material-ui/core'
 import useStyles from '../styles/components/Footer'
 
@@ -7,7 +7,7 @@ function Footer() {
   const classes = useStyles()
 
   return (
-    <footer className={clsx(classes.root, classes.appBarDrawerClose)}>
+    <footer className={classes.root}>
       <Grid
         container
         direction="row"
@@ -28,10 +28,11 @@ function Footer() {
               target="blank"
               className={classes.logoLink}
             >
-              <img
+              <Image
                 src="/logo.png"
-                title="LIneA"
-                alt="LineA"
+                alt="LIneA"
+                width={52}
+                height={52}
                 className={classes.logoFooter}
               />
             </a>

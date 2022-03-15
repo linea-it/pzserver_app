@@ -8,7 +8,7 @@ const useStyles = makeStyles(theme => ({
     marginRight: 10
   },
   appbar: {
-    background: '#212121'
+    background: theme.palette.primary.dark
   },
   separator: {
     flexGrow: 1
@@ -32,9 +32,9 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'uppercase',
     whiteSpace: 'nowrap'
   },
-  logoLIneA: {
-    maxWidth: 64
-  },
+  // logoLIneA: {
+  //   maxWidth: 64
+  // },
   toolbar: {
     display: 'flex',
     [theme.breakpoints.down('xs')]: {

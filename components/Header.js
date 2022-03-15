@@ -1,5 +1,6 @@
 import React from 'react'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
 import {
   AppBar,
   Toolbar,
@@ -37,9 +38,9 @@ function Header() {
 
   return (
     <div>
-      <AppBar position="static" className={classes.toolbarWrapper}>
+      <AppBar position="static" className={classes.appbar}>
         <Toolbar className={classes.toolbar}>
-          <img src="/logo.png" alt="LIneA" className={classes.logoLIneA} />
+          <Image src="/logo.png" alt="LIneA" width={64} height={64} />
           <List className={classes.menuList}>
             {menus.map(menu => (
               <ListItem key={menu.href} className={classes.menuListItem}>
