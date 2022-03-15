@@ -11,7 +11,10 @@ const useStyles = makeStyles(theme => ({
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen
-    })
+    }),
+    [theme.breakpoints.down('sm')]: {
+      height: '100%'
+    }
   },
   toolbar: {
     alignItems: 'center',
@@ -39,7 +42,11 @@ const useStyles = makeStyles(theme => ({
     marginTop: 8,
     display: 'flex',
     alignItems: 'center',
-    gap: 16
+    gap: 16,
+    [theme.breakpoints.down('sm')]: {
+      width: '100%',
+      flexDirection: 'column'
+    }
   },
   rsp: {
     color: '#fff',
