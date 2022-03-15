@@ -10,7 +10,7 @@ export default class MyDocument extends Document {
           {/* PWA primary color */}
           <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Oxanium|Roboto:300,400,500,700&display=swap"
+            href="https://fonts.googleapis.com/css?family=Oxanium|League+Gothic|Lato|Roboto:300,400,500,700&display=swap"
           />
           <link rel="shortcut icon" href="/favicon.png" />
         </Head>

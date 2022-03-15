@@ -17,32 +17,34 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  versionLink: {
-    color: '#d2cf00',
-    textDecoration: 'none',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    display: 'inline-block',
-    verticalAlign: 'middle'
-  },
   logoLink: {
     lineHeight: 0,
     display: 'inline-block',
     verticalAlign: 'middle'
   },
-  poweredBy: {
-    display: 'inline-block',
-    verticalAlign: 'middle',
-    color: '#fff'
-  },
   logoFooter: {
     cursor: 'pointer',
     marginLeft: '10px'
   },
+  poweredBy: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    color: '#fff',
+    marginRight: 16,
+    fontFamily: 'Roboto Condensed'
+  },
   marginItem: {
     marginLeft: 20,
     marginRight: 20,
-    marginTop: 8
+    marginTop: 8,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16
+  },
+  rsp: {
+    color: '#fff',
+    fontFamily: 'League Gothic',
+    fontSize: 32
   }
 }))
 
