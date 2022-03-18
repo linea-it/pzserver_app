@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
 import PropTypes from 'prop-types'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
+import { AuthProvider } from '../contexts/AuthContext'
 import light from '../themes/light'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -10,6 +12,7 @@ import '../styles/global.css'
 
 export default function MyApp(props) {
   const { Component, pageProps } = props
+  const route = useRouter()
 
   useEffect(() => {
     // Remove the server-side injected CSS.
@@ -40,9 +43,11 @@ export default function MyApp(props) {
             height: '100%'
           }}
         >
-          <Header />
-          <Component {...pageProps} />
-          <Footer />
+          <AuthProvider>
+            {route.pathname !== '/login' && <Header />}
+            <Component {...pageProps} />
+            {route.pathname !== '/login' && <Footer />}
+          </AuthProvider>
         </div>
       </ThemeProvider>
     </>
