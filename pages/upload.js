@@ -7,6 +7,7 @@ import {
   MenuItem,
   Button
 } from '@material-ui/core'
+import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/upload'
 
 export default function Upload() {
@@ -109,4 +110,23 @@ export default function Upload() {
       </Grid>
     </Container>
   )
+}
+
+export const getServerSideProps = async ctx => {
+  const { 'pzserver.token': token } = parseCookies(ctx)
+
+  // A better way to validate this is to have
+  // an endpoint to verify the validity of the token:
+  if (!token) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {}
+  }
 }
