@@ -1,34 +1,48 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PZ Server
 
-## Getting Started
+The Photo-z (PZ) Server is one of the Brazilian in-kind contributions offered by the Laboratório Interinstitucional de e-Astronomia (LIneA) to the PZ Coordination Group from Vera C. Rubin Observatory's Data Management (DM) Team. Inspired by features of the DES Science Portal (Gschwend et al., 2018; Fausti Neto et al., 2018), the PZ Server is being planned to be an online service, complementary to the Rubin Science Platform (RSP), to host PZ-related lightweight data products and to offer data management tools that allow sharing data products among RSP users, attach and share relevant metadata, and help on provenance tracking.
 
-First, run the development server:
+---
 
+## Development
+### Dependencies
+  - [NodeJS](https://nodejs.org/en/download/)
+  - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable)
+
+First, install the dependencies:
 ```bash
-npm run dev
-# or
+yarn install
+```
+
+After, run the development server:
+```bash
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Finally, open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+---
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Production
+### Dependencies
+  - [Docker](https://docs.docker.com/engine/install/)
+  - [Docker Compose](https://docs.docker.com/compose/install/)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Build the application's image:
+```bash
+docker-compose build
+```
 
-## Learn More
+In case you want to use an already built image, change the name in [docker-compose.yml](docker-compose.yml):
+```
+...
+services:
+  frontend:
+    image: CHANGE_IMAGE_NAME
+    ...
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Run the application:
+```bash
+docker-compose up
+```
