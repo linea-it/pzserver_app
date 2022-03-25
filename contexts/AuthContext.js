@@ -7,15 +7,16 @@ import { api } from '../services/api'
 export const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [userInfo, setUserInfo] = useState(null)
 
-  const isAuthenticated = !!user
+  const isAuthenticated = !!userInfo
 
   useEffect(() => {
     const { 'pzserver.token': token } = parseCookies()
 
+    // TODO: Function to validate token
     if (token) {
-      recoverUserInformation().then(res => setUser(res.user))
+      recoverUserInformation().then(res => setUserInfo(res.user))
     }
   }, [])
 
@@ -31,13 +32,13 @@ export function AuthProvider({ children }) {
 
     api.defaults.headers.Authorization = `Bearer ${token}`
 
-    setUser(user)
+    setUserInfo(user)
 
     Router.push('/')
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, signIn }}>
+    <AuthContext.Provider value={{ user: userInfo, isAuthenticated, signIn }}>
       {children}
     </AuthContext.Provider>
   )
