@@ -33,7 +33,7 @@ function Header() {
     {
       description: 'Contact',
       href: '/contact'
-    }
+    },
   ]
 
   return (

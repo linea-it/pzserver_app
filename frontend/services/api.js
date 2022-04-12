@@ -5,7 +5,7 @@ export function getAPIClient(ctx) {
   const { 'pzserver.token': token } = parseCookies(ctx)
 
   const api = axios.create({
-    baseURL: '/'
+    baseURL: '/api'
   })
 
   if (token) {
