@@ -15,10 +15,3 @@ Antes de iniciar o container do frontend é necessário instalar as dependencias
 ```bash
 docker-compose run frontend yarn
 ```
-
-
-
-
-
-
-
