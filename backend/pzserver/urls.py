@@ -32,6 +32,7 @@ route.register(r"releases", products_viewsets.ReleaseViewSet, basename="Releases
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(route.urls)),
+    path("dj-rest-auth/", include("dj_rest_auth.urls")),
 ]
 
 # if settings.DEBUG:
