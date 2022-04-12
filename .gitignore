@@ -6,3 +6,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Postgresql stuffs
+pg_data/
+pg_backups/

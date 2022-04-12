@@ -24,6 +24,16 @@ services:
     depends_on:
       - database
 
+  frontend:
+    image: node:lts
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    stdin_open: true
+    command: yarn dev
+    # ports:
+    #   - 3000:3000
+
   nginx:
     image: nginx:1.21.6-alpine
     ports:
@@ -34,3 +44,4 @@ services:
       - ./archive/data:/var/www/data
     depends_on:
       - backend
+      - frontend

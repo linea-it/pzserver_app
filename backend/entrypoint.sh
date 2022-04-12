@@ -3,7 +3,7 @@
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
-gunicorn pzserver.wsgi:application --bind 0.0.0.0:8000
+gunicorn pzserver.wsgi:application --bind 0.0.0.0:8000 --reload
 
 # TODO: Para produção é necessário usar o uWSGI!
 # uWSGI para servir o app e ter compatibilidade com Shibboleth
