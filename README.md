@@ -118,6 +118,12 @@ Acessar banco de dados com Psql
 docker-compose exec database psql -h localhost -U <username> -d <database>
 ```
 
+Adicionar Bibliotecas ao frontend utilizando yarn
+
+``` bash
+docker-compose run frontend yarn add <library>
+```
+
 ### Build manual das imagens e push para docker hub
 
 Docker Hub: <https://hub.docker.com/repository/docker/linea/pzserver/>
@@ -161,6 +167,11 @@ cd pzserver
 ```
 
 Crie um arquivo `docker-compose.yml` baseado no template `docker-compose-production.yml`
+
+Altere as imagens do frontend e backend para a versão desejada, substitua a string `<VERSION>` pela tag da imagem.
+
+Altere a porta que será utilizada para a aplicação, substitua a string `<PORT>` por uma porta que esteja disponivel no ambiente, está porta é que deverá ser associada a url da aplicação.
+
 Edite o arquivo conforme as necessidades do ambiente.
 Geralmente as mudanças são nos volumes e na porta do ngnix.
 
@@ -189,6 +200,27 @@ Com o serviço desligado execute o comando abaixo para gerar uma SECRET, copie e
 docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
+```bash
+docker-compose run backend python manage.py createsuperuser
+```
+
 Crie o arquivo de configuração do Ngnix `nginx.conf` baseado no arquivo `nginx_production.conf`
 
+Inicie todos os serviços
 
+```bash
+docker-compose up -d
+```
+
+Configure uma URL que direcione para a maquina onde está instalado na porta configurada para o Ngnix no docker-compose.
+
+No final deste exemplo a pasta pzserver ficou desta forma:
+
+```bash
+-rw-r--r--  docker-compose.yml 
+-rw-r--r--  nginx.conf # Arquivo de configuração do Ngnix.
+-rw-r--r--  .env # Arquivo com as variaveis de configuração
+drwxr-xr-x  archive # Diretório onde ficam os arquivos gerados pela aplicação.
+drwx------  pg_data # Diretório onde ficam os arquivos do postgresql em container
+drwxr-xr-x  pg_backups # Diretório onde ficam os arquivos do postgresql em container
+```

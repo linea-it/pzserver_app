@@ -10,11 +10,11 @@ DEBUG=1
 SECRET_KEY=Z-cVO6l8catnpijVIKXcwwaKeGJTzJ2hiItn3lw2a4M
 
 # Database
-SQL_ENGINE=django.db.backends.postgresql
-SQL_USER=pzadmin
-SQL_PASSWORD=adminpz
-SQL_DATABASE=pzdev
-SQL_HOST=database
-SQL_PORT=5432
+DB_ENGINE=django.db.backends.postgresql
+DB_USER=pzadmin
+DB_PASSWORD=adminpz
+DB_DATABASE=pzdev
+DB_HOST=database
+DB_PORT=5432
 
 # DJANGO_ALLOWED_HOSTS
