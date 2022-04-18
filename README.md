@@ -1,3 +1,4 @@
+# PhotoZ Server
 
 ## Setup Develop Enviroment
 
@@ -224,3 +225,12 @@ drwxr-xr-x  archive # Diretório onde ficam os arquivos gerados pela aplicação
 drwx------  pg_data # Diretório onde ficam os arquivos do postgresql em container
 drwxr-xr-x  pg_backups # Diretório onde ficam os arquivos do postgresql em container
 ```
+
+## Update Production Enviroment
+
+Procedimento para atualizar o ambiente de produção ou qualquer outro que utilize imagens builded.
+
+- Editar o arquivo docker-compose.yml e alterar a tag das imagens frontend e backend.
+- Editar o arquivo `.env` para adicionar novas variaveis ou altera-las se necessário.
+- Executar o pull das novas imagens com o comando `docker-compose pull`.
+- Restart dos serviços `docker-compose stop && docker-compose up -d`.
