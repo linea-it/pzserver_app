@@ -1,6 +1,19 @@
 
 
-### 
+## Develop Enviroment
+
+Faça o clone do repositório e acesse o diretório.
+
+```bash
+git clone https://github.com/linea-it/pz-server.git pzserver
+cd pzserver
+```
+
+Copie o arquivo `docker-compose-development.yml` e renomeie para `docker-compose.yml`
+
+```bash
+cp docker-compose-development.yml docker-compose.yml
+```
 
 ### Setup Database
 
