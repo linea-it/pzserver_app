@@ -38,7 +38,7 @@ WORKDIR /app
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY ./entrypoint.sh /app/entrypoint.sh
-ENTRYPOINT ./entrypoint.sh
+# ENTRYPOINT ./entrypoint.sh
 
 COPY . /app
 

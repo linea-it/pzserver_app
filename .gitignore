@@ -10,3 +10,9 @@ venv.bak/
 # Postgresql stuffs
 pg_data/
 pg_backups/
+
+# Ngnix 
+nginx.conf
+
+# Docker Compose 
+docker-compose.yml
