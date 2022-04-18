@@ -65,15 +65,15 @@ docker-compose run backend python manage.py createsuperuser
 
 Agora instale as dependencias do Frontend executando o comando `yarn`. Por ser a primeira vez inciando este container, será feito o pull da imagem base o que pode demorar um pouco.
 
-No ambiente de desenvolvimento não é necessário alterar as configurações do Ngnix.
-Mas caso seja necessário uma alteração local, copie o arquivo `nginx_development.conf` para `nginx.conf`
-Altere também o arquivo `docker-compose.yml` no serviço ngnix na linha `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. Desta forma o arquivo ngnix.conf representa seu ambiente local, caso faça alguma modificação que seja necessária para o projeto, copie esta modificação para o arquivo de template, pois o arquivo nginx.conf não faz parte do repositório.  
-
 ```bash
 docker-compose run frontend yarn
 ```
 
 Este comando vai criar o diretório `pzserver/frontend/node_modules` caso tenha algum problema com dependencias remova este diretório e execute o comando novamente.
+
+No ambiente de desenvolvimento não é necessário alterar as configurações do Ngnix.
+Mas caso seja necessário uma alteração local, copie o arquivo `nginx_development.conf` para `nginx.conf`
+Altere também o arquivo `docker-compose.yml` no serviço ngnix na linha `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. Desta forma o arquivo ngnix.conf representa seu ambiente local, caso faça alguma modificação que seja necessária para o projeto, copie esta modificação para o arquivo de template, pois o arquivo nginx.conf não faz parte do repositório.  
 
 Feito isto o processo de setup do ambiente de desenvolvimento está completo.
 
@@ -149,7 +149,7 @@ docker push linea/pzserver:frontend_<commit_hash>
 
 ## Setup Production Enviroment
 
-No ambiente de produção é necessário fazer clone do repositório.
+No ambiente de produção **Não** é necessário fazer clone do repositório.
 
 O exemplo a seguir considera uma instalação onde o banco de dados e ngnix estão em containers como no ambiente de dev e os volumes são diretórios dentro da raiz pzserver.
 
@@ -193,7 +193,7 @@ docker-compose up backend
 Encerre o serviço do backend e altere as variaveis do Django.
 Edite o arquivo `.env`
 
-Em produção é OBRIGATÓRIO desligar o Debug `DEBUG=0`. e alterar a variavel `SECRET` que deve ser unica para cada ambiente.
+Em produção é **OBRIGATÓRIO** desligar o Debug `DEBUG=0`. e alterar a variavel `SECRET` que deve ser unica para cada ambiente.
 
 Com o serviço desligado execute o comando abaixo para gerar uma SECRET, copie e cole no .env
 
