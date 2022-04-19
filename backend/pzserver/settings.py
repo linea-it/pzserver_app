@@ -34,16 +34,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.sites",
+    # "django.contrib.sites",
     # Third-party
     "corsheaders",
     "rest_framework",
-    "rest_framework.authtoken",
-    "dj_rest_auth",
-    "allauth",
-    "allauth.account",
-    "dj_rest_auth.registration",
-    "allauth.socialaccount",
+    "drf_spectacular",
+    # OAuth2
+    "oauth2_provider",
+    "social_django",
+    "drf_social_oauth2",
     # Apps
     "core",
 ]
@@ -72,6 +71,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -118,7 +119,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -142,14 +142,31 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
+        'drf_social_oauth2.authentication.SocialAuthentication',
     )
 }
 
-REST_USE_JWT = True
-JWT_AUTH_COOKIE = 'auth'
-JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Photo-z Server API',
+    'DESCRIPTION': 'This is the API for the Photo-z Server.',
+    'VERSION': '0.1.0',
+}
 
-SITE_ID = 1
+AUTHENTICATION_BACKENDS = (
+   "social_core.backends.github.GithubOAuth2",
+   "social_core.backends.github.GithubOrganizationOAuth2",
+   "drf_social_oauth2.backends.DjangoOAuth2",
+   "django.contrib.auth.backends.ModelBackend",
+)
 
+SOCIAL_AUTH_GITHUB_ORG_KEY = ''
+SOCIAL_AUTH_GITHUB_ORG_SECRET = ''
+SOCIAL_AUTH_GITHUB_ORG_SCOPE = ['user:email', 'read:org']
+SOCIAL_AUTH_GITHUB_ORG_NAME = 'linea-it'
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+
+LOGIN_REDIRECT_URL = '/api/'
+ACTIVATE_JWT = True

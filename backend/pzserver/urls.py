@@ -14,12 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-
-# from django import settings
-
+from django.urls import path, re_path, include
 from rest_framework import routers
 from core.api import viewsets as products_viewsets
+from core import views
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 route = routers.DefaultRouter()
 
@@ -30,16 +29,11 @@ route.register(r"products", products_viewsets.ProductViewSet, basename="Products
 route.register(r"releases", products_viewsets.ReleaseViewSet, basename="Releases")
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path('admin/', admin.site.urls),
+    re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='social')),
+    re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='drf')),
     path("api/", include(route.urls)),
-    path("dj-rest-auth/", include("dj_rest_auth.urls")),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
-
-# if settings.DEBUG:
-#    from django.views.static import serve
-#    from django.conf.urls.static import static
-
-#    urlpatterns += [
-#        url(r'^media/(?P<path>.*)$', serve,
-#           {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-#    ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
