@@ -88,7 +88,7 @@ function Header() {
             </MuiLink>
             <MuiLink
               className={classes.social}
-              href="https://github.com/linea-it/tno"
+              href="https://github.com/linea-it/pz-server"
               target="_blank"
               color="inherit"
               rel="noreferrer"
