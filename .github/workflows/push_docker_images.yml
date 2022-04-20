@@ -95,7 +95,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: backend
-          path: /tmp
+          path: /tmp/backend.tar
       -
         name: Load Docker image
         run: |
