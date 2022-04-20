@@ -50,6 +50,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,dest=/tmp/backend.tar
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: backend_img
+          path: /tmp/backend.tar
+
   # build_frontend:
   #   name: Build and Push Frontend
   #   runs-on: ubuntu-latest
@@ -94,8 +100,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: backend
-          path: /tmp/backend.tar
+          name: backend_img
+          path: /tmp
       -
         name: Load Docker image
         run: |
