@@ -35,7 +35,7 @@ jobs:
             type=sha,enable=true,priority=100,prefix=backend_,suffix=,format=short
             type=semver,enable=true,priority=900,prefix=backend_v,suffix=,pattern={{version}},value=
           flavor: |
-            latest=auto
+            latest=true
             prefix=backend_,onlatest=true            
 
       # - run: echo ${{ steps.meta.outputs.tags }}
