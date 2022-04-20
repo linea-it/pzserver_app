@@ -34,7 +34,9 @@ jobs:
           tags: |
             type=sha,enable=true,priority=100,prefix=backend_,suffix=,format=short
             type=semver,enable=true,priority=900,prefix=backend_v,suffix=,pattern={{version}},value=
-            type=ref,enable=true,priority=600,prefix=backend_,suffix=,event=tag
+            type=ref,enable=true,priority=600,prefix=backend_,suffix=,event=tag,value=latest
+          flavor: |
+            latest=false
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
