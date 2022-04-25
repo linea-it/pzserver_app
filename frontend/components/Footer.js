@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
-import { Typography, Grid } from '@material-ui/core'
+import { Typography, Grid } from '@mui/material'
 import Link from '../components/Link'
 import useStyles from '../styles/components/Footer'
 
