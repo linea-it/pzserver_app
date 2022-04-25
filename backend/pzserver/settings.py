@@ -156,17 +156,17 @@ SPECTACULAR_SETTINGS = {
 }
 
 AUTHENTICATION_BACKENDS = (
-   "social_core.backends.github.GithubOAuth2",
-   "social_core.backends.github.GithubOrganizationOAuth2",
-   "drf_social_oauth2.backends.DjangoOAuth2",
-   "django.contrib.auth.backends.ModelBackend",
+    "social_core.backends.github.GithubOAuth2",
+    "social_core.backends.github.GithubOrganizationOAuth2",
+    "drf_social_oauth2.backends.DjangoOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
 )
 
-SOCIAL_AUTH_GITHUB_ORG_KEY = ''
-SOCIAL_AUTH_GITHUB_ORG_SECRET = ''
-SOCIAL_AUTH_GITHUB_ORG_SCOPE = ['user:email', 'read:org']
-SOCIAL_AUTH_GITHUB_ORG_NAME = 'linea-it'
+SOCIAL_AUTH_GITHUB_ORG_KEY = os.getenv("GITHUB_CLIENT_ID", None)
+SOCIAL_AUTH_GITHUB_ORG_SECRET = os.getenv("GITHUB_CLIENT_SECRET", None)
+SOCIAL_AUTH_GITHUB_ORG_NAME = os.getenv("GITHUB_ORG_NAME", "linea-it")
+SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
-LOGIN_REDIRECT_URL = '/api/'
+LOGIN_REDIRECT_URL = "/api/"
 ACTIVATE_JWT = True

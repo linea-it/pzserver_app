@@ -15,13 +15,13 @@ Copie o arquivo `docker-compose-development.yml` e renomeie para `docker-compose
 cp docker-compose-development.yml docker-compose.yml
 ```
 
-Crie o arquivo de variaveis de ambiente baseado no `env_template`.
+Crie o arquivo de variáveis de ambiente baseado no `env_template`.
 
 ```bash
 cp env_template .env
 ```
 
-Edite o arquivo e altere as variaveis de acordo com seu ambiente, neste primeiro momento de anteção as variaveis referentes ao banco de dados e de conexão do django.
+Edite o arquivo e altere as variáveis de acordo com seu ambiente, neste primeiro momento de atenção as variáveis referentes ao banco de dados e de conexão do django.
 
 Agora inicie o serviço de banco de dados, é importante que a primeira vez o serviço do banco de dados seja ligado sozinho, nesta etapa o postgresql vai criar o banco de dados e o usuario baseado nas settings `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`.
 
@@ -77,7 +77,7 @@ Altere também o arquivo `docker-compose.yml` no serviço ngnix na linha `- ./ng
 
 Feito isto o processo de setup do ambiente de desenvolvimento está completo.
 
-### Algus comandos de exemplo
+### Alguns comandos de exemplo
 
 Ligar o ambiente em background.
 
@@ -124,6 +124,72 @@ Adicionar Bibliotecas ao frontend utilizando yarn
 ``` bash
 docker-compose run frontend yarn add <library>
 ```
+
+### Adicionar autenticação OAuth com Github
+
+#### Criando app OAuth no Github
+Primeiramente devemos criar um app OAuth com uma conta Github. Segue link com o passo a passo:
+- <https://docs.github.com/pt/developers/apps/building-oauth-apps/creating-an-oauth-app>
+
+<b>Informação importante!</b>
+- A Homepage URL deverá corresponder ao seguinte padrão: `http://<URL app>/api`
+- A Authorization callback URL deverá corresponder ao seguinte padrão: `http://<URL app>/auth/complete/github-org/` 
+
+Exemplo de URLs para ambiente de desenvolvimento:
+- Homepage URL: `http://localhost/api`
+- Authorization callback URL: `http://localhost/auth/complete/github-org/`
+
+Após a criação, o aplicativo fornecerá um `CLIENT ID` e você deverá gerar um `CLIENT SECRET` na página de configuração da app. Essas informações deverão ser adicionadas ao `.env` do projeto nos respectivos campos:
+``` bash
+GITHUB_CLIENT_ID=<your CLIENT ID>
+GITHUB_CLIENT_SECRET=<your CLIENT SECRET>
+```
+#### Configurando um aplicativo de OAuth interno
+Vá para Django Admin e adicione um novo aplicativo com a seguinte configuração:
+
+- `client_id` e `client_secret` devem ser deixados inalterados
+- O `user` deve ser seu superusuário
+- `redirect_uris` deve ser o mesmo endereço da Authorization callback URL
+- `client_type` deve ser definido como `confidencial`
+- `authorization_grant_type` deve ser definido como 'Authorization Code'
+- `name` pode ser definido para o que você gostaria, sugestão: `Github`
+
+A instalação é concluída, você pode agora testar o aplicativo recém-configurado.
+
+OBS: Você pode adicionar outros aplicativos internos para fornecer tokens para os usuários criados diretamente no banco de dados, ou para se autenticar a outro provedor de OAuth como o do Facebook ou Google por exemplo.
+
+#### Login com Github
+Para se logar com o Github:
+- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para ser autenticar com as credencias do Github. 
+- Após se logar, dê permissão ao app de vizualizar a organização linea-it.
+- Você será redirecionado ao endereço: `http://<URL app>/api`
+
+Pronto você esta logado na aplicação com sua conta Github. O próximo passo é converter o código de acesso do Github a um token interno.
+
+#### Converter access code em token interno
+- Acesse o Django admin e visualize o registro criado na tabela `` referente ao seu usuário. 
+- Recupere o access code diretamente no registro
+- Use o seguinte comando para converter seu código Github em um token interno:
+``` bash
+curl -X POST -d "grant_type=convert_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&backend=github-org&token=<github_token>" http://<URL app>/auth/convert-token
+```
+
+Essa solicitação retorna um "access_token" que você deve usar com todas as solicitações HTTP para sua API REST. O que está acontecendo aqui é que estamos convertendo um token de acesso de terceiros (<user_access_token>) em um token de acesso para usar com sua API e seus clientes ("access_token"). Você deve usar esse token em todas as comunicações futuras entre seu sistema/aplicativo e sua API para autenticar cada solicitação e evitar sempre a autenticação com o Github.
+
+Exemplos:
+- Para acessar o endpoint que lista todos releases:
+    ``` bash
+    curl -H "Authorization: Bearer <access_token>" http://<URL app>/api/releases/
+    ```
+- Refresh token:
+    ``` bash
+    curl -X POST -d "grant_type=refresh_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&refresh_token=<your_refresh_token>" http://<URL app>/auth/token
+    ```
+- Revoke a single token:
+    ``` bash
+    curl -X POST -d "client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&token=<access_token>" http://<URL app>/auth/revoke-token
+    ```
+
 
 ### Build manual das imagens e push para docker hub
 
