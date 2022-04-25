@@ -5,7 +5,7 @@ import {
   CardActionArea,
   CardMedia,
   Typography
-} from '@material-ui/core'
+} from '@mui/material'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/index'
 
