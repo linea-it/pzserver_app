@@ -1,6 +1,7 @@
 import { Container, Grid, Typography } from '@mui/material'
 
 export default function About() {
+
   return (
     <Container>
       <Grid container spacing={2}>
