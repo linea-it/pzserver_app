@@ -8,7 +8,7 @@ import {
   ListItem,
   Grid,
   Link as MuiLink
-} from '@material-ui/core'
+} from '@mui/material'
 import { YouTube, Twitter, GitHub } from '@mui/icons-material'
 import Link from './Link'
 import useStyles from '../styles/components/Header'

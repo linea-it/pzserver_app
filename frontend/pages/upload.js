@@ -6,7 +6,7 @@ import {
   TextField,
   MenuItem,
   Button
-} from '@material-ui/core'
+} from '@mui/material'
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/upload'
 
