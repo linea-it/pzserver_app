@@ -9,7 +9,7 @@ import {
   Grid,
   Link as MuiLink
 } from '@material-ui/core'
-import { YouTube, Twitter, GitHub } from '@material-ui/icons'
+import { YouTube, Twitter, GitHub } from '@mui/icons-material'
 import Link from './Link'
 import useStyles from '../styles/components/Header'
 

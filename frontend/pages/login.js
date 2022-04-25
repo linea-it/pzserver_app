@@ -9,7 +9,7 @@ import {
   Snackbar
 } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert'
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/login'
 import { AuthContext } from '../contexts/AuthContext'
