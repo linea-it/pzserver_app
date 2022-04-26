@@ -160,7 +160,7 @@ OBS: Você pode adicionar outros aplicativos internos para fornecer tokens para 
 
 #### Login com Github
 Para se logar com o Github:
-- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para se autenticar com suas credencias do Github. 
+- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para se autenticar com suas credenciais do Github. 
 - Após se logar, dê permissão ao app de vizualizar a organização linea-it.
 - Você será redirecionado ao endereço: `http://<URL app>/api`
 
