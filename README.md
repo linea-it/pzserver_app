@@ -160,18 +160,18 @@ OBS: Você pode adicionar outros aplicativos internos para fornecer tokens para 
 
 #### Login com Github
 Para se logar com o Github:
-- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para ser autenticar com as credencias do Github. 
+- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para se autenticar com suas credencias do Github. 
 - Após se logar, dê permissão ao app de vizualizar a organização linea-it.
 - Você será redirecionado ao endereço: `http://<URL app>/api`
 
 Pronto você esta logado na aplicação com sua conta Github. O próximo passo é converter o código de acesso do Github a um token interno.
 
-#### Converter access code em token interno
-- Acesse o Django admin e visualize o registro criado na tabela `` referente ao seu usuário. 
-- Recupere o access code diretamente no registro
-- Use o seguinte comando para converter seu código Github em um token interno:
+#### Converter user access code em token interno
+- Acesse o Django admin e visualize o registro criado na tabela `User social auths` referente ao seu usuário. 
+- Recupere o user access code (access_token) diretamente no registro
+- Use o seguinte comando para converter seu código Github em um token interno, substituindo `URL app`, `client_id`, `client_secret` e o `user_access_token`:
 ``` bash
-curl -X POST -d "grant_type=convert_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&backend=github-org&token=<github_token>" http://<URL app>/auth/convert-token
+curl -X POST -d "grant_type=convert_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&backend=github-org&token=<user_access_token>" http://<URL app>/auth/convert-token
 ```
 
 Essa solicitação retorna um "access_token" que você deve usar com todas as solicitações HTTP para sua API REST. O que está acontecendo aqui é que estamos convertendo um token de acesso de terceiros (<user_access_token>) em um token de acesso para usar com sua API e seus clientes ("access_token"). Você deve usar esse token em todas as comunicações futuras entre seu sistema/aplicativo e sua API para autenticar cada solicitação e evitar sempre a autenticação com o Github.
