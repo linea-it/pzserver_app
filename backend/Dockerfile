@@ -11,13 +11,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # TODO: Instalar as dependencias do LDAP e do Shibboleth.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    gcc \
-    python3-dev \
-    build-essential \
-    libpcre3 \
-    libpcre3-dev
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends \
+#     gcc \
+#     python3-dev \
+#     build-essential \
+#     libpcre3 \
+#     libpcre3-dev
 
 RUN python -m venv /opt/venv
 
