@@ -139,7 +139,7 @@ docker-compose run frontend yarn build
 Primeiramente devemos criar um app OAuth com uma conta Github. Segue link com o passo a passo:
 - <https://docs.github.com/pt/developers/apps/building-oauth-apps/creating-an-oauth-app>
 
-<b>Informação importante!</b>
+**Importante:**
 - A Homepage URL deverá corresponder ao seguinte padrão: `http://<URL app>/api`
 - A Authorization callback URL deverá corresponder ao seguinte padrão: `http://<URL app>/auth/complete/github-org/` 
 
