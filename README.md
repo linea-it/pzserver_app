@@ -77,8 +77,11 @@ Altere também o arquivo `docker-compose.yml` no serviço ngnix na linha `- ./ng
 
 Feito isto o processo de setup do ambiente de desenvolvimento está completo.
 
-**Recomendação:** Antes de realizar o push, é recomendável fazer o build do frontend para evitar que erros com o ESlint atrapalhe o processo de Pull Request.
+**Recomendação:** Antes de realizar o push, é recomendável fazer o build do frontend para evitar que erros com o ESlint atrapalhe o processo de Pull Request:
 
+``` bash
+docker-compose run frontend yarn build
+```
 
 ### Alguns comandos de exemplo
 
@@ -126,11 +129,6 @@ Adicionar Bibliotecas ao frontend utilizando yarn
 
 ``` bash
 docker-compose run frontend yarn add <library>
-```
-
-Fazer build do frontend
-``` bash
-docker-compose run frontend yarn build
 ```
 
 ### Adicionar autenticação OAuth com Github
