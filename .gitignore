@@ -6,6 +6,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*.http
 
 # Postgresql stuffs
 pg_data/

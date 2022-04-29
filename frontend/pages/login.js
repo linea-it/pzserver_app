@@ -8,7 +8,7 @@ import {
   Container,
   Snackbar
 } from '@mui/material'
-import Alert from '@material-ui/lab/Alert'
+import Alert from '@mui/material/Alert'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/login'
