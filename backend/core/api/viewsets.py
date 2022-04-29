@@ -7,13 +7,13 @@ import os
 
 
 class ProductTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.ProductType.objects.all()
     serializer_class = serializers.ProductTypeSerializer
 
 
 class ReleaseViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.Release.objects.all()
     serializer_class = serializers.ReleaseSerializer
 
