@@ -8,10 +8,10 @@ export const getProductTypes = ({ }) => {
   return api.get('/product-types/').then(res => res.data)
 }
 
-export const getProducts = ({ filters = {}, search, limit, offset, sort = [] }) => {
+export const getProducts = ({ filters = {}, search, page = 0, page_size = 25, sort = [] }) => {
   let ordering = null
 
-  // Tratamento da ordenação no DRF
+  // Ordenação no DRF
   // https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter
   if (sort.length === 1) {
     ordering = sort[0].field
@@ -20,9 +20,10 @@ export const getProducts = ({ filters = {}, search, limit, offset, sort = [] }) 
       ordering = '-' + ordering
     }
   }
-
-  // Tratamento dos filtros
-  const params = { offset, limit, ordering, search }
+  // Paginação no DRF
+  // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+  // Django não aceita pagina 0 por isso é somado 1 ao numero da página.
+  page += 1
 
   // TODO: Tratar os objeto de filtro, cada propriedade deve virar um elemento no objeto params
   // if (filters) {
@@ -30,6 +31,9 @@ export const getProducts = ({ filters = {}, search, limit, offset, sort = [] }) 
   //     params[element.property] = element.value
   //   })
   // }
+
+  // Todos os Query Params
+  const params = { page, page_size, ordering, search }
   console.log(params)
   return api.get('/products/', { params }).then(res => res.data)
 }

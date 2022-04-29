@@ -21,14 +21,12 @@ import { getProducts } from '../services/product'
 export default function Products() {
   const classes = useStyles()
 
-  const [rows, setRows] = React.useState([])
-
-  // const [filters, setFilters] = React.useState({
-  //   release: '',
-  //   product_type: ''
-  // })
   const [search, setSearch] = React.useState('')
 
+  const [rows, setRows] = React.useState([])
+  const [rowCount, setRowCount] = React.useState(undefined)
+
+  const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
   const [sortModel, setSortModel] = React.useState([
     { field: 'created_at', sort: 'desc' }
@@ -53,6 +51,7 @@ export default function Products() {
     []
   )
 
+  // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
   React.useEffect(() => {
     // eslint-disable-next-line prettier/prettier
     let active = true
@@ -60,26 +59,43 @@ export default function Products() {
     // eslint-disable-next-line no-unexpected-multiline
     ;(async () => {
       setLoading(true)
-      const newRows = await getProducts({ sort: sortModel, search: search })
+      const response = await getProducts({
+        page: page,
+        page_size: pageSize,
+        sort: sortModel,
+        search: search
+      })
 
       if (!active) {
         return
       }
-
-      setRows(newRows)
+      // setRows(response.results)
+      setRows(response.results)
+      setRowCount(response.count)
       setLoading(false)
     })()
 
     return () => {
       active = false
     }
-  }, [sortModel, search])
+  }, [page, pageSize, sortModel, search])
+
+  // Some api client return undefine while loading
+  // Following lines are here to prevent `rowCountState` from being undefined during the loading
+  const [rowCountState, setRowCountState] = React.useState(rowCount || 0)
+  React.useEffect(() => {
+    setRowCountState(prevRowCountState =>
+      rowCount !== undefined ? rowCount : prevRowCountState
+    )
+  }, [rowCount, setRowCountState])
 
   const columns = React.useMemo(
     () => [
       { field: 'id', headerName: 'ID', width: 90, sortable: true },
       { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
       {
+        // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
+        // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
         field: 'product_type_name',
         headerName: 'Product Type',
         width: 150,
@@ -178,12 +194,6 @@ export default function Products() {
                 }}
               />
             </FormControl>
-            {/* <IconButton
-              aria-label="toggle password visibility"
-              onClick={e => loadProducts()}
-            >
-              <RefreshIcon />
-            </IconButton> */}
           </Box>
         </Grid>
         <Grid item xs={12}>
@@ -191,14 +201,20 @@ export default function Products() {
             getRowId={row => row.id}
             rows={rows}
             columns={columns}
-            pageSize={pageSize}
-            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
             // checkboxSelection
             disableSelectionOnClick
             autoHeight
             sortingMode="server"
             sortModel={sortModel}
             onSortModelChange={handleSortModelChange}
+            paginationMode="server"
+            rowCount={rowCountState}
+            pagination
+            page={page}
+            onPageChange={page => setPage(page)}
+            pageSize={pageSize}
+            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+            rowsPerPageOptions={[1, 2, 25, 50, 100]}
             loading={loading}
           />
         </Grid>

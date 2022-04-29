@@ -12,7 +12,7 @@ export default function ReleaseSelect() {
 
   useEffect(() => {
     getReleases().then(res => {
-      return setReleases(res)
+      return setReleases(res.results)
     })
   }, [])
 

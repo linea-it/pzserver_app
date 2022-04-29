@@ -12,7 +12,7 @@ export default function ProductTypeSelect() {
 
   useEffect(() => {
     getProductTypes().then(res => {
-      return setProductTypes(res)
+      return setProductTypes(res.results)
     })
   }, [])
 

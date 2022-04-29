@@ -28,7 +28,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         "file_name",
         "file_size",
     ]
-    ordering = ["created_at"]
+    ordering = ["-created_at"]
 
     def perform_create(self, serializer):
         # Usuario que fez o upload
