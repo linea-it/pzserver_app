@@ -37,16 +37,13 @@ INSTALLED_APPS = [
     # "django.contrib.sites",
     # Third-party
     "corsheaders",
-<<<<<<< HEAD
     "django_filters",
-=======
     "rest_framework",
     "drf_spectacular",
     # OAuth2
     "oauth2_provider",
     "social_django",
     "drf_social_oauth2",
->>>>>>> 5e81aa9c7c6002b54cf260c56693a135974b1ebb
     # Apps
     "core",
 ]
@@ -75,8 +72,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                'social_django.context_processors.backends',
-                'social_django.context_processors.login_redirect',
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -147,12 +144,12 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
         # TODO: Aqui é interessante adicionar uma condição e só instanciar o Oauth em produção.
-        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",  
-        "drf_social_oauth2.authentication.SocialAuthentication",        
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "drf_social_oauth2.authentication.SocialAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": [
@@ -165,9 +162,9 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Photo-z Server API',
-    'DESCRIPTION': 'This is the API for the Photo-z Server.',
-    'VERSION': '0.1.0',
+    "TITLE": "Photo-z Server API",
+    "DESCRIPTION": "This is the API for the Photo-z Server.",
+    "VERSION": "0.1.0",
 }
 
 AUTHENTICATION_BACKENDS = (

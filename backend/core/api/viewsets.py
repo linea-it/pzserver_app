@@ -11,12 +11,14 @@ class ProductTypeViewSet(viewsets.ModelViewSet):
     # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.ProductType.objects.all()
     serializer_class = serializers.ProductTypeSerializer
+    ordering = ["id"]
 
 
 class ReleaseViewSet(viewsets.ModelViewSet):
     # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.Release.objects.all()
     serializer_class = serializers.ReleaseSerializer
+    ordering = ["-created_at"]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
