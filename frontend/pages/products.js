@@ -37,12 +37,6 @@ export default function Products() {
     setSortModel(newModel)
   }
 
-  // const handleChangeFilter = prop => event => {
-  //   setFilters({ ...filters, [prop]: event.target.value })
-  // }
-
-  const handleClickSearch = () => { }
-
   const handleDownload = React.useCallback(
     row => () => {
       console.log('Download Product with ID: %o', row.id)
@@ -185,10 +179,7 @@ export default function Products() {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickSearch}
-                      >
+                      <IconButton>
                         <SearchIcon />
                       </IconButton>
                     </InputAdornment>
