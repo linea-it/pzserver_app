@@ -41,7 +41,7 @@ export default function Products() {
   //   setFilters({ ...filters, [prop]: event.target.value })
   // }
 
-  const handleClickSearch = () => {}
+  const handleClickSearch = () => { }
 
   const handleDownload = React.useCallback(
     row => () => {
@@ -54,10 +54,11 @@ export default function Products() {
   // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
   React.useEffect(() => {
     // eslint-disable-next-line prettier/prettier
-    let active = true
+    let active = true;
 
     // eslint-disable-next-line no-unexpected-multiline
-    ;(async () => {
+    // eslint-disable-next-line prettier/prettier
+    (async () => {
       setLoading(true)
       const response = await getProducts({
         page: page,
@@ -175,6 +176,7 @@ export default function Products() {
             <ReleaseSelect />
             <ProductTypeSelect />
             {/* TODO: Empurrar o Search para a direita */}
+            {/* TODO: O Search pode ser um componente separado e reutilizado */}
             <FormControl sx={{ m: 1, minWidth: 400 }}>
               <TextField
                 label="Search"
@@ -214,7 +216,7 @@ export default function Products() {
             onPageChange={page => setPage(page)}
             pageSize={pageSize}
             onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-            rowsPerPageOptions={[1, 2, 25, 50, 100]}
+            rowsPerPageOptions={[25, 50, 100]}
             loading={loading}
           />
         </Grid>
