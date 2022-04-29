@@ -1,16 +1,20 @@
 from rest_framework import viewsets
 from core.api import serializers
 from core import models
+from rest_framework.permissions import IsAuthenticated
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 import os
 from rest_framework.permissions import IsAuthenticated
 
 
 class ProductTypeViewSet(viewsets.ModelViewSet):
+    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.ProductType.objects.all()
     serializer_class = serializers.ProductTypeSerializer
 
 
 class ReleaseViewSet(viewsets.ModelViewSet):
+    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
     queryset = models.Release.objects.all()
     serializer_class = serializers.ReleaseSerializer
 

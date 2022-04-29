@@ -34,10 +34,19 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # "django.contrib.sites",
     # Third-party
-    "rest_framework",
     "corsheaders",
+<<<<<<< HEAD
     "django_filters",
+=======
+    "rest_framework",
+    "drf_spectacular",
+    # OAuth2
+    "oauth2_provider",
+    "social_django",
+    "drf_social_oauth2",
+>>>>>>> 5e81aa9c7c6002b54cf260c56693a135974b1ebb
     # Apps
     "core",
 ]
@@ -66,6 +75,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -112,7 +123,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -137,8 +147,12 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
+        # TODO: Aqui é interessante adicionar uma condição e só instanciar o Oauth em produção.
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",  
+        "drf_social_oauth2.authentication.SocialAuthentication",        
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": [
@@ -149,3 +163,25 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "core.pagination.CustomPageNumberPagination",
     "PAGE_SIZE": 100,
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Photo-z Server API',
+    'DESCRIPTION': 'This is the API for the Photo-z Server.',
+    'VERSION': '0.1.0',
+}
+
+AUTHENTICATION_BACKENDS = (
+    "social_core.backends.github.GithubOAuth2",
+    "social_core.backends.github.GithubOrganizationOAuth2",
+    "drf_social_oauth2.backends.DjangoOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
+)
+
+SOCIAL_AUTH_GITHUB_ORG_KEY = os.getenv("GITHUB_CLIENT_ID", None)
+SOCIAL_AUTH_GITHUB_ORG_SECRET = os.getenv("GITHUB_CLIENT_SECRET", None)
+SOCIAL_AUTH_GITHUB_ORG_NAME = os.getenv("GITHUB_ORG_NAME", "linea-it")
+SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+
+LOGIN_REDIRECT_URL = "/api/"
+ACTIVATE_JWT = True
