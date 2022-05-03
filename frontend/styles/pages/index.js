@@ -3,8 +3,8 @@ import { makeStyles } from '@mui/styles'
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
-    flexDirection: 'column'
-    // height: '100%'
+    flexDirection: 'column',
+    height: '100%'
   },
   interfaceContainer: {
     gap: 16,

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     # "django.contrib.sites",
     # Third-party
     "corsheaders",
+    "django_filters",
     "rest_framework",
     "drf_spectacular",
     # OAuth2
@@ -71,8 +72,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                'social_django.context_processors.backends',
-                'social_django.context_processors.login_redirect',
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -141,18 +142,29 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CORS_ALLOWED_ORIGINS =
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
 
+
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
-        'drf_social_oauth2.authentication.SocialAuthentication',
-    )
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        # TODO: Aqui é interessante adicionar uma condição e só instanciar o Oauth em produção.
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "drf_social_oauth2.authentication.SocialAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.CustomPageNumberPagination",
+    "PAGE_SIZE": 100,
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Photo-z Server API',
-    'DESCRIPTION': 'This is the API for the Photo-z Server.',
-    'VERSION': '0.1.0',
+    "TITLE": "Photo-z Server API",
+    "DESCRIPTION": "This is the API for the Photo-z Server.",
+    "VERSION": "0.1.0",
 }
 
 AUTHENTICATION_BACKENDS = (

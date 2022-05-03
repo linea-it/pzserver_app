@@ -27,7 +27,7 @@ export default function Upload() {
   }
 
   return (
-    <Container>
+    <Container className={classes.container}>
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={12}>
           <Typography variant="h2" component="h1" align="center">

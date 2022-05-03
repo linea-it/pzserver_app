@@ -20,7 +20,7 @@ export default function Index() {
     },
     {
       title: 'LSST PZ Data Products',
-      path: '/lsst-data-products',
+      path: '/products',
       background: '/interfaces/lsst-dp.jpg'
     },
     {

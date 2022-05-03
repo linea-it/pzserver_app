@@ -20,6 +20,11 @@ const light = createTheme({
     },
     background: {
       default: '#f8f6f5'
+    },
+    text: {
+      primary: 'rgb(52, 71, 103)',
+      secondary: 'rgb(52, 71, 103, 0.6)',
+      disabled: 'rgb(52, 71, 103, 0.38)'
     }
   }
 })
