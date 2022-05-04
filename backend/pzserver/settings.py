@@ -166,6 +166,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
 }
 
+JSON_EDITOR = True
+
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOAuth2",
     "social_core.backends.github.GithubOrganizationOAuth2",
