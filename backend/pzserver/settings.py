@@ -135,13 +135,12 @@ MEDIA_ROOT = "/archive/data/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# CORS
-
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space
 # between each. For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
-# CORS_ALLOWED_ORIGINS =
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
 
+# https://docs.djangoproject.com/en/4.0/releases/4.0/#csrf-trusted-origins-changes
+CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "*").split(" ")
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -166,6 +165,8 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "This is the API for the Photo-z Server.",
     "VERSION": "0.1.0",
 }
+
+JSON_EDITOR = True
 
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOAuth2",
