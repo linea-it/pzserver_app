@@ -4,18 +4,14 @@ import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import SearchIcon from '@mui/icons-material/Search'
 import DownloadIcon from '@mui/icons-material/Download'
-import InputAdornment from '@mui/material/InputAdornment'
-import IconButton from '@mui/material/IconButton'
 import useStyles from '../styles/pages/products'
 import prettyBytes from 'pretty-bytes'
 import moment from 'moment'
 
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
+import SearchField from '../components/SearchField'
 import { getProducts } from '../services/product'
 
 export default function Products() {
@@ -190,33 +186,11 @@ export default function Products() {
                 })
               }}
             />
-            {/* <ProductTypeSelect
-              value={filters.product_type}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  product_type: value
-                })
-              }}
-            /> */}
             {/* TODO: Empurrar o Search para a direita */}
-            {/* TODO: O Search pode ser um componente separado e reutilizado */}
-            <FormControl sx={{ m: 1, minWidth: 400 }}>
-              <TextField
-                label="Search"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton>
-                        <SearchIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </FormControl>
+            <SearchField
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </Box>
         </Grid>
         <Grid item xs={12}>
