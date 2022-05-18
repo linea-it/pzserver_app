@@ -17,11 +17,13 @@ DB_DATABASE=pzdev
 DB_HOST=database
 DB_PORT=5432
 
-# Github OAuth
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GITHUB_ORG_NAME=linea-it
-
 # CORS
-DJANGO_ALLOWED_HOSTS=
-DJANGO_CSRF_TRUSTED_ORIGINS=
+DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
+
+# Github OAuth
+# To enable Github OAuth authentication, 
+# uncomment and fill in the following variables.
+#GITHUB_CLIENT_ID=
+#GITHUB_CLIENT_SECRET=
+#GITHUB_ORG_NAME=linea-it
