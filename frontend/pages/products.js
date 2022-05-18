@@ -22,6 +22,10 @@ export default function Products() {
   const classes = useStyles()
 
   const [search, setSearch] = React.useState('')
+  const [filters, setFilters] = React.useState({
+    release: '',
+    product_type: ''
+  })
 
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(undefined)
@@ -55,6 +59,7 @@ export default function Products() {
     (async () => {
       setLoading(true)
       const response = await getProducts({
+        filters: filters,
         page: page,
         page_size: pageSize,
         sort: sortModel,
@@ -73,7 +78,7 @@ export default function Products() {
     return () => {
       active = false
     }
-  }, [page, pageSize, sortModel, search])
+  }, [page, pageSize, sortModel, search, filters])
 
   // Some api client return undefine while loading
   // Following lines are here to prevent `rowCountState` from being undefined during the loading
@@ -167,8 +172,33 @@ export default function Products() {
       <Grid container className={classes.gridContent}>
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect />
-            <ProductTypeSelect />
+            <ReleaseSelect
+              value={filters.release}
+              onChange={value => {
+                setFilters({
+                  ...filters,
+                  release: value
+                })
+              }}
+            />
+            <ProductTypeSelect
+              value={filters.product_type}
+              onChange={value => {
+                setFilters({
+                  ...filters,
+                  product_type: value
+                })
+              }}
+            />
+            {/* <ProductTypeSelect
+              value={filters.product_type}
+              onChange={value => {
+                setFilters({
+                  ...filters,
+                  product_type: value
+                })
+              }}
+            /> */}
             {/* TODO: Empurrar o Search para a direita */}
             {/* TODO: O Search pode ser um componente separado e reutilizado */}
             <FormControl sx={{ m: 1, minWidth: 400 }}>

@@ -1,40 +1,37 @@
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { getProductTypes } from '../services/product'
 
-export default function ProductTypeSelect() {
-  const [productTypes, setProductTypes] = useState([])
-
-  const [productType, setProductType] = React.useState('')
+export default function ProductTypeSelect({ value, onChange }) {
+  const [rows, setRows] = useState([])
 
   useEffect(() => {
     getProductTypes().then(res => {
-      return setProductTypes(res.results)
+      return setRows(res.results)
     })
   }, [])
-
-  const handleChange = event => {
-    setProductType(event.target.value)
-  }
 
   return (
     <div>
       <FormControl sx={{ m: 1, minWidth: 200 }}>
-        <InputLabel id="product-type-select-label">Product Type</InputLabel>
+        <InputLabel id="producttype-select-label">Product Type</InputLabel>
         <Select
-          labelId="product-type-select-label"
-          id="product-type-select-helper"
-          value={productType}
+          labelId="producttype-select-label"
+          id="producttype-select-helper"
+          value={value}
           label="Product Type"
-          onChange={handleChange}
+          onChange={e => onChange(e.target.value)}
+          // readOnly={rows.length === 1}
+          defaultValue=""
         >
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          {productTypes.map(row => (
+          {rows.map(row => (
             <MenuItem key={row.id} value={row.id}>
               {row.display_name}
             </MenuItem>
@@ -43,4 +40,9 @@ export default function ProductTypeSelect() {
       </FormControl>
     </div>
   )
+}
+
+ProductTypeSelect.propTypes = {
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  onChange: PropTypes.func.isRequired
 }
