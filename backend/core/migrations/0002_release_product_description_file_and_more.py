@@ -8,47 +8,65 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Release',
+            name="Release",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('display_name', models.CharField(max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("display_name", models.CharField(max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.AddField(
-            model_name='product',
-            name='description_file',
-            field=models.FileField(blank=True, null=True, upload_to=core.models.upload_file_products),
+            model_name="product",
+            name="description_file",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to=core.models.product.upload_file_products,
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='description',
+            model_name="product",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='pz_code',
+            model_name="product",
+            name="pz_code",
             field=models.CharField(blank=True, max_length=55, null=True),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='survey',
+            model_name="product",
+            name="survey",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AlterField(
-            model_name='producttype',
-            name='attributes',
+            model_name="producttype",
+            name="attributes",
             field=models.JSONField(blank=True, default=dict, null=True),
         ),
         migrations.AddField(
-            model_name='product',
-            name='release',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='products', to='core.release'),
+            model_name="product",
+            name="release",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="products",
+                to="core.release",
+            ),
         ),
     ]
