@@ -7,4 +7,4 @@ class TestGithubAuth(views.APIView):
     permission_classes = (TokenHasReadWriteScope,)
 
     def get(self, request):
-        return JsonResponse({'user': str(request.user)})
+        return JsonResponse({"user": str(request.user)})

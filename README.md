@@ -57,11 +57,19 @@ Creating pzserver_backend_run ... done
 
 Copie a chave gerada e subistitua o valor da variavel `SECRET` no arquivo `.env`.
 
-Agora crie o super úsuario do Django.
+Crie o super úsuario do Django.
 
 ```bash
 docker-compose run backend python manage.py createsuperuser
 ```
+
+Importe os dados iniciais da aplicação utilizando o seguinte comando:
+
+```bash
+docker-compose run backend python manage.py loaddata initial_data
+```
+
+Este comando `loaddata` vai inserir no banco de dados algums registros basicos para o funcionamento da aplicação. estes registros estão no arquivo `core/fixtures/initial_data.yaml`.
 
 Agora instale as dependencias do Frontend executando o comando `yarn`. Por ser a primeira vez inciando este container, será feito o pull da imagem base o que pode demorar um pouco.
 

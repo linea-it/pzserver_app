@@ -16,25 +16,38 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path, include
 from rest_framework import routers
-from core.api import viewsets as products_viewsets
-from core import views
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+# from core.api import viewsets as products_viewsets
+from core.views import (
+    ReleaseViewSet,
+    ProductViewSet,
+    ProductTypeViewSet,
+    TestGithubAuth,
+)
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 route = routers.DefaultRouter()
 
-route.register(
-    r"product-types", products_viewsets.ProductTypeViewSet, basename="ProductTypes"
-)
-route.register(r"products", products_viewsets.ProductViewSet, basename="Products")
-route.register(r"releases", products_viewsets.ReleaseViewSet, basename="Releases")
+route.register(r"releases", ReleaseViewSet, basename="Releases")
+route.register(r"product-types", ProductTypeViewSet, basename="ProductTypes")
+route.register(r"products", ProductViewSet, basename="Products")
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='social')),
-    re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='drf')),
+    path("admin/", admin.site.urls),
+    re_path(r"^auth/", include("drf_social_oauth2.urls", namespace="social")),
+    re_path(r"^auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/", include(route.urls)),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    path("api/github/", views.TestGithubAuth.as_view()),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger",
+    ),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("api/github/", TestGithubAuth.as_view()),
 ]

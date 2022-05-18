@@ -1,30 +1,13 @@
-from rest_framework import viewsets
-from core.api import serializers
-from core import models
-from rest_framework.permissions import IsAuthenticated
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 import os
-from rest_framework.permissions import IsAuthenticated
 
-
-class ProductTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
-    queryset = models.ProductType.objects.all()
-    serializer_class = serializers.ProductTypeSerializer
-    ordering = ["id"]
-
-
-class ReleaseViewSet(viewsets.ModelViewSet):
-    # permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
-    queryset = models.Release.objects.all()
-    serializer_class = serializers.ReleaseSerializer
-    ordering = ["-created_at"]
+from core import models
+from core.serializers import ProductSerializer
+from rest_framework import viewsets
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = models.Product.objects.all()
-    serializer_class = serializers.ProductSerializer
-    permission_classes = (IsAuthenticated,)
+    serializer_class = ProductSerializer
     search_fields = ["display_name", "file_name"]
     ordering_fields = [
         "id",
