@@ -20,12 +20,12 @@ export default function Index() {
     },
     {
       title: 'LSST PZ Data Products',
-      path: '/products',
+      path: '/oficial_products',
       background: '/interfaces/lsst-dp.jpg'
     },
     {
       title: 'User-generated Data Products',
-      path: '/user-data-products',
+      path: '/user_products',
       background: '/interfaces/user-dp.jpg'
     }
   ]

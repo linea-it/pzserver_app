@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { api } from './api'
 import forIn from 'lodash/forIn'
-import isEmpty from 'lodash/isEmpty'
+// import isEmpty from 'lodash/isEmpty'
 
 export const getReleases = ({ }) => {
   return api.get('/releases/').then(res => res.data)
@@ -48,6 +48,7 @@ export const getProducts = ({
   // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
   // cada filtro que tiver valor deve virar uma propriedade no objeto params
   // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
+  // o filtro official_product deve ser enviado no search também.
   if (search === '') {
     forIn(filters, function (value, key) {
       if (value != null) {
@@ -55,6 +56,8 @@ export const getProducts = ({
       }
     })
   }
+
+  params.official_product = filters.official_product
 
   return api.get('/products/', { params }).then(res => res.data)
 }
