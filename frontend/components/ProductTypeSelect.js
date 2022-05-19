@@ -25,11 +25,10 @@ export default function ProductTypeSelect({ value, onChange }) {
           value={value}
           label="Product Type"
           onChange={e => onChange(e.target.value)}
-          // readOnly={rows.length === 1}
           defaultValue=""
         >
           <MenuItem value="">
-            <em>None</em>
+            <em>All</em>
           </MenuItem>
           {rows.map(row => (
             <MenuItem key={row.id} value={row.id}>

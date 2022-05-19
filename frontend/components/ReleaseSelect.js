@@ -15,16 +15,16 @@ export default function ReleaseSelect({ value, onChange }) {
     })
   }, [])
 
-  React.useEffect(() => {
-    // Seleciona o primeiro release
-    // ATENÇÃO: Esta implementação não é a mais adequada.
-    // Deveria ser implementada com UseCallback, mas eu não consegui.
-    // executar a onChange desta forma.
-    // a solução foi a condição value === '' que impede um loop infinito.
-    if (releases.length > 0 && value === '') {
-      onChange(releases[0].id)
-    }
-  }, [onChange, releases, value])
+  // React.useEffect(() => {
+  //   // Seleciona o primeiro release
+  //   // ATENÇÃO: Esta implementação não é a mais adequada.
+  //   // Deveria ser implementada com UseCallback, mas eu não consegui.
+  //   // executar a onChange desta forma.
+  //   // a solução foi a condição value === '' que impede um loop infinito.
+  //   if (releases.length > 0 && value === '') {
+  //     onChange(releases[0].id)
+  //   }
+  // }, [onChange, releases, value])
 
   return (
     <div>
@@ -36,9 +36,12 @@ export default function ReleaseSelect({ value, onChange }) {
           value={value}
           label="Release"
           onChange={e => onChange(e.target.value)}
-          readOnly={releases.length === 1}
+          // readOnly={releases.length === 1}
           defaultValue=""
         >
+          <MenuItem value="">
+            <em>All</em>
+          </MenuItem>
           {releases.map(row => (
             <MenuItem key={row.id} value={row.id}>
               {row.display_name}

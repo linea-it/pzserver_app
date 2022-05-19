@@ -18,13 +18,13 @@ export const getProducts = ({
   page_size = 25,
   sort = []
 }) => {
-  // Obrigatório o filtro por release para fazer a requisição
-  if (isEmpty(filters) || filters.release === '') {
-    return {
-      count: 0,
-      results: []
-    }
-  }
+  // // Obrigatório o filtro por release para fazer a requisição
+  // if (isEmpty(filters) || filters.release === '') {
+  //   return {
+  //     count: 0,
+  //     results: []
+  //   }
+  // }
   let ordering = null
 
   // Ordenação no DRF
@@ -47,11 +47,14 @@ export const getProducts = ({
   // Filtros no DRF
   // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
   // cada filtro que tiver valor deve virar uma propriedade no objeto params
-  forIn(filters, function (value, key) {
-    if (value != null) {
-      params[key] = value
-    }
-  })
+  // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
+  if (search === '') {
+    forIn(filters, function (value, key) {
+      if (value != null) {
+        params[key] = value
+      }
+    })
+  }
 
   return api.get('/products/', { params }).then(res => res.data)
 }

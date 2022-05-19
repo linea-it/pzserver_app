@@ -88,13 +88,18 @@ export default function Products() {
   const columns = React.useMemo(
     () => [
       { field: 'id', headerName: 'ID', width: 90, sortable: true },
+      // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
       { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
       {
-        // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
-        // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+        field: 'release_name',
+        headerName: 'Release',
+        width: 120,
+        sortable: false
+      },
+      {
         field: 'product_type_name',
         headerName: 'Product Type',
-        width: 150,
+        width: 120,
         sortable: false
       },
       {
@@ -187,10 +192,7 @@ export default function Products() {
               }}
             />
             {/* TODO: Empurrar o Search para a direita */}
-            <SearchField
-              // value={search}
-              onChange={query => setSearch(query)}
-            />
+            <SearchField onChange={query => setSearch(query)} />
           </Box>
         </Grid>
         <Grid item xs={12}>
