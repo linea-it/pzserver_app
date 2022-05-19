@@ -181,6 +181,7 @@ export default function Products() {
                   release: value
                 })
               }}
+              disabled={search !== ''}
             />
             <ProductTypeSelect
               value={filters.product_type}
@@ -190,6 +191,7 @@ export default function Products() {
                   product_type: value
                 })
               }}
+              disabled={search !== ''}
             />
             {/* TODO: Empurrar o Search para a direita */}
             <SearchField onChange={query => setSearch(query)} />
