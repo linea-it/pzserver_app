@@ -6,7 +6,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { getProductTypes } from '../services/product'
 
-export default function ProductTypeSelect({ value, onChange }) {
+export default function ProductTypeSelect({ value, onChange, disabled }) {
   const [rows, setRows] = useState([])
 
   useEffect(() => {
@@ -26,6 +26,7 @@ export default function ProductTypeSelect({ value, onChange }) {
           label="Product Type"
           onChange={e => onChange(e.target.value)}
           defaultValue=""
+          disabled={disabled}
         >
           <MenuItem value="">
             <em>All</em>
@@ -43,5 +44,9 @@ export default function ProductTypeSelect({ value, onChange }) {
 
 ProductTypeSelect.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+}
+ProductTypeSelect.defaultProps = {
+  disabled: false
 }

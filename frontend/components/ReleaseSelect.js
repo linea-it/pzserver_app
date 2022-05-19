@@ -6,7 +6,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { getReleases } from '../services/product'
 
-export default function ReleaseSelect({ value, onChange }) {
+export default function ReleaseSelect({ value, onChange, disabled }) {
   const [releases, setReleases] = useState([])
 
   useEffect(() => {
@@ -38,6 +38,7 @@ export default function ReleaseSelect({ value, onChange }) {
           onChange={e => onChange(e.target.value)}
           // readOnly={releases.length === 1}
           defaultValue=""
+          disabled={disabled}
         >
           <MenuItem value="">
             <em>All</em>
@@ -55,5 +56,9 @@ export default function ReleaseSelect({ value, onChange }) {
 
 ReleaseSelect.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+}
+ReleaseSelect.defaultProps = {
+  disabled: false
 }
