@@ -1,14 +1,27 @@
 import os
 
-from core import models
+from core.models import Product
 from core.serializers import ProductSerializer
 from rest_framework import viewsets
+from django_filters import rest_framework as filters
+
+
+class ProductFilter(filters.FilterSet):
+    # TODO: Adicionar Mais Filtros
+    # Talvez filtro pelos internal_names de release e product_type
+    class Meta:
+        model = Product
+        fields = [
+            "release",
+            "product_type",
+        ]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = models.Product.objects.all()
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     search_fields = ["display_name", "file_name"]
+    filterset_class = ProductFilter
     ordering_fields = [
         "id",
         "display_name",

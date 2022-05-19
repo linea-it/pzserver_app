@@ -1,4 +1,7 @@
+/* eslint-disable camelcase */
 import { api } from './api'
+import forIn from 'lodash/forIn'
+import isEmpty from 'lodash/isEmpty'
 
 export const getReleases = ({ }) => {
   return api.get('/releases/').then(res => res.data)
@@ -8,7 +11,20 @@ export const getProductTypes = ({ }) => {
   return api.get('/product-types/').then(res => res.data)
 }
 
-export const getProducts = ({ filters = {}, search, page = 0, page_size = 25, sort = [] }) => {
+export const getProducts = ({
+  filters = {},
+  search,
+  page = 0,
+  page_size = 25,
+  sort = []
+}) => {
+  // // Obrigatório o filtro por release para fazer a requisição
+  // if (isEmpty(filters) || filters.release === '') {
+  //   return {
+  //     count: 0,
+  //     results: []
+  //   }
+  // }
   let ordering = null
 
   // Ordenação no DRF
@@ -25,15 +41,20 @@ export const getProducts = ({ filters = {}, search, page = 0, page_size = 25, so
   // Django não aceita pagina 0 por isso é somado 1 ao numero da página.
   page += 1
 
-  // TODO: Tratar os objeto de filtro, cada propriedade deve virar um elemento no objeto params
-  // if (filters) {
-  //   filters.forEach(element => {
-  //     params[element.property] = element.value
-  //   })
-  // }
-
   // Todos os Query Params
   const params = { page, page_size, ordering, search }
-  console.log(params)
+
+  // Filtros no DRF
+  // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
+  // cada filtro que tiver valor deve virar uma propriedade no objeto params
+  // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
+  if (search === '') {
+    forIn(filters, function (value, key) {
+      if (value != null) {
+        params[key] = value
+      }
+    })
+  }
+
   return api.get('/products/', { params }).then(res => res.data)
 }

@@ -4,24 +4,24 @@ import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import SearchIcon from '@mui/icons-material/Search'
 import DownloadIcon from '@mui/icons-material/Download'
-import InputAdornment from '@mui/material/InputAdornment'
-import IconButton from '@mui/material/IconButton'
 import useStyles from '../styles/pages/products'
 import prettyBytes from 'pretty-bytes'
 import moment from 'moment'
 
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
+import SearchField from '../components/SearchField'
 import { getProducts } from '../services/product'
 
 export default function Products() {
   const classes = useStyles()
 
   const [search, setSearch] = React.useState('')
+  const [filters, setFilters] = React.useState({
+    release: '',
+    product_type: ''
+  })
 
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(undefined)
@@ -55,6 +55,7 @@ export default function Products() {
     (async () => {
       setLoading(true)
       const response = await getProducts({
+        filters: filters,
         page: page,
         page_size: pageSize,
         sort: sortModel,
@@ -73,7 +74,7 @@ export default function Products() {
     return () => {
       active = false
     }
-  }, [page, pageSize, sortModel, search])
+  }, [page, pageSize, sortModel, search, filters])
 
   // Some api client return undefine while loading
   // Following lines are here to prevent `rowCountState` from being undefined during the loading
@@ -87,13 +88,18 @@ export default function Products() {
   const columns = React.useMemo(
     () => [
       { field: 'id', headerName: 'ID', width: 90, sortable: true },
+      // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
       { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
       {
-        // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
-        // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+        field: 'release_name',
+        headerName: 'Release',
+        width: 120,
+        sortable: false
+      },
+      {
         field: 'product_type_name',
         headerName: 'Product Type',
-        width: 150,
+        width: 120,
         sortable: false
       },
       {
@@ -167,26 +173,26 @@ export default function Products() {
       <Grid container className={classes.gridContent}>
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect />
-            <ProductTypeSelect />
+            <ReleaseSelect
+              value={filters.release}
+              onChange={value => {
+                setFilters({
+                  ...filters,
+                  release: value
+                })
+              }}
+            />
+            <ProductTypeSelect
+              value={filters.product_type}
+              onChange={value => {
+                setFilters({
+                  ...filters,
+                  product_type: value
+                })
+              }}
+            />
             {/* TODO: Empurrar o Search para a direita */}
-            {/* TODO: O Search pode ser um componente separado e reutilizado */}
-            <FormControl sx={{ m: 1, minWidth: 400 }}>
-              <TextField
-                label="Search"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton>
-                        <SearchIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </FormControl>
+            <SearchField onChange={query => setSearch(query)} />
           </Box>
         </Grid>
         <Grid item xs={12}>
