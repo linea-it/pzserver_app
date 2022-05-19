@@ -188,8 +188,8 @@ export default function Products() {
             />
             {/* TODO: Empurrar o Search para a direita */}
             <SearchField
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              // value={search}
+              onChange={query => setSearch(query)}
             />
           </Box>
         </Grid>
