@@ -23,6 +23,7 @@ from core.views import (
     ProductViewSet,
     ProductTypeViewSet,
     TestGithubAuth,
+    LoggedUserView
 )
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -39,8 +40,8 @@ route.register(r"products", ProductViewSet, basename="Products")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    re_path(r"^auth/", include("drf_social_oauth2.urls", namespace="social")),
-    re_path(r"^auth/", include("drf_social_oauth2.urls", namespace="drf")),
+    # path("auth/", include("drf_social_oauth2.urls", namespace="social")),
+    path("auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/", include(route.urls)),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -50,4 +51,5 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api/github/", TestGithubAuth.as_view()),
+    path("api/logged_user", LoggedUserView.as_view()),
 ]

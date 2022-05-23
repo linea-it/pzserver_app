@@ -18,7 +18,7 @@ import { parseCookies } from 'nookies'
 function Login() {
   const formRef = useRef(null)
   const classes = useStyles()
-  const { signIn } = useContext(AuthContext)
+  const { isAuthenticated, signIn } = useContext(AuthContext)
 
   const [formError, setFormError] = useState('')
 
@@ -28,8 +28,6 @@ function Login() {
     const form = formRef.current
     const username = form.username.value
     const password = form.password.value
-
-    console.log({ username, password })
 
     await signIn({ username, password })
   }
@@ -49,7 +47,7 @@ function Login() {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Login
+          Login {isAuthenticated}
         </Typography>
         <form
           ref={formRef}
@@ -129,23 +127,23 @@ function Login() {
   )
 }
 
-export const getServerSideProps = async ctx => {
-  const { 'pzserver.token': token } = parseCookies(ctx)
+// export const getServerSideProps = async ctx => {
+//   const { 'pzserver.token': token } = parseCookies(ctx)
 
-  // A better way to validate this is to have
-  // an endpoint to verify the validity of the token:
-  if (token) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false
-      }
-    }
-  }
+//   // A better way to validate this is to have
+//   // an endpoint to verify the validity of the token:
+//   if (token) {
+//     return {
+//       redirect: {
+//         destination: '/',
+//         permanent: false
+//       }
+//     }
+//   }
 
-  return {
-    props: {}
-  }
-}
+//   return {
+//     props: {}
+//   }
+// }
 
 export default Login

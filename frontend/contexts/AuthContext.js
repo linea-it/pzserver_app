@@ -1,38 +1,35 @@
 import { createContext, useEffect, useState } from 'react'
 import { setCookie, parseCookies } from 'nookies'
 import Router from 'next/router'
-import { recoverUserInformation, signInRequest } from '../services/auth'
-import { api } from '../services/api'
+import { signInRequest } from '../services/auth'
+import { recoverUserInformation } from '../services/api'
+// import { api } from '../services/auth'
 
 export const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
   const [userInfo, setUserInfo] = useState(null)
 
-  const isAuthenticated = !!userInfo
+  const isAuthenticated = !userInfo
 
   useEffect(() => {
-    const { 'pzserver.token': token } = parseCookies()
 
-    // TODO: Function to validate token
-    if (token) {
+    console.log('isAuthenticated: %o', isAuthenticated)
+
+    if (!userInfo) {
+      console.log('Sem informação usuario')
       recoverUserInformation().then(res => setUserInfo(res.user))
     }
   }, [])
 
   async function signIn({ username, password }) {
-    const { token, user } = await signInRequest({
+    const { access_token, refresh_token } = await signInRequest({
       username,
       password
     })
 
-    setCookie(undefined, 'pzserver.token', token, {
-      maxAge: 60 * 60 * 24 * 2 // 2 days
-    })
-
-    api.defaults.headers.Authorization = `Bearer ${token}`
-
-    setUserInfo(user)
+    localStorage.setItem('access_token', access_token)
+    localStorage.setItem('refresh_token', refresh_token)
 
     Router.push('/')
   }
