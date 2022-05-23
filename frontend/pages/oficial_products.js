@@ -27,7 +27,7 @@ export default function Products() {
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar o BREADCRUMB */}
           <Typography variant="h3" className={classes.title}>
-            Photo-Z Data Products
+            LSST PZ Data Products
           </Typography>
         </Grid>
         <Grid item xs={4}>
