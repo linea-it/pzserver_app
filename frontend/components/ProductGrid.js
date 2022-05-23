@@ -1,28 +1,12 @@
 import * as React from 'react'
-import { Paper, Box } from '@mui/material'
+import PropTypes from 'prop-types'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
-import Grid from '@mui/material/Grid'
-import Divider from '@mui/material/Divider'
-import Typography from '@mui/material/Typography'
 import DownloadIcon from '@mui/icons-material/Download'
-import useStyles from '../styles/pages/products'
 import prettyBytes from 'pretty-bytes'
 import moment from 'moment'
-
-import ProductTypeSelect from '../components/ProductTypeSelect'
-import ReleaseSelect from '../components/ReleaseSelect'
-import SearchField from '../components/SearchField'
 import { getProducts } from '../services/product'
 
-export default function Products() {
-  const classes = useStyles()
-
-  const [search, setSearch] = React.useState('')
-  const [filters, setFilters] = React.useState({
-    release: '',
-    product_type: ''
-  })
-
+export default function ProductGrid(props) {
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(undefined)
 
@@ -55,17 +39,16 @@ export default function Products() {
     (async () => {
       setLoading(true)
       const response = await getProducts({
-        filters: filters,
+        filters: props.filters,
         page: page,
         page_size: pageSize,
         sort: sortModel,
-        search: search
+        search: props.query
       })
 
       if (!active) {
         return
       }
-      // setRows(response.results)
       setRows(response.results)
       setRowCount(response.count)
       setLoading(false)
@@ -74,7 +57,7 @@ export default function Products() {
     return () => {
       active = false
     }
-  }, [page, pageSize, sortModel, search, filters])
+  }, [page, pageSize, sortModel, props.query, props.filters])
 
   // Some api client return undefine while loading
   // Following lines are here to prevent `rowCountState` from being undefined during the loading
@@ -156,70 +139,33 @@ export default function Products() {
   )
 
   return (
-    // Baseado neste template: https://mira.bootlab.io/dashboard/analytics
-    <Paper className={classes.root}>
-      <Grid container className={classes.gridTitle}>
-        <Grid item xs={4}>
-          {/* TODO: Aqui deve entrar o BREADCRUMB */}
-          <Typography variant="h3" className={classes.title}>
-            Photo-Z Data Products
-          </Typography>
-        </Grid>
-        <Grid item xs={4}>
-          {/* TODO: Aqui deve entrar botões de ações da pagina */}
-        </Grid>
-      </Grid>
-      <Divider className={classes.titleDivider} variant={'fullWidth'} />
-      <Grid container className={classes.gridContent}>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect
-              value={filters.release}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  release: value
-                })
-              }}
-              disabled={search !== ''}
-            />
-            <ProductTypeSelect
-              value={filters.product_type}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  product_type: value
-                })
-              }}
-              disabled={search !== ''}
-            />
-            {/* TODO: Empurrar o Search para a direita */}
-            <SearchField onChange={query => setSearch(query)} />
-          </Box>
-        </Grid>
-        <Grid item xs={12}>
-          <DataGrid
-            getRowId={row => row.id}
-            rows={rows}
-            columns={columns}
-            // checkboxSelection
-            disableSelectionOnClick
-            autoHeight
-            sortingMode="server"
-            sortModel={sortModel}
-            onSortModelChange={handleSortModelChange}
-            paginationMode="server"
-            rowCount={rowCountState}
-            pagination
-            page={page}
-            onPageChange={page => setPage(page)}
-            pageSize={pageSize}
-            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-            rowsPerPageOptions={[25, 50, 100]}
-            loading={loading}
-          />
-        </Grid>
-      </Grid>
-    </Paper>
+    <DataGrid
+      getRowId={row => row.id}
+      rows={rows}
+      columns={columns}
+      disableSelectionOnClick
+      autoHeight
+      sortingMode="server"
+      sortModel={sortModel}
+      onSortModelChange={handleSortModelChange}
+      paginationMode="server"
+      rowCount={rowCountState}
+      pagination
+      page={page}
+      onPageChange={page => setPage(page)}
+      pageSize={pageSize}
+      onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+      rowsPerPageOptions={[25, 50, 100]}
+      loading={loading}
+    />
   )
+}
+
+ProductGrid.propTypes = {
+  query: PropTypes.string,
+  filters: PropTypes.shape({
+    release: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    product_type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    official_product: PropTypes.bool
+  })
 }
