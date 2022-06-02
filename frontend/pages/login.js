@@ -1,4 +1,4 @@
-import { useRef, useState, useContext } from 'react'
+import { useRef, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -12,13 +12,13 @@ import Alert from '@mui/material/Alert'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/login'
-import { AuthContext } from '../contexts/AuthContext'
 import { parseCookies } from 'nookies'
+import { useAuth } from '../contexts/AuthContext'
 
 function Login() {
   const formRef = useRef(null)
   const classes = useStyles()
-  const { signIn } = useContext(AuthContext)
+  const { signIn } = useAuth()
 
   const [formError, setFormError] = useState('')
 
@@ -128,7 +128,7 @@ function Login() {
 }
 
 export const getServerSideProps = async ctx => {
-  const { 'access_token': token } = parseCookies(ctx)
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:

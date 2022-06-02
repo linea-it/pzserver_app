@@ -71,7 +71,7 @@ export default function Products() {
 }
 
 export const getServerSideProps = async ctx => {
-  const { 'access_token': token } = parseCookies(ctx)
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:

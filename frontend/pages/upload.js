@@ -11,7 +11,6 @@ import useStyles from '../styles/pages/upload'
 import { parseCookies } from 'nookies'
 
 export default function Upload() {
-
   const classes = useStyles()
   const typeRef = useRef('1')
   const nameRef = useRef('1')
@@ -114,7 +113,7 @@ export default function Upload() {
 }
 
 export const getServerSideProps = async ctx => {
-  const { 'access_token': token } = parseCookies(ctx)
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:

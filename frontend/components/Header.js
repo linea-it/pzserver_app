@@ -7,15 +7,19 @@ import {
   List,
   ListItem,
   Grid,
-  Link as MuiLink
+  Link as MuiLink,
+  Typography,
+  Button
 } from '@mui/material'
 import { YouTube, Twitter, GitHub } from '@mui/icons-material'
 import Link from './Link'
 import useStyles from '../styles/components/Header'
+import { useAuth } from '../contexts/AuthContext'
 
 function Header() {
   const classes = useStyles()
   const route = useRouter()
+  const { user, logout } = useAuth()
 
   const menus = [
     {
@@ -51,6 +55,8 @@ function Header() {
             ))}
           </List>
           <div className={classes.separator} />
+          <Typography>{user?.username}</Typography>
+          <Button onClick={logout}>Logout</Button>
         </Toolbar>
       </AppBar>
 
