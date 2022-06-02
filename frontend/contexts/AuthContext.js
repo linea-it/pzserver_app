@@ -1,22 +1,20 @@
 import { createContext, useEffect, useState } from 'react'
 import { setCookie, parseCookies } from 'nookies'
 import Router from 'next/router'
-import { signInRequest } from '../services/auth'
+import { apiAuth, signInRequest } from '../services/auth'
 import { recoverUserInformation } from '../services/api'
-// import { api } from '../services/auth'
 
 export const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
   const [userInfo, setUserInfo] = useState(null)
 
-  const isAuthenticated = !userInfo
+  const isAuthenticated = !!userInfo
 
   useEffect(() => {
+    const { access_token } = parseCookies()
 
-    console.log('isAuthenticated: %o', isAuthenticated)
-
-    if (!userInfo) {
+    if (access_token && !userInfo) {
       console.log('Sem informação usuario')
       recoverUserInformation().then(res => setUserInfo(res.user))
     }
@@ -28,8 +26,15 @@ export function AuthProvider({ children }) {
       password
     })
 
-    localStorage.setItem('access_token', access_token)
-    localStorage.setItem('refresh_token', refresh_token)
+    setCookie('undefined', 'refresh_token', refresh_token, {
+      maxAge: 2000,
+    })
+
+    setCookie('undefined', 'access_token', access_token, {
+      maxAge: 2000
+    })
+
+    // apiAuth.defaults.headers.Authorization = `Bearer ${access_token}`
 
     Router.push('/')
   }

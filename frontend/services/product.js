@@ -4,11 +4,11 @@ import forIn from 'lodash/forIn'
 // import isEmpty from 'lodash/isEmpty'
 
 export const getReleases = ({ }) => {
-  return api.get('/releases/').then(res => res.data)
+  return api.get('/api/releases/').then(res => res.data)
 }
 
 export const getProductTypes = ({ }) => {
-  return api.get('/product-types/').then(res => res.data)
+  return api.get('/api/product-types/').then(res => res.data)
 }
 
 export const getProducts = ({
@@ -59,5 +59,5 @@ export const getProducts = ({
 
   params.official_product = filters.official_product
 
-  return api.get('/products/', { params }).then(res => res.data)
+  return api.get('/api/products/', { params }).then(res => res.data)
 }

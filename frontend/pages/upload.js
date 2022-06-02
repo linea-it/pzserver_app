@@ -8,6 +8,7 @@ import {
   Button
 } from '@mui/material'
 import useStyles from '../styles/pages/upload'
+import { parseCookies } from 'nookies'
 
 export default function Upload() {
 
@@ -113,18 +114,18 @@ export default function Upload() {
 }
 
 export const getServerSideProps = async ctx => {
-  // const { 'pzserver.token': token } = parseCookies(ctx)
+  const { 'access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:
-  // if (!token) {
-  //   return {
-  //     redirect: {
-  //       destination: '/login',
-  //       permanent: false
-  //     }
-  //   }
-  // }
+  if (!token) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
 
   return {
     props: {}
