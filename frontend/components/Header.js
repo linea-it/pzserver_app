@@ -15,6 +15,7 @@ import { YouTube, Twitter, GitHub } from '@mui/icons-material'
 import Link from './Link'
 import useStyles from '../styles/components/Header'
 import { useAuth } from '../contexts/AuthContext'
+import { getReleases } from '../services/product'
 
 function Header() {
   const classes = useStyles()
@@ -57,6 +58,7 @@ function Header() {
           <div className={classes.separator} />
           <Typography>{user?.username}</Typography>
           <Button onClick={logout}>Logout</Button>
+          <Button onClick={getReleases}>TestRequest</Button>
         </Toolbar>
       </AppBar>
 

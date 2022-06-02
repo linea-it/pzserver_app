@@ -9,6 +9,7 @@ import PropTypes from 'prop-types'
 
 export const AuthContext = createContext({})
 
+// Baseado neste exemplo: https://www.mikealche.com/software-development/how-to-implement-authentication-in-next-js-without-third-party-libraries
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
 
