@@ -10,15 +10,15 @@ export default function Contact() {
           <Typography variant="body1" component="span">
             <p>Comments, questions, suggestions?</p>
             <p>
-              Be welcome to open an issue on the {' '}
+              Be welcome to open an issue on the{' '}
               <Link
                 href="https://github.com/linea-it/pz-server"
                 target="_blank"
                 rel="noreferrer"
               >
                 PZ Server repository on GitHub
-              </Link>,
-              or contact our team.
+              </Link>
+              , or contact our team.
             </p>
             <p>
               BRA-LIN S2 Contribution Lead:{' '}
