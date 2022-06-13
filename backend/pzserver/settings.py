@@ -191,10 +191,10 @@ if os.getenv("GITHUB_CLIENT_ID", None) is not None:
 LOGIN_REDIRECT_URL = "/api/"
 # ACTIVATE_JWT = True
 # in your settings.py file.
-from oauth2_provider import settings as oauth2_settings
+# from oauth2_provider import settings as oauth2_settings
 
-# expires in 6 months
-oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
+# # expires in 6 months
+# oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
 
 LOGGING = {
     "version": 1,
