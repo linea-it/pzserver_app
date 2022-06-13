@@ -16,6 +16,9 @@ import os
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+LOG_DIR = "/log"
+LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -149,7 +152,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework.authentication.SessionAuthentication",
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "drf_social_oauth2.authentication.SocialAuthentication",
     ),
@@ -186,4 +189,45 @@ if os.getenv("GITHUB_CLIENT_ID", None) is not None:
     SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
 LOGIN_REDIRECT_URL = "/api/"
-ACTIVATE_JWT = True
+# ACTIVATE_JWT = True
+# in your settings.py file.
+# from oauth2_provider import settings as oauth2_settings
+
+# # expires in 6 months
+# oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
+    },
+    "handlers": {
+        "file": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "django.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+        },
+        "oauthlib": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "oauthlib.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": LOGGING_LEVEL,
+            "propagate": True,
+        },
+        "oauthlib": {
+            "handlers": ["oauthlib"],
+            "level": LOGGING_LEVEL,
+            "propagate": True,
+        },
+    },
+}

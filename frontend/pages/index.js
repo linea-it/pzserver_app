@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/index'
+import { parseCookies } from 'nookies'
 
 export default function Index() {
   const classes = useStyles()
@@ -79,4 +80,23 @@ export default function Index() {
       </Grid>
     </div>
   )
+}
+
+export const getServerSideProps = async ctx => {
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
+
+  // A better way to validate this is to have
+  // an endpoint to verify the validity of the token:
+  if (!token) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {}
+  }
 }

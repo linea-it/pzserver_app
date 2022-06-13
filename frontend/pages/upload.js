@@ -7,8 +7,8 @@ import {
   MenuItem,
   Button
 } from '@mui/material'
-import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/upload'
+import { parseCookies } from 'nookies'
 
 export default function Upload() {
   const classes = useStyles()
@@ -113,7 +113,7 @@ export default function Upload() {
 }
 
 export const getServerSideProps = async ctx => {
-  const { 'pzserver.token': token } = parseCookies(ctx)
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:

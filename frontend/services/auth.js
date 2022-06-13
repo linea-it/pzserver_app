@@ -1,25 +1,36 @@
-const delay = (amount = 750) =>
-  new Promise(resolve => setTimeout(resolve, amount))
+import axios from 'axios'
+import { parseCookies } from 'nookies'
 
-export async function signInRequest(data) {
-  await delay()
-
-  return {
-    token: 12345789,
-    user: {
-      name: 'Matheus Freitas',
-      email: 'matheus.freitas@linea.gov.br'
-    }
+const apiAuth = axios.create({
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+    accept: 'application/json'
   }
+})
+
+export default apiAuth
+
+export function signInRequest(data) {
+  return apiAuth
+    .post('/auth/token', {
+      grant_type: 'password',
+      username: data.username,
+      password: data.password,
+      client_id: 'lKPub4YnYGeUq77VIys0gGPoDh25NB0oKv4vwH5G',
+      client_secret:
+        'yQPmjBJwx9DsZ1QkTQaTqRbC9QQ3MMUgVex7NRvFh7PVXG9kEjE9EOkvprFnctfBtzsF4cC8aJp8vhfpQr75HxZ8kbUJzS7m7ZG8tbFmxqyXJTIajXiWjbvYiaWfguHs'
+    })
+    .then(res => res.data)
 }
 
-export async function recoverUserInformation() {
-  await delay()
-
-  return {
-    user: {
-      name: 'Matheus Freitas',
-      email: 'matheus.freitas@linea.gov.br'
-    }
-  }
+export async function refreshToken(token) {
+  const res = await apiAuth.post('/auth/token', {
+    grant_type: 'refresh_token',
+    client_id: 'lKPub4YnYGeUq77VIys0gGPoDh25NB0oKv4vwH5G',
+    client_secret:
+      'yQPmjBJwx9DsZ1QkTQaTqRbC9QQ3MMUgVex7NRvFh7PVXG9kEjE9EOkvprFnctfBtzsF4cC8aJp8vhfpQr75HxZ8kbUJzS7m7ZG8tbFmxqyXJTIajXiWjbvYiaWfguHs',
+    refresh_token: token
+  })
+  return res.data
 }
