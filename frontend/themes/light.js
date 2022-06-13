@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 
 const light = createTheme({
   palette: {
@@ -22,10 +22,15 @@ const light = createTheme({
       default: '#f8f6f5'
     },
     text: {
-      primary: 'rgb(52, 71, 103)',
-      secondary: 'rgb(52, 71, 103, 0.6)',
-      disabled: 'rgb(52, 71, 103, 0.38)'
+      primary: 'rgba(18,48,78,0.87)',
+      secondary: 'rgba(18,48,78,0.6)',
+      disabled: 'rgba(18,48,78,0.38)'
     }
+    // text: {
+    //   primary: 'rgb(52, 71, 103)',
+    //   secondary: 'rgb(52, 71, 103, 0.6)',
+    //   disabled: 'rgb(52, 71, 103, 0.38)'
+    // }
   }
 })
 
