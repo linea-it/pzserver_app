@@ -16,6 +16,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.SerializerMethodField()
 
+    main_file = serializers.FileField()
+    description_file = serializers.FileField(
+        required=False,
+    )
+
     class Meta:
         model = Product
         read_only_fields = (

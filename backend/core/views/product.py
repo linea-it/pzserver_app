@@ -5,6 +5,8 @@ from core.serializers import ProductSerializer
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 
+# from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
+
 
 class ProductFilter(filters.FilterSet):
     # TODO: Adicionar Mais Filtros
@@ -17,6 +19,7 @@ class ProductFilter(filters.FilterSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    # parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     search_fields = ["display_name", "file_name"]
     filterset_class = ProductFilter
     ordering_fields = [
@@ -33,15 +36,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         # Usuario que fez o upload
         uploaded_by = self.request.user
         # Arquivo principal
+        # file_obj = self.request.FILES["main_file"]
         main_file = self.request.data.get("main_file")
 
-        # TODO: é interessante guardar os arquivos em diretórios_baseados pelo produt_type
-        # E um diretório para cada produto, assim os arquivos de produto e descricao podem
-        # ficar juntos e podemos permitir o upload de mais arquivos de um mesmo produto
-        # como pdf e exemplode de sitação e coisas do tipo.
-        # Exemplo: release->product_type->$id_$name
-        # TODO: criar uma regra para o internal name, garantir só string e numeros com um separador unico tipo _
-        # TODO: é interessante renomear o arquivo para um nome sem caracteres especiais e sem espacos, por causa do link de download.
+        # # TODO: é interessante guardar os arquivos em diretórios_baseados pelo produt_type
+        # # E um diretório para cada produto, assim os arquivos de produto e descricao podem
+        # # ficar juntos e podemos permitir o upload de mais arquivos de um mesmo produto
+        # # como pdf e exemplode de sitação e coisas do tipo.
+        # # Exemplo: release->product_type->$id_$name
+        # # TODO: criar uma regra para o internal name, garantir só string e numeros com um separador unico tipo _
+        # # TODO: é interessante renomear o arquivo para um nome sem caracteres especiais e sem espacos, por causa do link de download.
 
         file_size = main_file.size
         file_name, file_extension = os.path.splitext(main_file.name)

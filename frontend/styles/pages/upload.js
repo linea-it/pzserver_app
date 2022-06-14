@@ -9,9 +9,9 @@ const useStyles = makeStyles(theme => ({
     margin: `${theme.spacing(2)} 0`
   },
   formContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 20
+    // display: 'flex',
+    // flexDirection: 'column',
+    // gap: 20
   },
   buttonsContainer: {
     display: 'flex',

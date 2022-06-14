@@ -4,7 +4,8 @@ import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import useStyles from '../styles/pages/products'
-
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
@@ -39,26 +40,38 @@ export default function Products() {
       <Grid container className={classes.gridContent}>
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect
-              value={filters.release}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  release: value
-                })
-              }}
-              disabled={search !== ''}
-            />
-            <ProductTypeSelect
-              value={filters.product_type}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  product_type: value
-                })
-              }}
-              disabled={search !== ''}
-            />
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <InputLabel id="release-select-label">Release</InputLabel>
+              <ReleaseSelect
+                labelId="release-select-label"
+                value={filters.release}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    release: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <InputLabel id="producttype-select-label">
+                Product Type
+              </InputLabel>
+              <ProductTypeSelect
+                labelId="producttype-select-label"
+                value={filters.product_type}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    product_type: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
             {/* TODO: Empurrar o Search para a direita */}
             <SearchField onChange={query => setSearch(query)} />
           </Box>

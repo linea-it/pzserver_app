@@ -11,6 +11,29 @@ export const getProductTypes = ({ }) => {
   return api.get('/api/product-types/').then(res => res.data)
 }
 
+// Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
+export const createProduct = (data, onUploadProgress) => {
+  const formData = new FormData()
+
+  formData.append('display_name', data.display_name)
+  formData.append('release', data.release)
+  formData.append('product_type', data.product_type)
+  formData.append('main_file', data.main_file)
+  formData.append('description_file', data.description_file)
+  formData.append('official_product', data.official_product)
+  formData.append('survey', data.survey)
+  formData.append('pz_code', data.pz_code)
+  formData.append('description', data.description)
+
+  return api
+    .post('/api/products/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress
+    })
+}
+
 export const getProducts = ({
   filters = {},
   search,
