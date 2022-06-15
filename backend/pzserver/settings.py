@@ -154,7 +154,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "drf_social_oauth2.authentication.SocialAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     # "DEFAULT_PARSER_CLASSES": (
@@ -215,6 +215,7 @@ LOGGING = {
             "filename": os.path.join(LOG_DIR, "django.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
+            "formatter": "standard",
         },
         "oauthlib": {
             "level": LOGGING_LEVEL,
@@ -222,6 +223,15 @@ LOGGING = {
             "filename": os.path.join(LOG_DIR, "oauthlib.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
+            "formatter": "standard",
+        },
+        "registry_product": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "registry_product.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "standard",
         },
     },
     "loggers": {
@@ -232,6 +242,11 @@ LOGGING = {
         },
         "oauthlib": {
             "handlers": ["oauthlib"],
+            "level": LOGGING_LEVEL,
+            "propagate": True,
+        },
+        "registry_product": {
+            "handlers": ["registry_product"],
             "level": LOGGING_LEVEL,
             "propagate": True,
         },

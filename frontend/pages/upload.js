@@ -18,6 +18,7 @@ import useStyles from '../styles/pages/upload'
 import { parseCookies } from 'nookies'
 import FileUploader from '../components/FileUploader'
 import { createProduct } from '../services/product'
+import { uniqueId } from 'lodash'
 
 export default function Upload() {
   const classes = useStyles()
@@ -43,7 +44,7 @@ export default function Upload() {
   // }
   const [progress, setProgress] = React.useState(0)
   const [product, setProduct] = React.useState({
-    display_name: 'teste',
+    display_name: 'teste_' + uniqueId(),
     release: '1',
     product_type: '1',
     official_product: true,
@@ -55,7 +56,8 @@ export default function Upload() {
   })
 
   const onUploadProgress = e => {
-    console.log('onUploadProgress')
+    const a = Math.round((100 * e.loaded) / e.total)
+    console.log('onUploadProgress: %o', a)
     setProgress(Math.round((100 * e.loaded) / e.total))
   }
 
@@ -66,6 +68,9 @@ export default function Upload() {
 
     createProduct(product, onUploadProgress).then(res => {
       console.log(res)
+
+      // TODO: isso é só para teste
+      setProduct({ ...product, display_name: 'teste_' + uniqueId() })
     })
   }
 
@@ -137,14 +142,14 @@ export default function Upload() {
                 onFileSelectSuccess={file => {
                   setProduct({
                     ...product,
-                    main_file: file,
+                    main_file: file
                     // description_file: file
                   })
                 }}
                 onFileSelectError={e => {
                   console.log(e)
                 }}
-                maxSize={1}
+                maxSize={200} // 200 MB
               />
             </FormGroup>
             {/* <FormControl fullWidth>

@@ -24,6 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = (
+            "internal_name",
             "file_size",
             "file_extension",
             "file_name",

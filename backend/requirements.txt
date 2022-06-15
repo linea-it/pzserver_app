@@ -7,3 +7,4 @@ django-filter==21.1
 psycopg2-binary==2.9.3
 drf-spectacular==0.22.0
 drf_social_oauth2==1.2.1
+pandas==1.4.2
