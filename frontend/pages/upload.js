@@ -1,4 +1,5 @@
 import React, { useRef } from 'react'
+import { useRouter } from 'next/router'
 import {
   Container,
   Grid,
@@ -22,7 +23,7 @@ import { uniqueId } from 'lodash'
 
 export default function Upload() {
   const classes = useStyles()
-
+  const router = useRouter()
   //   {
   //     "id": 8,
   //     "release": 2,
@@ -66,12 +67,21 @@ export default function Upload() {
     console.log('Submit')
     console.log(product)
 
-    createProduct(product, onUploadProgress).then(res => {
-      console.log(res)
+    createProduct(product, onUploadProgress)
+      .then(res => {
+        console.log(res)
+        if (res.status === 201) {
+          // TODO: Mostrar mensagem de sucesso e só então direcionar para
+          // pagina de detalhe do produto.
+          const data = res.data
 
-      // TODO: isso é só para teste
-      setProduct({ ...product, display_name: 'teste_' + uniqueId() })
-    })
+          router.push(`/product/${encodeURIComponent(data.internal_name)}`)
+        }
+      })
+      .catch(res => {
+        console.log('Error!')
+        console.log(res)
+      })
   }
 
   return (

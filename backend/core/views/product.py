@@ -16,7 +16,7 @@ class ProductFilter(filters.FilterSet):
     # Talvez filtro pelos internal_names de release e product_type
     class Meta:
         model = Product
-        fields = ["release", "product_type", "official_product"]
+        fields = ["internal_name", "release", "product_type", "official_product"]
 
 
 class ProductViewSet(viewsets.ModelViewSet):

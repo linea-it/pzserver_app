@@ -25,18 +25,17 @@ export const createProduct = (data, onUploadProgress) => {
   formData.append('pz_code', data.pz_code)
   formData.append('description', data.description)
 
-  return api
-    .post('/api/products/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress
-    })
+  return api.post('/api/products/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress
+  })
 }
 
 export const getProducts = ({
   filters = {},
-  search,
+  search = '',
   page = 0,
   page_size = 25,
   sort = []

@@ -20,6 +20,7 @@ services:
       - .env
     volumes:
       - ./backend:/app
+      - ./archive/log/backend:/log
       - ./archive/data:/archive/data
       - ./archive/django_static:/archive/django_static
     depends_on:
