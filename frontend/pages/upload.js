@@ -7,7 +7,9 @@ import {
   TextField,
   Input,
   MenuItem,
+  Checkbox,
   FormGroup,
+  FormControlLabel,
   Button,
   Box
 } from '@mui/material'
@@ -43,6 +45,7 @@ export default function Upload() {
   //     "description": "",
   //     "created_at": "2022-05-19T20:02:02.690868Z"
   // }
+
   const [progress, setProgress] = React.useState(0)
   const [product, setProduct] = React.useState({
     display_name: 'teste_' + uniqueId(),
@@ -51,8 +54,8 @@ export default function Upload() {
     official_product: true,
     main_file: null,
     description_file: '',
-    survey: '',
-    pz_code: '',
+    survey: 'LSST',
+    pz_code: 'LePhare',
     description: ''
   })
 
@@ -60,6 +63,15 @@ export default function Upload() {
     const a = Math.round((100 * e.loaded) / e.total)
     console.log('onUploadProgress: %o', a)
     setProgress(Math.round((100 * e.loaded) / e.total))
+  }
+
+  const handleCheckboxChange = e => {
+    const { name, checked } = e.target
+    if (checked) {
+      setProduct({ ...product, [name]: true })
+    }else{
+      setProduct({ ...product, [name]: false })
+    }
   }
 
   const handleSubmit = e => {
@@ -81,6 +93,7 @@ export default function Upload() {
       .catch(res => {
         console.log('Error!')
         console.log(res)
+        console.log(res.response.data)
       })
   }
 
@@ -141,11 +154,47 @@ export default function Upload() {
                 }}
               />
             </FormControl>
+
+            <FormControl fullWidth>
+              <TextField
+                id="survey"
+                value={product.survey}
+                label="Survey"
+                onChange={e => {
+                  setProduct({
+                    ...product,
+                    survey: e.target.value
+                  })
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                id="pz_code"
+                value={product.pz_code}
+                label="Pz Code"
+                onChange={e => {
+                  setProduct({
+                    ...product,
+                    pz_code: e.target.value
+                  })
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <FormControlLabel control={<Checkbox 
+                name="official_product"
+                defaultChecked
+                onChange={handleCheckboxChange} 
+              />} label="Official Product" />
+            </FormControl>
+
             <FormGroup row>
               <TextField
                 value={product.main_file ? product.main_file.name : ''}
                 label="Main File"
                 readOnly
+                required
               />
               <FileUploader
                 id="main_file"
