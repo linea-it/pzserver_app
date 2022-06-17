@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 (
                     "main_file",
                     models.FileField(
-                        upload_to=core.models.product.upload_file_products
+                        upload_to=core.models.product.upload_product_files
                     ),
                 ),
                 ("file_size", models.IntegerField()),

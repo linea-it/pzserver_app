@@ -5,8 +5,10 @@ import DownloadIcon from '@mui/icons-material/Download'
 import prettyBytes from 'pretty-bytes'
 import moment from 'moment'
 import { getProducts } from '../services/product'
+import { useRouter } from 'next/router'
 
 export default function ProductGrid(props) {
+  const router = useRouter()
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(undefined)
 
@@ -22,11 +24,11 @@ export default function ProductGrid(props) {
   }
 
   const handleDownload = React.useCallback(
-    row => () => {
-      console.log('Download Product with ID: %o', row.id)
-      // Pode redirecionar direto para a url do arquivo row.main_file
+    data => () => {
+      // Redirecionar para a pagina de detalhe do produto
+      router.push(`/product/${encodeURIComponent(data.row.internal_name)}`)
     },
-    []
+    [router]
   )
 
   // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination

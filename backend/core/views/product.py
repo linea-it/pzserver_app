@@ -1,9 +1,14 @@
+import logging
 import os
 
 from core.models import Product
 from core.serializers import ProductSerializer
-from rest_framework import viewsets
+from core.views.registry_product import RegistryProduct
 from django_filters import rest_framework as filters
+from rest_framework import status, viewsets
+from rest_framework.response import Response
+
+# from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 
 
 class ProductFilter(filters.FilterSet):
@@ -11,12 +16,13 @@ class ProductFilter(filters.FilterSet):
     # Talvez filtro pelos internal_names de release e product_type
     class Meta:
         model = Product
-        fields = ["release", "product_type", "official_product"]
+        fields = ["internal_name", "release", "product_type", "official_product"]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    # parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     search_fields = ["display_name", "file_name"]
     filterset_class = ProductFilter
     ordering_fields = [
@@ -29,26 +35,57 @@ class ProductViewSet(viewsets.ModelViewSet):
     ]
     ordering = ["-created_at"]
 
+    def create(self, request):
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
+
+        try:
+            rp = RegistryProduct(instance.pk)
+            rp.registry()
+
+            product = Product.objects.get(pk=instance.pk)
+            data = self.get_serializer(instance=product).data
+            return Response(data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            # Apaga o registro que acabou de ser criado.
+            # TODO: provavelmente seria melhor alterar um status para falha
+            # e guardar a causa do erro para debug
+            instance.delete()
+            # TODO: Remover os arquivos
+            # TODO: Implementar tratamento de erro.
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def perform_create(self, serializer):
+        """Executa antes do create
+        adiciona usuario e internal name.
+        """
+        data = self.request.data
+
+        # Internal Name
+        internal_name = self.get_internal_name(data.get("display_name"))
+
         # Usuario que fez o upload
         uploaded_by = self.request.user
-        # Arquivo principal
-        main_file = self.request.data.get("main_file")
 
-        # TODO: é interessante guardar os arquivos em diretórios_baseados pelo produt_type
-        # E um diretório para cada produto, assim os arquivos de produto e descricao podem
-        # ficar juntos e podemos permitir o upload de mais arquivos de um mesmo produto
-        # como pdf e exemplode de sitação e coisas do tipo.
-        # Exemplo: release->product_type->$id_$name
-        # TODO: criar uma regra para o internal name, garantir só string e numeros com um separador unico tipo _
-        # TODO: é interessante renomear o arquivo para um nome sem caracteres especiais e sem espacos, por causa do link de download.
-
-        file_size = main_file.size
-        file_name, file_extension = os.path.splitext(main_file.name)
-
-        serializer.save(
+        return serializer.save(
+            internal_name=internal_name,
             user=uploaded_by,
-            file_size=file_size,
-            file_name=file_name,
-            file_extension=file_extension,
         )
+
+    def get_internal_name(self, display_name):
+        """
+        Cria um internal name sem caracteres especiais
+        e nem espaços.
+        o internal name pode ser usado para paths, urls e tablenames.
+        """
+        # troca espacos por "_", converte para lowercase, remove espacos do final
+        name = display_name.replace(" ", "_").lower().strip().strip("\n")
+
+        # Retirar qualquer caracter que nao seja alfanumerico exceto "_"
+        name = "".join(e for e in name if e.isalnum() or e == "_")
+
+        return name

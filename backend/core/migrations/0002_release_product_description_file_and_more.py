@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             field=models.FileField(
                 blank=True,
                 null=True,
-                upload_to=core.models.product.upload_file_products,
+                upload_to=core.models.product.upload_product_files,
             ),
         ),
         migrations.AlterField(

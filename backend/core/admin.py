@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import ProductType, Product, Release
+from core.models import ProductType, Product, Release, ProductContent
 
 
 @admin.register(ProductType)
@@ -17,12 +17,13 @@ class ReleaseAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ReleaseAdmin(admin.ModelAdmin):
+class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "product_type",
         "release",
         "user",
+        "internal_name",
         "display_name",
         "official_product",
         "survey",
@@ -31,3 +32,8 @@ class ReleaseAdmin(admin.ModelAdmin):
     )
 
     search_fields = ("name", "display_name")
+
+
+@admin.register(ProductContent)
+class ProductContentAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "column_name", "ucd")

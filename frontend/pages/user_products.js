@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Paper, Box } from '@mui/material'
+import { Paper, Box, FormControl, Button } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
@@ -9,9 +9,11 @@ import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import { parseCookies } from 'nookies'
+import { useRouter } from 'next/router'
 
 export default function Products() {
   const classes = useStyles()
+  const router = useRouter()
 
   const [search, setSearch] = React.useState('')
   const [filters, setFilters] = React.useState({
@@ -32,32 +34,47 @@ export default function Products() {
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={e => {
+              router.push('/upload')
+            }}
+          >
+            New Product
+          </Button>
         </Grid>
       </Grid>
       <Divider className={classes.titleDivider} variant={'fullWidth'} />
       <Grid container className={classes.gridContent}>
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect
-              value={filters.release}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  release: value
-                })
-              }}
-              disabled={search !== ''}
-            />
-            <ProductTypeSelect
-              value={filters.product_type}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  product_type: value
-                })
-              }}
-              disabled={search !== ''}
-            />
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <ReleaseSelect
+                value={filters.release}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    release: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <ProductTypeSelect
+                value={filters.product_type}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    product_type: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
             {/* TODO: Empurrar o Search para a direita */}
             <SearchField onChange={query => setSearch(query)} />
           </Box>
