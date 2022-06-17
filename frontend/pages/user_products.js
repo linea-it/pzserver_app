@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Paper, Box } from '@mui/material'
+import { Paper, Box, FormControl, InputLabel } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
@@ -38,26 +38,34 @@ export default function Products() {
       <Grid container className={classes.gridContent}>
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <ReleaseSelect
-              value={filters.release}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  release: value
-                })
-              }}
-              disabled={search !== ''}
-            />
-            <ProductTypeSelect
-              value={filters.product_type}
-              onChange={value => {
-                setFilters({
-                  ...filters,
-                  product_type: value
-                })
-              }}
-              disabled={search !== ''}
-            />
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <InputLabel id="release-select-label">Release</InputLabel>
+              <ReleaseSelect
+                value={filters.release}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    release: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
+            <FormControl sx={{ m: 1, minWidth: '200px' }}>
+              <InputLabel id="release-select-label">Product Type</InputLabel>
+              <ProductTypeSelect
+                value={filters.product_type}
+                onChange={value => {
+                  setFilters({
+                    ...filters,
+                    product_type: value
+                  })
+                }}
+                disabled={search !== ''}
+                allowAll={true}
+              />
+            </FormControl>
             {/* TODO: Empurrar o Search para a direita */}
             <SearchField onChange={query => setSearch(query)} />
           </Box>
