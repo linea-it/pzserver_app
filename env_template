@@ -23,9 +23,16 @@ DB_PORT=5432
 DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
 DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 
+# Frontend
+# Client ID e Client Secret devem ser cadastradas no Django Admin
+# Apos o Setup do backend, na interface Django Oauth Aplications
+NEXT_PUBLIC_CLIENT_ID=
+NEXT_PUBLIC_CLIENT_SECRET=
+
 # Github OAuth
 # To enable Github OAuth authentication, 
 # uncomment and fill in the following variables.
 #GITHUB_CLIENT_ID=
 #GITHUB_CLIENT_SECRET=
 #GITHUB_ORG_NAME=linea-it
+
