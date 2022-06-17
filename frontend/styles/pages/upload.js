@@ -3,7 +3,8 @@ import { makeStyles } from '@mui/styles'
 const useStyles = makeStyles(theme => ({
 
   container: {
-    // height: '100vh'
+    flex: 1,
+    padding: theme.spacing(4)
   },
   gridContainer: {
     margin: `${theme.spacing(2)} 0`
@@ -12,6 +13,9 @@ const useStyles = makeStyles(theme => ({
     // display: 'flex',
     // flexDirection: 'column',
     // gap: 20
+  },
+  pageHeader: {
+    marginBottom: theme.spacing(5)
   },
   buttonsContainer: {
     display: 'flex',

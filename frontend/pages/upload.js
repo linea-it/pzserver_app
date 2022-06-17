@@ -1,92 +1,67 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import {
   Container,
   Grid,
   Typography,
   TextField,
-  Input,
-  MenuItem,
   Checkbox,
   FormGroup,
+  FormControl,
   FormControlLabel,
   Button,
   Box
 } from '@mui/material'
-import InputLabel from '@mui/material/InputLabel'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
-import FormControl from '@mui/material/FormControl'
 import useStyles from '../styles/pages/upload'
 import { parseCookies } from 'nookies'
 import FileUploader from '../components/FileUploader'
 import { createProduct } from '../services/product'
-import { uniqueId } from 'lodash'
+import Loading from '../components/Loading'
 
 export default function Upload() {
   const classes = useStyles()
   const router = useRouter()
-  //   {
-  //     "id": 8,
-  //     "release": 2,
-  //     "release_name": "LSST DP1",
-  //     "product_type": 4,
-  //     "product_type_name": "Training Sets",
-  //     "uploaded_by": "gverde",
-  //     "display_name": "Produto 8",
-  //     "main_file": "http://localhost/archive/data/BluejeansHelper_A5J4FIm.log",
-  //     "file_name": "BluejeansHelper",
-  //     "file_size": 13176,
-  //     "file_extension": ".log",
-  //     "description_file": "http://localhost/archive/data/BluejeansHelper_lnM9OvZ.log",
-  //     "official_product": true,
-  //     "survey": "",
-  //     "pz_code": "",
-  //     "description": "",
-  //     "created_at": "2022-05-19T20:02:02.690868Z"
-  // }
 
-  const [progress, setProgress] = React.useState(0)
-  const [product, setProduct] = React.useState({
-    display_name: 'teste_' + uniqueId(),
-    release: '1',
-    product_type: '1',
-    official_product: true,
+  const defaultProductValues = {
+    display_name: '',
+    release: '',
+    product_type: '',
+    official_product: false,
     main_file: null,
     description_file: '',
-    survey: 'LSST',
-    pz_code: 'LePhare',
+    survey: '',
+    pz_code: '',
     description: ''
-  })
+  }
+  // const [progress, setProgress] = React.useState(0)
+  const [product, setProduct] = React.useState(defaultProductValues)
+  const [isLoading, setLoading] = React.useState(false)
 
   const onUploadProgress = e => {
     const a = Math.round((100 * e.loaded) / e.total)
     console.log('onUploadProgress: %o', a)
-    setProgress(Math.round((100 * e.loaded) / e.total))
+    // setProgress(Math.round((100 * e.loaded) / e.total))
   }
 
-  const handleCheckboxChange = e => {
-    const { name, checked } = e.target
-    if (checked) {
-      setProduct({ ...product, [name]: true })
-    }else{
-      setProduct({ ...product, [name]: false })
-    }
+  const handleReset = () => {
+    setProduct(defaultProductValues)
   }
-
   const handleSubmit = e => {
     e.preventDefault()
-    console.log('Submit')
-    console.log(product)
+    setLoading(true)
 
     createProduct(product, onUploadProgress)
       .then(res => {
-        console.log(res)
         if (res.status === 201) {
+          // // limpar o formulário antes de enviar só por segurança
+          // handleReset()
           // TODO: Mostrar mensagem de sucesso e só então direcionar para
           // pagina de detalhe do produto.
-          const data = res.data
 
+          setLoading(false)
+          const data = res.data
           router.push(`/product/${encodeURIComponent(data.internal_name)}`)
         }
       })
@@ -94,16 +69,18 @@ export default function Upload() {
         console.log('Error!')
         console.log(res)
         console.log(res.response.data)
+        setLoading(false)
       })
   }
 
   return (
     <Container className={classes.container}>
+      {isLoading && <Loading isLoading={isLoading} />}
+      <Box className={classes.pageHeader}>
+        <Typography variant="h6">Upload Product</Typography>
+      </Box>
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={12}>
-          <Typography variant="h2" component="h1" align="center">
-            Upload
-          </Typography>
           <Box
             component="form"
             sx={{
@@ -114,7 +91,8 @@ export default function Upload() {
           >
             <FormControl fullWidth>
               <TextField
-                id="name"
+                id="display_name"
+                name="display_name"
                 value={product.display_name}
                 label="Product Name"
                 required
@@ -127,9 +105,7 @@ export default function Upload() {
               />
             </FormControl>
             <FormControl fullWidth>
-              <InputLabel id="release-select-label">Release</InputLabel>
               <ReleaseSelect
-                labelId="release-select-label"
                 value={product.release}
                 onChange={value => {
                   setProduct({
@@ -137,14 +113,11 @@ export default function Upload() {
                     release: value
                   })
                 }}
+                required
               />
             </FormControl>
             <FormControl fullWidth>
-              <InputLabel id="producttype-select-label">
-                Product Type
-              </InputLabel>
               <ProductTypeSelect
-                labelId="producttype-select-label"
                 value={product.product_type}
                 onChange={value => {
                   setProduct({
@@ -152,12 +125,14 @@ export default function Upload() {
                     product_type: value
                   })
                 }}
+                required
               />
             </FormControl>
 
             <FormControl fullWidth>
               <TextField
                 id="survey"
+                name="survey"
                 value={product.survey}
                 label="Survey"
                 onChange={e => {
@@ -171,6 +146,7 @@ export default function Upload() {
             <FormControl fullWidth>
               <TextField
                 id="pz_code"
+                name="pz_code"
                 value={product.pz_code}
                 label="Pz Code"
                 onChange={e => {
@@ -182,15 +158,26 @@ export default function Upload() {
               />
             </FormControl>
             <FormControl fullWidth>
-              <FormControlLabel control={<Checkbox 
-                name="official_product"
-                defaultChecked
-                onChange={handleCheckboxChange} 
-              />} label="Official Product" />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="official_product"
+                    checked={product.official_product}
+                    onChange={e => {
+                      setProduct({
+                        ...product,
+                        official_product: e.target.checked
+                      })
+                    }}
+                  />
+                }
+                label="Official Product"
+              />
             </FormControl>
 
             <FormGroup row>
               <TextField
+                name="main_file"
                 value={product.main_file ? product.main_file.name : ''}
                 label="Main File"
                 readOnly
@@ -202,7 +189,6 @@ export default function Upload() {
                   setProduct({
                     ...product,
                     main_file: file
-                    // description_file: file
                   })
                 }}
                 onFileSelectError={e => {
@@ -211,33 +197,32 @@ export default function Upload() {
                 maxSize={200} // 200 MB
               />
             </FormGroup>
-            {/* <FormControl fullWidth>
-              <label htmlFor="main_file">
-                <Input
-                  id="main_file"
-                  accept="image/*"
-                  type="file"
-                  label="Main File"
-                  sx={{ display: 'none' }}
-                  onChange={handleFileInput}
-                />
-                <Button variant="contained" component="span">
-                  Upload
-                </Button>
-              </label>
-            </FormControl> */}
             <FormControl fullWidth>
               <TextField
                 id="description"
+                name="description"
                 value={product.description}
                 label="Description"
                 multiline
                 minRows={8}
+                onChange={e => {
+                  setProduct({
+                    ...product,
+                    description: e.target.value
+                  })
+                }}
+                required
               />
             </FormControl>
 
             <Grid item xs={12} className={classes.buttonsContainer}>
-              <Button type="reset" variant="contained" color="secondary">
+              <Button
+                type="reset"
+                value="reset"
+                variant="contained"
+                color="secondary"
+                onClick={handleReset}
+              >
                 Clear Form
               </Button>
               <Button type="submit" variant="contained" color="primary">

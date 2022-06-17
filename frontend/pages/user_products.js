@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Paper, Box, FormControl, InputLabel } from '@mui/material'
+import { Paper, Box, FormControl } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
@@ -39,7 +39,6 @@ export default function Products() {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
             <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <InputLabel id="release-select-label">Release</InputLabel>
               <ReleaseSelect
                 value={filters.release}
                 onChange={value => {
@@ -53,7 +52,6 @@ export default function Products() {
               />
             </FormControl>
             <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <InputLabel id="release-select-label">Product Type</InputLabel>
               <ProductTypeSelect
                 value={filters.product_type}
                 onChange={value => {

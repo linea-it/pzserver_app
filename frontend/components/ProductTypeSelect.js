@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import { getProductTypes } from '../services/product'
-
+import { TextField } from '@mui/material'
 export default function ProductTypeSelect(props) {
   const { allowAll, value, onChange, disabled, ...rest } = props
 
@@ -16,8 +15,8 @@ export default function ProductTypeSelect(props) {
   }, [])
 
   return (
-    <Select
-      id="producttype-select-helper"
+    <TextField
+      select
       value={value}
       label="Product Type"
       onChange={e => onChange(e.target.value)}
@@ -35,7 +34,7 @@ export default function ProductTypeSelect(props) {
           {row.display_name}
         </MenuItem>
       ))}
-    </Select>
+    </TextField>
   )
 }
 

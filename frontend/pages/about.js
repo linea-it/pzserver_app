@@ -7,7 +7,7 @@ export default function About() {
     <Container className={classes.root}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
-          <Typography variant="h6">About us</Typography>
+          <Typography variant="h6">About</Typography>
           <Typography variant="body1" component="span">
             <p>
               Inspired by features of the DES Science Portal (

@@ -25,11 +25,10 @@ export default function ProductGrid(props) {
 
   const handleDownload = React.useCallback(
     data => () => {
-      console.log(data)
       // Redirecionar para a pagina de detalhe do produto
       router.push(`/product/${encodeURIComponent(data.row.internal_name)}`)
     },
-    []
+    [router]
   )
 
   // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination

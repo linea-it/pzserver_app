@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import { getReleases } from '../services/product'
+import { TextField } from '@mui/material'
 
 // export default function ReleaseSelect({ value, onChange, disabled }) {
 export default function ReleaseSelect(props) {
@@ -16,20 +15,10 @@ export default function ReleaseSelect(props) {
     })
   }, [])
 
-  // React.useEffect(() => {
-  //   // Seleciona o primeiro release
-  //   // ATENÇÃO: Esta implementação não é a mais adequada.
-  //   // Deveria ser implementada com UseCallback, mas eu não consegui.
-  //   // executar a onChange desta forma.
-  //   // a solução foi a condição value === '' que impede um loop infinito.
-  //   if (releases.length > 0 && value === '') {
-  //     onChange(releases[0].id)
-  //   }
-  // }, [onChange, releases, value])
-
   return (
-    <Select
-      id="release-select-helper"
+    // <Select
+    <TextField
+      select
       value={value}
       label="Release"
       onChange={e => onChange(e.target.value)}
@@ -47,7 +36,8 @@ export default function ReleaseSelect(props) {
           {row.display_name}
         </MenuItem>
       ))}
-    </Select>
+      {/* </Select> */}
+    </TextField>
   )
 }
 

@@ -1,6 +1,7 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { Input, Button } from '@mui/material'
 import prettyBytes from 'pretty-bytes'
+import PropTypes from 'prop-types'
 
 export default function FileUploader(props) {
   const { id, onFileSelectSuccess, onFileSelectError, maxSize, ...rest } = props
@@ -34,9 +35,24 @@ export default function FileUploader(props) {
         onChange={handleFileInput}
         {...rest}
       />
-      <Button variant="contained" component="span" disableElevation>
-        Upload
+      <Button
+        variant="contained"
+        component="span"
+        size="large"
+        // disableElevation
+        sx={{ height: '100%' }}
+      >
+        Choose File
       </Button>
     </label>
   )
+}
+FileUploader.propTypes = {
+  id: PropTypes.string.isRequired,
+  onFileSelectSuccess: PropTypes.func.isRequired,
+  onFileSelectError: PropTypes.func.isRequired,
+  maxSize: PropTypes.int
+}
+FileUploader.defaultProps = {
+  maxSize: 50
 }

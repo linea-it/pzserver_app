@@ -5,7 +5,6 @@ import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import useStyles from '../styles/pages/products'
 import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
@@ -41,9 +40,7 @@ export default function Products() {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
             <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <InputLabel id="release-select-label">Release</InputLabel>
               <ReleaseSelect
-                labelId="release-select-label"
                 value={filters.release}
                 onChange={value => {
                   setFilters({
@@ -56,11 +53,7 @@ export default function Products() {
               />
             </FormControl>
             <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <InputLabel id="producttype-select-label">
-                Product Type
-              </InputLabel>
               <ProductTypeSelect
-                labelId="producttype-select-label"
                 value={filters.product_type}
                 onChange={value => {
                   setFilters({

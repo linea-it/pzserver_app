@@ -43,7 +43,7 @@ class RegistryProduct:
             settings.MEDIA_ROOT,
             release,
             product_type,
-            f"{self.product.pk}_{self.product.internal_name}",
+            self.product.internal_name,
         )
         path.mkdir(parents=True, exist_ok=True)
 
@@ -51,6 +51,9 @@ class RegistryProduct:
         return path
 
     def registry(self):
+        # Alterar o Internal name
+        self.product.internal_name = f"{self.product.pk}_{self.product.internal_name}"
+        self.product.save()
 
         # Identificar o formato do arquivo principal
         main_file = Path(self.product.main_file.path)
@@ -74,7 +77,8 @@ class RegistryProduct:
         temp_dir_path = main_file.parent
 
         # Path para o arquivo zip com todo o conteudo do produto
-        zip_path = Path(new_path, f"{self.product.internal_name}.zip")
+        zip_name = f"{self.product.internal_name.split('_')[1]}.zip"
+        zip_path = Path(new_path, zip_name)
 
         # Comprimir o diretório e todos os arquivos do produto.
         self.create_zip(temp_dir_path, zip_path, 9)
