@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Paper, Box } from '@mui/material'
+import { Paper, Box, Button } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
@@ -10,9 +10,11 @@ import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import { parseCookies } from 'nookies'
+import { useRouter } from 'next/router'
 
 export default function Products() {
   const classes = useStyles()
+  const router = useRouter()
 
   const [search, setSearch] = React.useState('')
   const [filters, setFilters] = React.useState({
@@ -33,6 +35,15 @@ export default function Products() {
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={e => {
+              router.push('/upload')
+            }}
+          >
+            New Product
+          </Button>
         </Grid>
       </Grid>
       <Divider className={classes.titleDivider} variant={'fullWidth'} />

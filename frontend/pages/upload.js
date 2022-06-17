@@ -128,35 +128,40 @@ export default function Upload() {
                 required
               />
             </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="survey"
-                name="survey"
-                value={product.survey}
-                label="Survey"
-                onChange={e => {
-                  setProduct({
-                    ...product,
-                    survey: e.target.value
-                  })
-                }}
-              />
-            </FormControl>
-            <FormControl fullWidth>
-              <TextField
-                id="pz_code"
-                name="pz_code"
-                value={product.pz_code}
-                label="Pz Code"
-                onChange={e => {
-                  setProduct({
-                    ...product,
-                    pz_code: e.target.value
-                  })
-                }}
-              />
-            </FormControl>
+            {/* Survey necessário Product Type = 5 - Spec-z Catalog */}
+            {product.product_type === 5 && (
+              <FormControl fullWidth>
+                <TextField
+                  id="survey"
+                  name="survey"
+                  value={product.survey}
+                  label="Survey"
+                  onChange={e => {
+                    setProduct({
+                      ...product,
+                      survey: e.target.value
+                    })
+                  }}
+                />
+              </FormControl>
+            )}
+            {/* Survey necessário Product Type = 1 - Photo-z Results */}
+            {product.product_type === 1 && (
+              <FormControl fullWidth>
+                <TextField
+                  id="pz_code"
+                  name="pz_code"
+                  value={product.pz_code}
+                  label="Pz Code"
+                  onChange={e => {
+                    setProduct({
+                      ...product,
+                      pz_code: e.target.value
+                    })
+                  }}
+                />
+              </FormControl>
+            )}
             <FormControl fullWidth>
               <FormControlLabel
                 control={
