@@ -59,12 +59,14 @@ export default function Product() {
               >
                 <Typography variant="h4">{data.display_name}</Typography>
 
-                <Chip
-                  variant="outlined"
-                  color="success"
-                  label="Official Product"
-                  icon={<VerifiedIcon />}
-                />
+                {data.official_product !== '' && (
+                  <Chip
+                    variant="outlined"
+                    color="success"
+                    label="Official Product"
+                    icon={<VerifiedIcon />}
+                  />
+                )}
               </Stack>
               <Stack
                 direction="row"
