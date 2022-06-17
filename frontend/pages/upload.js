@@ -128,8 +128,8 @@ export default function Upload() {
                 required
               />
             </FormControl>
-            {/* Survey necessário Product Type = 5 - Spec-z Catalog */}
-            {product.product_type === 5 && (
+            {/* Survey necessário Product Type = 2 - Spec-z Catalog */}
+            {product.product_type === 2 && (
               <FormControl fullWidth>
                 <TextField
                   id="survey"
