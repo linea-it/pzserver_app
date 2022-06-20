@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { parseCookies } from 'nookies'
 
 const apiAuth = axios.create({
   timeout: 5000,
@@ -11,26 +10,28 @@ const apiAuth = axios.create({
 
 export default apiAuth
 
-export function signInRequest(data) {
+export async function signInRequest(data) {
+  const response = await fetch('/front-api/config')
+  const oauthSecret = await response.json()
+
   return apiAuth
     .post('/auth/token', {
       grant_type: 'password',
       username: data.username,
       password: data.password,
-      client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
-      client_secret: process.env.NEXT_PUBLIC_CLIENT_SECRET
-      // client_id: 'lKPub4YnYGeUq77VIys0gGPoDh25NB0oKv4vwH5G',
-      // client_secret:
-      //   'yQPmjBJwx9DsZ1QkTQaTqRbC9QQ3MMUgVex7NRvFh7PVXG9kEjE9EOkvprFnctfBtzsF4cC8aJp8vhfpQr75HxZ8kbUJzS7m7ZG8tbFmxqyXJTIajXiWjbvYiaWfguHs'        
+      client_id: oauthSecret.client_id,
+      client_secret: oauthSecret.client_secret
     })
     .then(res => res.data)
 }
 
 export async function refreshToken(token) {
+  const response = await fetch('/front-api/config')
+  const oauthSecret = await response.json()
   const res = await apiAuth.post('/auth/token', {
     grant_type: 'refresh_token',
-    client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
-    client_secret: process.env.NEXT_PUBLIC_CLIENT_SECRET,
+    client_id: oauthSecret.client_id,
+    client_secret: oauthSecret.client_secret,
     refresh_token: token
   })
   return res.data
