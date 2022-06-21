@@ -19,16 +19,17 @@ def upload_product_files(instance, filename):
 class Product(models.Model):
 
     product_type = models.ForeignKey(
-        ProductType, on_delete=models.PROTECT, related_name="products"
+        ProductType, on_delete=models.CASCADE, related_name="products"
     )
     release = models.ForeignKey(
         Release,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="products",
         null=True,
         blank=True,
+        default=None,
     )
-    user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="products")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
     internal_name = models.CharField(
         max_length=255, null=True, blank=True, default=None
     )

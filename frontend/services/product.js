@@ -16,7 +16,13 @@ export const createProduct = (data, onUploadProgress) => {
   const formData = new FormData()
 
   formData.append('display_name', data.display_name)
-  formData.append('release', data.release)
+
+  if (data.release === "0") {
+    formData.append('release', null)
+  } else {
+    formData.append('release', data.release)
+  }
+
   formData.append('product_type', data.product_type)
   formData.append('main_file', data.main_file)
   formData.append('description_file', data.description_file)
@@ -73,8 +79,13 @@ export const getProducts = ({
   // o filtro official_product deve ser enviado no search também.
   if (search === '') {
     forIn(filters, function (value, key) {
-      if (value != null) {
-        params[key] = value
+      if (key === 'release' && value === '0') {
+        params.no_release = true
+        params.release = null
+      } else {
+        if (value != null) {
+          params[key] = value
+        }
       }
     })
   }

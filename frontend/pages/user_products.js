@@ -60,6 +60,7 @@ export default function Products() {
                 }}
                 disabled={search !== ''}
                 allowAll={true}
+                noRelease={true}
               />
             </FormControl>
             <FormControl sx={{ m: 1, minWidth: '200px' }}>
