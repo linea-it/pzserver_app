@@ -14,6 +14,9 @@ from rest_framework.response import Response
 class ProductFilter(filters.FilterSet):
     # TODO: Adicionar Mais Filtros
     # Talvez filtro pelos internal_names de release e product_type
+
+    release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
+
     class Meta:
         model = Product
         fields = ["internal_name", "release", "product_type", "official_product"]
@@ -36,7 +39,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = self.perform_create(serializer)

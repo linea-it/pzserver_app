@@ -1,3 +1,4 @@
+from pkg_resources import require
 from rest_framework import serializers
 from core.models import Release, ProductType, Product
 
@@ -5,8 +6,9 @@ from core.models import Release, ProductType, Product
 class ProductSerializer(serializers.ModelSerializer):
 
     release = serializers.PrimaryKeyRelatedField(
-        queryset=Release.objects.all(), many=False
+        queryset=Release.objects.all(), many=False, allow_null=True, required=False
     )
+    
     release_name = serializers.SerializerMethodField()
 
     product_type = serializers.PrimaryKeyRelatedField(

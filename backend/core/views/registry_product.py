@@ -36,12 +36,11 @@ class RegistryProduct:
         return self.log
 
     def get_path(self):
-        release = self.product.release.name
+
         product_type = self.product.product_type.name
 
         path = Path(
             settings.MEDIA_ROOT,
-            release,
             product_type,
             self.product.internal_name,
         )

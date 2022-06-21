@@ -73,8 +73,13 @@ export const getProducts = ({
   // o filtro official_product deve ser enviado no search também.
   if (search === '') {
     forIn(filters, function (value, key) {
-      if (value != null) {
-        params[key] = value
+      if (key === 'release' && value === '0') {
+        params.release__isnull = true
+        params.release = null
+      } else {
+        if (value != null) {
+          params[key] = value
+        }
       }
     })
   }

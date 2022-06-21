@@ -67,7 +67,6 @@ export default function Upload() {
       })
       .catch(res => {
         console.log('Error!')
-        console.log(res)
         console.log(res.response.data)
         setLoading(false)
       })
@@ -105,18 +104,6 @@ export default function Upload() {
               />
             </FormControl>
             <FormControl fullWidth>
-              <ReleaseSelect
-                value={product.release}
-                onChange={value => {
-                  setProduct({
-                    ...product,
-                    release: value
-                  })
-                }}
-                required
-              />
-            </FormControl>
-            <FormControl fullWidth>
               <ProductTypeSelect
                 value={product.product_type}
                 onChange={value => {
@@ -126,6 +113,17 @@ export default function Upload() {
                   })
                 }}
                 required
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <ReleaseSelect
+                value={product.release}
+                onChange={value => {
+                  setProduct({
+                    ...product,
+                    release: value
+                  })
+                }}
               />
             </FormControl>
             {/* Survey necessário Product Type = 2 - Spec-z Catalog */}
