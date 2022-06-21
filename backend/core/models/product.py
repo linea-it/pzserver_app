@@ -6,13 +6,6 @@ from django.db import models
 
 
 def upload_product_files(instance, filename):
-    # log = logging.getLogger("registry_product")
-    # log.info("Model Upload to")
-    # release_name = instance.release.name
-    # product_type = instance.product_type.name
-    # log.debug("Release Name: %s" % release_name)
-    # log.debug("Product Type: %s" % product_type)
-
     return f"tmp/{instance.internal_name}/{filename}"
 
 

@@ -51,7 +51,7 @@ FileUploader.propTypes = {
   id: PropTypes.string.isRequired,
   onFileSelectSuccess: PropTypes.func.isRequired,
   onFileSelectError: PropTypes.func.isRequired,
-  maxSize: PropTypes.int
+  maxSize: PropTypes.number
 }
 FileUploader.defaultProps = {
   maxSize: 50
