@@ -31,10 +31,10 @@ services:
     working_dir: /app
     volumes:
       - ./frontend:/app
+      - ./.env.local:/app/.env.local
     stdin_open: true
     command: yarn dev
-    env_file:
-      - .env
+
   nginx:
     image: nginx:1.21.6-alpine
     ports:
