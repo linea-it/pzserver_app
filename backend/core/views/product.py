@@ -1,12 +1,15 @@
 import logging
 import os
+import mimetypes
 
 from core.models import Product
 from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.http import FileResponse
 
 # from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 
@@ -91,3 +94,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         name = "".join(e for e in name if e.isalnum() or e == "_")
 
         return name
+
+    @action(methods=['GET'], detail=True)
+    def download(self, request, **kwargs):
+        """ Download product """
+        
+        att = self.get_object()
+        file_handle = att.main_file.open()
+
+        mimetype, _ = mimetypes.guess_type(att.main_file.path)
+        response = FileResponse(file_handle, content_type=mimetype)
+        response['Content-Length'] = att.file_size
+        response['Content-Disposition'] = "attachment; filename={}".format(att.file_name)
+        return response

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
 import useStyles from '../../styles/pages/product'
-
 import {
   Container,
   Grid,
@@ -15,7 +14,7 @@ import {
 } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import VerifiedIcon from '@mui/icons-material/Verified'
-import { getProducts } from '../../services/product'
+import { getProducts, downloadProduct } from '../../services/product'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import Loading from '../../components/Loading'
@@ -34,31 +33,36 @@ export default function Product() {
     getProducts({
       filters: { internal_name: pid }
     })
-      .then(res => {
-        if (res.count === 1) {
-          // Apresenta a interface de Produtos
-          setData(res.results[0])
-        } else {
-          // Retorna error 404
-          // TODO: Tratar os errors e apresentar.
-          console.log(
-            'Mais de um registro encontrado para o mesmo internal name.'
-          )
-        }
-        setLoading(false)
-        // router.push('/404')
-      })
-      .catch(res => {
+    .then(res => {
+      if (res.count === 1) {
+        // Apresenta a interface de Produtos
+        setData(res.results[0])
+      } else {
         // Retorna error 404
         // TODO: Tratar os errors e apresentar.
-        setLoading(false)
-      })
+        console.log(
+          'Mais de um registro encontrado para o mesmo internal name.'
+        )
+      }
+      setLoading(false)
+      // router.push('/404')
+    })
+    .catch(res => {
+      // Retorna error 404
+      // TODO: Tratar os errors e apresentar.
+      setLoading(false)
+    })
+
   }, [pid])
 
   // TODO: Melhorar a apresentação do Loading
   if (isLoading) return <Loading isLoading={isLoading} />
   // TODO: Criar uma interface de error.
   if (!data) return <DefaultErrorPage statusCode={404} />
+
+  const downloadFile = () => {
+    downloadProduct(data.id, data.file_name)
+  } 
 
   return (
     <Container className={classes.root}>
@@ -116,7 +120,7 @@ export default function Product() {
                 fullWidth
                 size="large"
                 endIcon={<DownloadIcon />}
-                href={data.main_file}
+                onClick={downloadFile}
               >
                 Download
               </Button>
