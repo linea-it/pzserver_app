@@ -33,26 +33,25 @@ export default function Product() {
     getProducts({
       filters: { internal_name: pid }
     })
-    .then(res => {
-      if (res.count === 1) {
-        // Apresenta a interface de Produtos
-        setData(res.results[0])
-      } else {
+      .then(res => {
+        if (res.count === 1) {
+          // Apresenta a interface de Produtos
+          setData(res.results[0])
+        } else {
+          // Retorna error 404
+          // TODO: Tratar os errors e apresentar.
+          console.log(
+            'Mais de um registro encontrado para o mesmo internal name.'
+          )
+        }
+        setLoading(false)
+        // router.push('/404')
+      })
+      .catch(res => {
         // Retorna error 404
         // TODO: Tratar os errors e apresentar.
-        console.log(
-          'Mais de um registro encontrado para o mesmo internal name.'
-        )
-      }
-      setLoading(false)
-      // router.push('/404')
-    })
-    .catch(res => {
-      // Retorna error 404
-      // TODO: Tratar os errors e apresentar.
-      setLoading(false)
-    })
-
+        setLoading(false)
+      })
   }, [pid])
 
   // TODO: Melhorar a apresentação do Loading
@@ -62,7 +61,7 @@ export default function Product() {
 
   const downloadFile = () => {
     downloadProduct(data.id, data.file_name)
-  } 
+  }
 
   return (
     <Container className={classes.root}>
