@@ -17,3 +17,4 @@ nginx.conf
 
 # Docker Compose 
 docker-compose.yml
+.env.local

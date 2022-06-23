@@ -11,6 +11,22 @@ export const getProductTypes = ({ }) => {
   return api.get('/api/product-types/').then(res => res.data)
 }
 
+export const downloadProduct = (id, file_name) => {
+  const link = document.createElement("a");
+  link.target = "_blank";
+  link.download = file_name
+  api
+    .get('/api/products/'+id+'/download/', {
+      responseType: "blob",
+    })
+    .then((res) => {
+      link.href = URL.createObjectURL(
+        new Blob([res.data], { type: res.headers['content-type'] })
+      );
+      link.click();
+    });
+}
+
 // Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
 export const createProduct = (data, onUploadProgress) => {
   const formData = new FormData()

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
 import useStyles from '../../styles/pages/product'
-
 import {
   Container,
   Grid,
@@ -15,7 +14,7 @@ import {
 } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import VerifiedIcon from '@mui/icons-material/Verified'
-import { getProducts } from '../../services/product'
+import { getProducts, downloadProduct } from '../../services/product'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import Loading from '../../components/Loading'
@@ -59,6 +58,10 @@ export default function Product() {
   if (isLoading) return <Loading isLoading={isLoading} />
   // TODO: Criar uma interface de error.
   if (!data) return <DefaultErrorPage statusCode={404} />
+
+  const downloadFile = () => {
+    downloadProduct(data.id, data.file_name)
+  }
 
   return (
     <Container className={classes.root}>
@@ -116,7 +119,7 @@ export default function Product() {
                 fullWidth
                 size="large"
                 endIcon={<DownloadIcon />}
-                href={data.main_file}
+                onClick={downloadFile}
               >
                 Download
               </Button>
