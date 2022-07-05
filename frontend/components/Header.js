@@ -18,7 +18,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 function Header() {
   const classes = useStyles()
-  const route = useRouter()
+  const router = useRouter()
   const { user, logout } = useAuth()
 
   const menus = [
@@ -59,7 +59,7 @@ function Header() {
         </Toolbar>
       </AppBar>
 
-      {route.pathname === '/' && (
+      {router.pathname === '/' && (
         <Grid className={classes.banner}>
           <Grid
             container
@@ -69,7 +69,56 @@ function Header() {
             className={classes.container}
           >
             <Grid item xs={12} className={classes.titleWrapper}>
-              <h1 className={classes.title}>Photo-z Server</h1>
+              {/* <h1 className={classes.title}>Photo-z Server</h1> */}
+              <Typography variant="h1" className={classes.title}>
+                Photo-z Server
+              </Typography>
+              <Typography
+                variant="body1"
+                display="block"
+
+              >
+                <p>
+                  Welcome to the Photo-z Server! This is an ancillary service
+                  available to Rubin Science Platform users to host lightweight
+                  data products related to photo-zs.
+                </p>
+                <p>
+                  Click{' '}
+                  <MuiLink
+                    variant="body1"
+                    component="button"
+                    onClick={e => {
+                      router.push('/about')
+                    }}
+                  >
+                    here
+                  </MuiLink>{' '}
+                  for more details.
+                </p>
+              </Typography>
+              {/* <Grid item xs={12}>
+              <Typography variant="body1" component="span">
+                <p>
+                  Welcome to the Photo-z Server! This is an ancillary service
+                  available to Rubin Science Platform users to host lightweight
+                  data products related to photo-zs.
+                </p>
+                <p>
+                  Click{' '}
+                  <MuiLink
+                    variant="body1"
+                    component="button"
+                    onClick={e => {
+                      router.push('/about')
+                    }}
+                  >
+                    here
+                  </MuiLink>{' '}
+                  for more details.
+                </p>
+              </Typography>
+            </Grid> */}
             </Grid>
           </Grid>
           <div className={classes.socialWrapper}>
