@@ -34,7 +34,7 @@ export default function Index() {
   return (
     <div className={classes.root}>
       <Head>
-        <title>Photo-Z Server | Home</title>
+        <title>Photo-z Server | Home</title>
       </Head>
       <Grid className={classes.main}>
         <Grid

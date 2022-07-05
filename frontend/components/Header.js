@@ -70,7 +70,7 @@ function Header() {
             className={classes.container}
           >
             <Grid item xs={12} className={classes.titleWrapper}>
-              <h1 className={classes.title}>Photo-Z Server</h1>
+              <h1 className={classes.title}>Photo-z Server</h1>
             </Grid>
           </Grid>
           <div className={classes.socialWrapper}>
