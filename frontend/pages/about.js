@@ -25,13 +25,13 @@ export default function About() {
               >
                 Fausti Neto et al., 2018
               </Link>{' '}
-              ), the Photo-z Server is an online service, complementary to the Rubin
-              Science Platform (RSP), to host photo-z-related lightweight data
-              products and to offer data management tools that allow sharing
-              data products among RSP users, attach and share relevant metadata,
-              and help on provenance tracking. It is delivered as part of the 
-              in-kind contribution program BRA-LIN. An overview of this and other 
-              contributions is available{' '}
+              ), the Photo-z Server is an online service, complementary to the
+              Rubin Science Platform (RSP), to host photo-z-related lightweight
+              data products and to offer data management tools that allow
+              sharing data products among RSP users, attach and share relevant
+              metadata, and help on provenance tracking. It is delivered as part
+              of the in-kind contribution program BRA-LIN. An overview of this
+              and other contributions is available{' '}
               <Link
                 href="https://linea-it.github.io/pz-lsst-inkind-doc/"
                 target="_blank"
@@ -39,8 +39,8 @@ export default function About() {
               >
                 here.
               </Link>{' '}
-              As required by the LSST in-kind program, the source code is publicly available
-              on{' '}
+              As required by the LSST in-kind program, the source code is
+              publicly available on{' '}
               <Link
                 href="https://github.com/linea-it/pz-server"
                 target="_blank"
@@ -50,32 +50,34 @@ export default function About() {
               </Link>
             </p>
             <p>
-              The Photo-z Server is hosted in the Brazilian Independent Data Access
-              Center (IDAC) and is open to all RSP users (LSST data rights
-              holders), without geographic constraints. It is designed to be as
-              broad and generic as possible to be useful to all LSST Science
-              Collaborations that work with photo-z data products. 
-            </p> 
-            <p>
-              The Photo-z Server is being designed with a special focus on helping
-              RSP users participating in the Photo-z Validation Cooperative, a DM
-              team&apos;s initiative that will take place during LSST
-              commissioning phase (see technical note dmtn-049 for details), but
-              it is planned to continue serving the LSST Community during
-              subsequent years. During the Photo-z Validation Cooperative, the Photo-z
-              Coordination Group will be able to use the Photo-z Server to host and
-              distribute standardized training and validation sets to be used in
-              algorithm performance comparison experiments, as well as to
-              collect the results obtained by different users.
+              The Photo-z Server is hosted in the Brazilian Independent Data
+              Access Center (IDAC) and is open to all RSP users (LSST data
+              rights holders), without geographic constraints. It is designed to
+              be as broad and generic as possible to be useful to all LSST
+              Science Collaborations that work with photo-z data products.
             </p>
             <p>
-              Beyond the Photo-z Validation Cooperative, the RSP users will be able
-              to use the Photo-z Server to easily keep track and share lightweight
-              files containing varied test results. All data products uploaded
-              to the Photo-z Server will automatically be visible and available,
-              without any scientific validation, to all RSP users, and only for
-              this particular group, therefore it is not the appropriate tool to
-              release data products to the general public.
+              The Photo-z Server is being designed with a special focus on
+              helping RSP users participating in the Photo-z Validation
+              Cooperative, a DM team&apos;s initiative that will take place
+              during LSST commissioning phase (see technical note dmtn-049 for
+              details), but it is planned to continue serving the LSST Community
+              during subsequent years. During the Photo-z Validation
+              Cooperative, the Photo-z Coordination Group will be able to use
+              the Photo-z Server to host and distribute standardized training
+              and validation sets to be used in algorithm performance comparison
+              experiments, as well as to collect the results obtained by
+              different users.
+            </p>
+            <p>
+              Beyond the Photo-z Validation Cooperative, the RSP users will be
+              able to use the Photo-z Server to easily keep track and share
+              lightweight files containing varied test results. All data
+              products uploaded to the Photo-z Server will automatically be
+              visible and available, without any scientific validation, to all
+              RSP users, and only for this particular group, therefore it is not
+              the appropriate tool to release data products to the general
+              public.
             </p>
             <p>
               If you have comments or suggestions, be welcome to open an issue
