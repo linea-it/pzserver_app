@@ -44,7 +44,6 @@ function Header() {
     <div>
       <AppBar position="static" className={classes.appbar}>
         <Toolbar className={classes.toolbar}>
-          <Image src="/logo.png" alt="LIneA" width={64} height={64} />
           <List className={classes.menuList}>
             {menus.map(menu => (
               <ListItem key={menu.href} className={classes.menuListItem}>
