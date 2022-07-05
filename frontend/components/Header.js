@@ -1,6 +1,5 @@
 import React from 'react'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
 import {
   AppBar,
   Toolbar,
@@ -73,11 +72,7 @@ function Header() {
               <Typography variant="h1" className={classes.title}>
                 Photo-z Server
               </Typography>
-              <Typography
-                variant="body1"
-                display="block"
-
-              >
+              <Typography variant="body1" display="block">
                 <p>
                   Welcome to the Photo-z Server! This is an ancillary service
                   available to Rubin Science Platform users to host lightweight
