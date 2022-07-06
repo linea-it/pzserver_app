@@ -31,7 +31,10 @@ const useStyles = makeStyles(theme => ({
     textShadow: '0.1em 0.1em 0.1em black'
   },
   media: {
-    minHeight: 260
+    minHeight: 260,
+    [theme.breakpoints.down('xl')]: {
+      minHeight: 200
+    }
   },
 
   gridApplicationLg: {

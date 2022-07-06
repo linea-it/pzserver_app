@@ -61,23 +61,31 @@ const useStyles = makeStyles(theme => ({
     marginTop: '0'
   },
   titleWrapper: {
-    minHeight: 240,
     [theme.breakpoints.up('sm')]: {
-      display: 'flex',
       justifyContent: 'center',
       alignItems: 'center'
+    },
+    [theme.breakpoints.down('xl')]: {
+      minHeight: 180
+    },
+    [theme.breakpoints.only('xl')]: {
+      minHeight: 280
     }
   },
   title: {
     fontFamily: 'Oxanium',
     fontWeight: 100,
     fontSize: 50,
-    margin: 0,
     [theme.breakpoints.down('sm')]: {
       fontSize: 48,
       margin: `${theme.spacing(5)}px ${theme.spacing(2)}px`
     },
-
+    [theme.breakpoints.down('xl')]: {
+      margin: `${theme.spacing(4)}`
+    },
+    [theme.breakpoints.only('xl')]: {
+      margin: `${theme.spacing(6)}`
+    },
     textShadow: 'black 0.1em 0.1em 0.2em'
   },
   socialWrapper: {

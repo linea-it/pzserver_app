@@ -15,11 +15,6 @@ export default function Index() {
 
   const interfaces = [
     {
-      title: 'Upload',
-      path: '/upload',
-      background: '/interfaces/upload.jpg'
-    },
-    {
       title: 'LSST PZ Data Products',
       path: '/oficial_products',
       background: '/interfaces/lsst-dp.jpg'
@@ -34,7 +29,7 @@ export default function Index() {
   return (
     <div className={classes.root}>
       <Head>
-        <title>Photo-Z Server | Home</title>
+        <title>Photo-z Server | Home</title>
       </Head>
       <Grid className={classes.main}>
         <Grid
