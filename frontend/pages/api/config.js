@@ -13,8 +13,9 @@ export default function handler(req, res) {
       "Couldn't find environment variable: DJANGO_OAUTH_CLIENT_SECRET"
     )
   }
+
   res.status(200).json({
     client_id: clientId,
-    client_secret: clientSecret
+    client_secret: clientSecret,
   })
 }
