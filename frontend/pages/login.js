@@ -17,9 +17,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { grey } from '@mui/material/colors'
 import { styled } from '@mui/material/styles'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import PropTypes from 'prop-types'
 
 function Login(props) {
-  const { shibLoginUrl, ...rest } = props
+  const { shibLoginUrl } = props
 
   const formRef = useRef(null)
   const classes = useStyles()
@@ -163,7 +164,7 @@ export async function getServerSideProps({ ctx }) {
       }
     }
   }
-  console.log(process.env)
+
   const shibbolethLoginUrl = process.env.AUTH_SHIB_URL
     ? process.env.AUTH_SHIB_URL
     : null
@@ -176,3 +177,10 @@ export async function getServerSideProps({ ctx }) {
 }
 
 export default Login
+
+Login.propTypes = {
+  shibLoginUrl: PropTypes.string
+}
+Login.defaultProps = {
+  shibLoginUrl: null
+}

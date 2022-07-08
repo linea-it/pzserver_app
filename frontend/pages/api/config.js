@@ -16,6 +16,6 @@ export default function handler(req, res) {
 
   res.status(200).json({
     client_id: clientId,
-    client_secret: clientSecret,
+    client_secret: clientSecret
   })
 }
