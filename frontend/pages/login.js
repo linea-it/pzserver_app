@@ -14,8 +14,14 @@ import Link from '../components/Link'
 import useStyles from '../styles/pages/login'
 import { parseCookies } from 'nookies'
 import { useAuth } from '../contexts/AuthContext'
+import { grey } from '@mui/material/colors'
+import { styled } from '@mui/material/styles'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import PropTypes from 'prop-types'
 
-function Login() {
+function Login(props) {
+  const { shibLoginUrl } = props
+
   const formRef = useRef(null)
   const classes = useStyles()
   const { signIn } = useAuth()
@@ -39,6 +45,14 @@ function Login() {
 
     setFormError('')
   }
+
+  const GitHubButton = styled(Button)(({ theme }) => ({
+    color: theme.palette.getContrastText(grey[900]),
+    backgroundColor: grey[900],
+    '&:hover': {
+      backgroundColor: grey[800]
+    }
+  }))
 
   return (
     <Container component="main" maxWidth="xs" className={classes.container}>
@@ -88,6 +102,16 @@ function Login() {
           >
             Sign In
           </Button>
+          {shibLoginUrl !== null && (
+            <GitHubButton
+              startIcon={<GitHubIcon />}
+              fullWidth
+              variant="contained"
+              href={shibLoginUrl}
+            >
+              Login With GitHub
+            </GitHubButton>
+          )}
           <Grid container>
             <Grid item xs>
               <Link href="/" variant="body2">
@@ -127,7 +151,7 @@ function Login() {
   )
 }
 
-export const getServerSideProps = async ctx => {
+export async function getServerSideProps({ ctx }) {
   const { 'pzserver.access_token': token } = parseCookies(ctx)
 
   // A better way to validate this is to have
@@ -141,9 +165,22 @@ export const getServerSideProps = async ctx => {
     }
   }
 
+  const shibbolethLoginUrl = process.env.AUTH_SHIB_URL
+    ? process.env.AUTH_SHIB_URL
+    : null
+
   return {
-    props: {}
+    props: {
+      shibLoginUrl: shibbolethLoginUrl
+    }
   }
 }
 
 export default Login
+
+Login.propTypes = {
+  shibLoginUrl: PropTypes.string
+}
+Login.defaultProps = {
+  shibLoginUrl: null
+}

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "social_django",
     "drf_social_oauth2",
+    "shibboleth",
     # Apps
     "core",
 ]
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.shibboleth.ShibbolethMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -154,7 +156,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "drf_social_oauth2.authentication.SocialAuthentication",
-        # "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     # "DEFAULT_PARSER_CLASSES": (
@@ -202,6 +204,20 @@ LOGIN_REDIRECT_URL = "/api/"
 # # expires in 6 months
 # oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
 
+# Shibboleth Authentication
+if os.getenv("AUTH_SHIB_URL", None) is not None:
+    # https://github.com/Brown-University-Library/django-shibboleth-remoteuser
+    SHIBBOLETH_ATTRIBUTE_MAP = {
+        "eppn": (True, "username"),
+        "cn": (True, "first_name"),
+        "sn": (True, "last_name"),
+        "Shib-inetOrgPerson-mail": (True, "email"),
+    }
+    SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
+    # Including Shibboleth authentication:
+    AUTHENTICATION_BACKENDS += ("shibboleth.backends.ShibbolethRemoteUserBackend",)
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -225,6 +241,14 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "standard",
         },
+        "shibboleth": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "shibboleth.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "standard",
+        },
         "registry_product": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
@@ -242,6 +266,11 @@ LOGGING = {
         },
         "oauthlib": {
             "handlers": ["oauthlib"],
+            "level": LOGGING_LEVEL,
+            "propagate": True,
+        },
+        "shibboleth": {
+            "handlers": ["shibboleth"],
             "level": LOGGING_LEVEL,
             "propagate": True,
         },

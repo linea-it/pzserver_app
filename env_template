@@ -36,3 +36,6 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 #GITHUB_CLIENT_SECRET=
 #GITHUB_ORG_NAME=linea-it
 
+# Shibboleth / Satosa Auth
+# Url para login utilizando Shibboleth
+# AUTH_SHIB_URL=
