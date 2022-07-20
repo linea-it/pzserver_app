@@ -23,6 +23,11 @@ export default function Index() {
       title: 'User-generated Data Products',
       path: '/user_products',
       background: '/interfaces/user-dp.jpg'
+    },
+    {
+      title: 'Add New Product',
+      path: '/product/new',
+      background: '/interfaces/user-dp.jpg'
     }
   ]
 

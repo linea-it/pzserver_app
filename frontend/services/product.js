@@ -12,19 +12,19 @@ export const getProductTypes = ({ }) => {
 }
 
 export const downloadProduct = (id, file_name) => {
-  const link = document.createElement("a");
-  link.target = "_blank";
+  const link = document.createElement('a')
+  link.target = '_blank'
   link.download = file_name
   api
-    .get('/api/products/'+id+'/download/', {
-      responseType: "blob",
+    .get('/api/products/' + id + '/download/', {
+      responseType: 'blob'
     })
-    .then((res) => {
+    .then(res => {
       link.href = URL.createObjectURL(
         new Blob([res.data], { type: res.headers['content-type'] })
-      );
-      link.click();
-    });
+      )
+      link.click()
+    })
 }
 
 // Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
@@ -103,4 +103,19 @@ export const getProducts = ({
   params.official_product = filters.official_product
 
   return api.get('/api/products/', { params }).then(res => res.data)
+}
+export const getProductContents = product_id => {
+  return api
+    .get('/api/product-contents/', {
+      params: { product_id: product_id, ordering: 'order' }
+    })
+    .then(res => res.data)
+}
+
+export const contentAssociation = (pc_id, ucd) => {
+  return api
+    .patch(`/api/product-contents/${pc_id}/`, {
+      ucd: ucd === '' ? null : ucd
+    })
+    .then(res => res.data)
 }

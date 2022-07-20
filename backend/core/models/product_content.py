@@ -19,5 +19,13 @@ class ProductContent(models.Model):
         default=None,
     )
 
+    order = models.IntegerField(
+        verbose_name="Order",
+        help_text="Order of columns in the product.",
+        null=True,
+        blank=True,
+        default=0,
+    )
+
     def __str__(self):
         return f"{self.product.display_name} - {self.column_name}"
