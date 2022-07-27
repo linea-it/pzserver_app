@@ -8,7 +8,7 @@ class ProductSerializer(serializers.ModelSerializer):
     release = serializers.PrimaryKeyRelatedField(
         queryset=Release.objects.all(), many=False, allow_null=True, required=False
     )
-    
+
     release_name = serializers.SerializerMethodField()
 
     product_type = serializers.PrimaryKeyRelatedField(
@@ -18,10 +18,10 @@ class ProductSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.SerializerMethodField()
 
-    main_file = serializers.FileField()
-    description_file = serializers.FileField(
-        required=False,
-    )
+    # main_file = serializers.FileField()
+    # description_file = serializers.FileField(
+    #     required=False,
+    # )
 
     class Meta:
         model = Product

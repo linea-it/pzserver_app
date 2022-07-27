@@ -28,14 +28,14 @@ export const downloadProduct = (id, file_name) => {
 }
 
 // Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
-export const createProduct = (data, onUploadProgress) => {
+export const createProduct = data => {
   const formData = new FormData()
 
   formData.append('display_name', data.display_name)
   formData.append('release', data.release)
   formData.append('product_type', data.product_type)
-  formData.append('main_file', data.main_file)
-  formData.append('description_file', data.description_file)
+  // formData.append('main_file', data.main_file)
+  // formData.append('description_file', data.description_file)
   formData.append('official_product', data.official_product)
   formData.append('survey', data.survey)
   formData.append('pz_code', data.pz_code)
@@ -44,8 +44,27 @@ export const createProduct = (data, onUploadProgress) => {
   return api.post('/api/products/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
-    },
-    onUploadProgress
+    }
+  })
+}
+
+export const patchProduct = data => {
+  const formData = new FormData()
+
+  formData.append('display_name', data.display_name)
+  formData.append('release', data.release)
+  formData.append('product_type', data.product_type)
+  // formData.append('main_file', data.main_file)
+  // formData.append('description_file', data.description_file)
+  formData.append('official_product', data.official_product)
+  formData.append('survey', data.survey)
+  formData.append('pz_code', data.pz_code)
+  formData.append('description', data.description)
+
+  return api.patch(`/api/products/${data.id}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
@@ -104,6 +123,11 @@ export const getProducts = ({
 
   return api.get('/api/products/', { params }).then(res => res.data)
 }
+
+export const getProduct = product_id => {
+  return api.get(`/api/products/${product_id}/`).then(res => res.data)
+}
+
 export const getProductContents = product_id => {
   return api
     .get('/api/product-contents/', {
@@ -118,4 +142,32 @@ export const contentAssociation = (pc_id, ucd) => {
       ucd: ucd === '' ? null : ucd
     })
     .then(res => res.data)
+}
+
+export const getProductFiles = product_id => {
+  return api
+    .get('/api/product-files/', {
+      params: { product_id: product_id, ordering: 'role' }
+    })
+    .then(res => res.data)
+}
+
+export const deleteProductFile = id => {
+  return api.delete(`/api/product-files/${id}/`)
+}
+
+export const createProductFile = (product_id, file, role, onUploadProgress) => {
+  const formData = new FormData()
+
+  formData.append('product', product_id)
+  formData.append('file', file)
+  formData.append('role', role)
+  formData.append('type', file.type)
+
+  return api.post('/api/product-files/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress: onUploadProgress
+  })
 }

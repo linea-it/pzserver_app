@@ -23,6 +23,7 @@ from core.views import (
     ProductViewSet,
     ProductTypeViewSet,
     ProductContentViewSet,
+    ProductFileViewSet,
     TestGithubAuth,
     LoggedUserView,
 )
@@ -35,6 +36,8 @@ from drf_spectacular.views import (
 route = routers.DefaultRouter()
 
 route.register(r"releases", ReleaseViewSet, basename="Releases")
+
+route.register(r"product-files", ProductFileViewSet, basename="ProductFiles")
 route.register(r"product-contents", ProductContentViewSet, basename="ProductContents")
 route.register(r"product-types", ProductTypeViewSet, basename="ProductTypes")
 route.register(r"products", ProductViewSet, basename="Products")

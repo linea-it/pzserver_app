@@ -27,22 +27,23 @@ import NewProductStep2 from '../../components/newProduct/Step2'
 import NewProductStep3 from '../../components/newProduct/Step3'
 import NewProductStep4 from '../../components/newProduct/Step4'
 
+
 export default function NewProduct() {
   const classes = useStyles()
   const router = useRouter()
 
   const defaultProductValues = {
-    id: 134,
-    display_name: 'Teste',
-    release: '1',
-    product_type: '1',
-    official_product: true,
-    main_file: null,
-    description_file: '',
+    id: null,
+    display_name: '',
+    release: '',
+    product_type: '',
+    official_product: false,
+    // main_file: null,
+    // description_file: '',
     survey: '',
     pz_code: '',
-    description: 'dasdsdas',
-    step: 0
+    description: '',
+    status: 0
   }
   // const [progress, setProgress] = React.useState(0)
   const [product, setProduct] = React.useState(defaultProductValues)
@@ -53,54 +54,57 @@ export default function NewProduct() {
     console.log('Finish!')
   }
 
-  const handleNextStep = () => {
+  const handleNextStep = record => {
     setProduct({
-      ...product,
-      step: product.step + 1
+      ...record
     })
+
+    setActiveStep(activeStep + 1)
   }
 
   const handlePrevStep = () => {
     setProduct({
-      ...product,
-      step: product.step - 1
+      ...product
     })
+
+    setActiveStep(activeStep - 1)
   }
 
-  const step1 = () => {
+  const step1 = record => {
+    console.log('record: %o', record)
     return (
       <NewProductStep1
-        record={product}
+        record={record}
         onNext={handleNextStep}
         onPrev={handlePrevStep}
       ></NewProductStep1>
     )
   }
 
-  const step2 = () => {
+  const step2 = record => {
     return (
       <NewProductStep2
-        record={product}
+        record={record}
         onNext={handleNextStep}
         onPrev={handlePrevStep}
       ></NewProductStep2>
     )
   }
 
-  const step3 = () => {
+  const step3 = record => {
     return (
       <NewProductStep3
-        record={product}
+        record={record}
         onNext={handleNextStep}
         onPrev={handlePrevStep}
       ></NewProductStep3>
     )
   }
 
-  const step4 = () => {
+  const step4 = record => {
     return (
       <NewProductStep4
-        record={product}
+        record={record}
         onNext={handleFinish}
         onPrev={handlePrevStep}
       ></NewProductStep4>
@@ -147,7 +151,7 @@ export default function NewProduct() {
         <Typography variant="h6">Upload Product</Typography>
       </Box>
       {/* <Stepper activeStep={activeStep}> */}
-      <Stepper activeStep={product.step} className={classes.stepper}>
+      <Stepper activeStep={activeStep} className={classes.stepper}>
         {steps.map((step, index) => {
           return (
             <Step key={step.label}>
@@ -157,11 +161,9 @@ export default function NewProduct() {
         })}
       </Stepper>
       <Box className={classes.stepDescription}>
-        <Typography variant="body">
-          {steps[product.step].description}
-        </Typography>
+        <Typography variant="body">{steps[activeStep].description}</Typography>
       </Box>
-      {steps[product.step].component()}
+      {product && steps[activeStep].component(product)}
     </Container>
   )
 }

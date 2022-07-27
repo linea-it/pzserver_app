@@ -36,38 +36,34 @@ class ProductViewSet(viewsets.ModelViewSet):
         "display_name",
         "product_type",
         "created_at",
-        "file_name",
-        "file_size",
     ]
     ordering = ["-created_at"]
 
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = self.perform_create(serializer)
+    # def create(self, request):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     instance = self.perform_create(serializer)
 
-        try:
-            rp = RegistryProduct(instance.pk)
-            rp.registry()
+    #     try:
+    #         # rp = RegistryProduct(instance.pk)
+    #         # rp.registry()
 
-            product = Product.objects.get(pk=instance.pk)
-            data = self.get_serializer(instance=product).data
-            return Response(data, status=status.HTTP_201_CREATED)
+    #         product = Product.objects.get(pk=instance.pk)
+    #         data = self.get_serializer(instance=product).data
+    #         return Response(data, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            # Apaga o registro que acabou de ser criado.
-            # TODO: provavelmente seria melhor alterar um status para falha
-            # e guardar a causa do erro para debug
-            instance.delete()
-            # TODO: Remover os arquivos
-            # TODO: Implementar tratamento de erro.
-            content = {"error": str(e)}
-            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #     except Exception as e:
+    #         # Apaga o registro que acabou de ser criado.
+    #         # TODO: provavelmente seria melhor alterar um status para falha
+    #         # e guardar a causa do erro para debug
+    #         instance.delete()
+    #         # TODO: Remover os arquivos
+    #         # TODO: Implementar tratamento de erro.
+    #         content = {"error": str(e)}
+    #         return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
-        """Executa antes do create
-        adiciona usuario e internal name.
-        """
+        """Adiciona usuario e internal name."""
         data = self.request.data
 
         # Internal Name
@@ -95,15 +91,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return name
 
-    @action(methods=['GET'], detail=True)
+    @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
-        """ Download product """
-        
+        """Download product"""
+
         att = self.get_object()
         file_handle = att.main_file.open()
 
         mimetype, _ = mimetypes.guess_type(att.main_file.path)
         response = FileResponse(file_handle, content_type=mimetype)
-        response['Content-Length'] = att.file_size
-        response['Content-Disposition'] = "attachment; filename={}".format(att.file_name)
+        response["Content-Length"] = att.file_size
+        response["Content-Disposition"] = "attachment; filename={}".format(
+            att.file_name
+        )
         return response
