@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "drf_spectacular",
+    "rest_framework.authtoken",
     # OAuth2
     "oauth2_provider",
     "social_django",

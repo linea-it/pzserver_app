@@ -7,6 +7,7 @@ from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import FileResponse
@@ -26,6 +27,7 @@ class ProductFilter(filters.FilterSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
+    permission_classes = (AllowAny,)
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     # parser_classes = (MultiPartParser, FormParser, FileUploadParser)

@@ -24,6 +24,7 @@ from core.views import (
     ProductTypeViewSet,
     TestGithubAuth,
     LoggedUserView,
+    get_token,
 )
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -51,6 +52,7 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger",
     ),
+    path('api/get_token', get_token),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api/github/", TestGithubAuth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view()),
