@@ -22,14 +22,21 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ["internal_name", "release", "product_type", "official_product"]
+        fields = [
+            "internal_name",
+            "release",
+            "product_type",
+            "official_product",
+            "status",
+        ]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    # parser_classes = (MultiPartParser, FormParser, FileUploadParser)
-    search_fields = ["display_name", "file_name"]
+    search_fields = [
+        "display_name",
+    ]
     filterset_class = ProductFilter
     ordering_fields = [
         "id",
@@ -39,41 +46,32 @@ class ProductViewSet(viewsets.ModelViewSet):
     ]
     ordering = ["-created_at"]
 
-    # def create(self, request):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     instance = self.perform_create(serializer)
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
 
-    #     try:
-    #         # rp = RegistryProduct(instance.pk)
-    #         # rp.registry()
+        try:
+            product = Product.objects.get(pk=instance.pk)
 
-    #         product = Product.objects.get(pk=instance.pk)
-    #         data = self.get_serializer(instance=product).data
-    #         return Response(data, status=status.HTTP_201_CREATED)
+            # Cria um internal name
+            name = self.get_internal_name(product.display_name)
+            product.internal_name = f"{product.pk}_{name}"
+            product.save()
 
-    #     except Exception as e:
-    #         # Apaga o registro que acabou de ser criado.
-    #         # TODO: provavelmente seria melhor alterar um status para falha
-    #         # e guardar a causa do erro para debug
-    #         instance.delete()
-    #         # TODO: Remover os arquivos
-    #         # TODO: Implementar tratamento de erro.
-    #         content = {"error": str(e)}
-    #         return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = self.get_serializer(instance=product).data
+            return Response(data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
         """Adiciona usuario e internal name."""
-        data = self.request.data
-
-        # Internal Name
-        internal_name = self.get_internal_name(data.get("display_name"))
-
         # Usuario que fez o upload
         uploaded_by = self.request.user
 
         return serializer.save(
-            internal_name=internal_name,
             user=uploaded_by,
         )
 
@@ -105,3 +103,46 @@ class ProductViewSet(viewsets.ModelViewSet):
             att.file_name
         )
         return response
+
+    @action(methods=["Post", "Get"], detail=True)
+    def registry(self, request, **kwargs):
+        """Registry product"""
+
+        try:
+            instance = self.get_object()
+
+            rp = RegistryProduct(instance.pk)
+            rp.registry()
+
+            # Alterar o status para Registrado
+            product = Product.objects.get(pk=instance.pk)
+            # Retorna o produto
+            data = self.get_serializer(instance=product).data
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Altera o status do produto para falha
+            # TODO: guardar a causa do erro para debug
+            instance.status = 9
+            instance.save()
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["Get"], detail=False)
+    def pending_publication(self, request, **kwargs):
+        """Pending publication"""
+
+        try:
+            # Procura por produtos criados pelo usuario que ainda não foram publicados
+            product = Product.objects.filter(status=0, user_id=request.user.id).first()
+
+            if product:
+                # Retorna o produto
+                data = self.get_serializer(instance=product).data
+                return Response({"product": data}, status=status.HTTP_200_OK)
+            else:
+                return Response({"product": None}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

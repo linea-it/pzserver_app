@@ -18,19 +18,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.SerializerMethodField()
 
-    # main_file = serializers.FileField()
-    # description_file = serializers.FileField(
-    #     required=False,
-    # )
-
     class Meta:
         model = Product
-        read_only_fields = (
-            "internal_name",
-            "file_size",
-            "file_extension",
-            "file_name",
-        )
+        read_only_fields = ("internal_name",)
         exclude = ["user"]
 
     def get_product_type_name(self, obj):

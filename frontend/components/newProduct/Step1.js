@@ -1,49 +1,72 @@
 import React from 'react'
 import {
-  Container,
-  Grid,
-  Typography,
   TextField,
   Checkbox,
-  FormGroup,
   FormControl,
   FormControlLabel,
   Button,
-  Box
+  Box,
+  Alert
 } from '@mui/material'
 import ProductTypeSelect from '../../components/ProductTypeSelect'
 import ReleaseSelect from '../../components/ReleaseSelect'
-import FileUploader from '../../components/FileUploader'
-import useStyles from '../../styles/pages/newproduct'
-import { createProduct, patchProduct } from '../../services/product'
+import { getProduct, createProduct, patchProduct } from '../../services/product'
 import Loading from '../../components/Loading'
-import { getProduct } from '../../services/product'
+import PropTypes from 'prop-types'
 
-export default function NewProductStep1({ record, onNext, onPrev }) {
-  const classes = useStyles()
-
-  const [product, setProduct] = React.useState(record)
+export default function NewProductStep1({ productId, onNext }) {
+  const defaultProductValues = {
+    id: null,
+    display_name: '',
+    release: '',
+    product_type: '',
+    official_product: false,
+    survey: '',
+    pz_code: '',
+    description: '',
+    status: 0
+  }
+  const [product, setProduct] = React.useState(defaultProductValues)
   const [isLoading, setLoading] = React.useState(false)
+  const [fieldErrors, setFieldErrors] = React.useState({})
+  const [formError, setFormError] = React.useState('')
 
-  // TODO: Remover esse exemplo Hardcoded
+  const loadProduct = React.useCallback(async () => {
+    if (productId && productId !== product.id) {
+      setLoading(true)
+      getProduct(productId)
+        .then(res => {
+          setLoading(false)
+          setProduct(res)
+        })
+        .catch(res => {
+          setLoading(false)
+        })
+    }
+  }, [product, productId])
+
   React.useEffect(() => {
-    setLoading(true)
+    loadProduct()
+  }, [loadProduct, productId])
 
-    getProduct(147)
-      .then(res => {
-        setProduct(res)
-        setLoading(false)
-      })
-      .catch(res => {
-        // Retorna error
-        // TODO: Tratar os errors e apresentar.
-        setLoading(false)
-      })
-  }, [])
+  const handleInputValue = e => {
+    const { name, value } = e.target
 
+    setProduct({
+      ...product,
+      [name]: value
+    })
+
+    setFieldErrors({
+      ...fieldErrors,
+      [name]: ''
+    })
+  }
 
   const handleSubmit = () => {
-    console.log('Handle Submit')
+    // Ao submeter limpa os errors
+    setFieldErrors({})
+    setFormError('')
 
     if (product.id === null) {
       createProduct(product)
@@ -53,19 +76,22 @@ export default function NewProductStep1({ record, onNext, onPrev }) {
             const data = res.data
 
             // Muda para o proximo step do formulário
-            onNext(data)
+            onNext(data.id)
           }
         })
         .catch(res => {
-          // TODO: Exibir mensagem de error
-          console.log('Error!')
-          console.log(res.response.data)
+          if (res.response.status === 400) {
+            // Tratamento para erro nos campos
+            handleFieldsErrors(res.response.data)
+          }
+          if (res.response.status === 500) {
+            // Tratamento erro no backend
+            catchFormError(res.response.data)
+          }
           setLoading(false)
         })
     } else {
       // Fazer update do produto
-      console.log('Fazer o update do produto')
-
       patchProduct(product)
         .then(res => {
           if (res.status === 200) {
@@ -73,16 +99,54 @@ export default function NewProductStep1({ record, onNext, onPrev }) {
             const data = res.data
 
             // Muda para o proximo step do formulário
-            onNext(data)
+            onNext(data.id)
           }
         })
         .catch(res => {
-          // TODO: Exibir mensagem de error
-          console.log('Error!')
-          console.log(res.response.data)
+          if (res.response.status === 400) {
+            // Tratamento para erro nos campos
+            handleFieldsErrors(res.response.data)
+          }
+          if (res.response.status === 500) {
+            // Tratamento erro no backend
+            catchFormError(res.response.data)
+          }
           setLoading(false)
         })
     }
+  }
+
+  const catchFormError = data => {
+    let msg =
+      'There was a failure, please try again later, if the problem persists, please contact support.'
+    if (data.error) {
+      msg = data.error
+    }
+    setFormError(msg)
+  }
+
+  const handleFieldsErrors = data => {
+    const errors = {}
+    Object.keys(data).forEach((key, index) => {
+      errors[key] = data[key].join(' ')
+    })
+    setFieldErrors(errors)
+  }
+
+  const handleFormError = () => {
+    return (
+      <Alert variant="outlined" severity="error" sx={{ mt: 2 }}>
+        {formError}
+      </Alert>
+    )
+  }
+
+  const handleReset = () => {
+    setProduct(defaultProductValues)
+  }
+
+  if (product === null) {
+    return null
   }
 
   return (
@@ -91,62 +155,60 @@ export default function NewProductStep1({ record, onNext, onPrev }) {
       <Box
         component="form"
         sx={{
-          '& > :not(style)': { m: 1 }
+          '& > :not(style)': { mb: 4 }
         }}
         autoComplete="off"
       >
         <FormControl fullWidth>
           <TextField
-            id="display_name"
             name="display_name"
             value={product.display_name}
             label="Product Name"
             required
-            onChange={e => {
-              setProduct({
-                ...product,
-                display_name: e.target.value
-              })
-            }}
+            error={!!fieldErrors.display_name}
+            helperText={fieldErrors.display_name}
+            onChange={handleInputValue}
+            onBlur={handleInputValue}
           />
         </FormControl>
         <FormControl fullWidth>
           <ProductTypeSelect
+            name="product_type"
             value={product.product_type}
             onChange={value => {
-              setProduct({
-                ...product,
-                product_type: value
+              handleInputValue({
+                target: { name: 'product_type', value: value }
               })
             }}
+            onBlur={handleInputValue}
             required
+            error={!!fieldErrors.product_type}
+            helperText={fieldErrors.product_type}
           />
         </FormControl>
         <FormControl fullWidth>
           <ReleaseSelect
-            value={product.release}
+            name="release"
+            value={product.release ? product.release : ''}
             onChange={value => {
-              setProduct({
-                ...product,
-                release: value
-              })
+              handleInputValue({ target: { name: 'release', value: value } })
             }}
+            onBlur={handleInputValue}
+            error={!!fieldErrors.release}
+            helperText={fieldErrors.release}
           />
         </FormControl>
         {/* Survey necessário Product Type = 2 - Spec-z Catalog */}
         {product.product_type === 2 && (
           <FormControl fullWidth>
             <TextField
-              id="survey"
               name="survey"
               value={product.survey}
               label="Survey"
-              onChange={e => {
-                setProduct({
-                  ...product,
-                  survey: e.target.value
-                })
-              }}
+              onChange={handleInputValue}
+              onBlur={handleInputValue}
+              error={!!fieldErrors.survey}
+              helperText={fieldErrors.survey}
             />
           </FormControl>
         )}
@@ -154,16 +216,13 @@ export default function NewProductStep1({ record, onNext, onPrev }) {
         {product.product_type === 1 && (
           <FormControl fullWidth>
             <TextField
-              id="pz_code"
               name="pz_code"
               value={product.pz_code}
               label="Pz Code"
-              onChange={e => {
-                setProduct({
-                  ...product,
-                  pz_code: e.target.value
-                })
-              }}
+              onChange={handleInputValue}
+              onBlur={handleInputValue}
+              error={!!fieldErrors.pz_code}
+              helperText={fieldErrors.pz_code}
             />
           </FormControl>
         )}
@@ -186,43 +245,39 @@ export default function NewProductStep1({ record, onNext, onPrev }) {
         </FormControl>
         <FormControl fullWidth>
           <TextField
-            id="description"
             name="description"
             value={product.description}
             label="Description"
             multiline
-            minRows={8}
-            onChange={e => {
-              setProduct({
-                ...product,
-                description: e.target.value
-              })
-            }}
-            required
+            minRows={6}
+            onChange={handleInputValue}
+            onBlur={handleInputValue}
+            error={!!fieldErrors.description}
+            helperText={fieldErrors.description}
           />
         </FormControl>
-        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-          <Box sx={{ flex: '1 1 auto' }} />
-          {/* <Button
-          type="reset"
-          value="reset"
+      </Box>
+      {formError !== '' && handleFormError()}
+      <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+        <Button
           variant="contained"
           color="secondary"
-          // onClick={handleReset}
+          onClick={handleReset}
           sx={{ mr: 1 }}
+          disabled={product.id !== null}
         >
           Clear Form
-        </Button> */}
-          <Button
-            // type="submit"
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-          >
-            Next
-          </Button>
-        </Box>
+        </Button>
+        <Box sx={{ flex: '1 1 auto' }} />
+        <Button variant="contained" color="primary" onClick={handleSubmit}>
+          Next
+        </Button>
       </Box>
     </React.Fragment>
   )
+}
+
+NewProductStep1.propTypes = {
+  productId: PropTypes.number,
+  onNext: PropTypes.func.isRequired
 }

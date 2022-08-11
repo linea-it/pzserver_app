@@ -52,20 +52,38 @@ export const patchProduct = data => {
   const formData = new FormData()
 
   formData.append('display_name', data.display_name)
-  formData.append('release', data.release)
-  formData.append('product_type', data.product_type)
-  // formData.append('main_file', data.main_file)
-  // formData.append('description_file', data.description_file)
   formData.append('official_product', data.official_product)
   formData.append('survey', data.survey)
   formData.append('pz_code', data.pz_code)
   formData.append('description', data.description)
+  formData.append('status', data.status)
+  if (data.release !== '' && data.release !== null) {
+    formData.append('release', data.release)
+  }
+  if (data.product_type !== '' && data.product_type !== null) {
+    formData.append('product_type', data.product_type)
+  }
 
   return api.patch(`/api/products/${data.id}/`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
   })
+}
+
+export const changeProductStatus = (productId, status) => {
+  const formData = new FormData()
+  formData.append('status', status)
+
+  return api.patch(`/api/products/${productId}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export const registryProduct = product_id => {
+  return api.post(`/api/products/${product_id}/registry/`).then(res => res.data)
 }
 
 export const getProducts = ({
@@ -126,6 +144,14 @@ export const getProducts = ({
 
 export const getProduct = product_id => {
   return api.get(`/api/products/${product_id}/`).then(res => res.data)
+}
+
+export const deleteProduct = product_id => {
+  return api.delete(`/api/products/${product_id}/`)
+}
+
+export const getProductPendingPublication = () => {
+  return api.get('/api/products/pending_publication/').then(res => res.data)
 }
 
 export const getProductContents = product_id => {

@@ -17,7 +17,7 @@ export default function ProductTypeSelect(props) {
   return (
     <TextField
       select
-      value={value}
+      value={rows.length > 0 ? value : ''}
       label="Product Type"
       onChange={e => onChange(e.target.value)}
       defaultValue=""

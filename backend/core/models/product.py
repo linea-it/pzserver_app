@@ -3,16 +3,20 @@ import logging
 from core.models import ProductType, Release
 from django.contrib.auth.models import User
 from django.db import models
+from django.conf import settings
+import pathlib
+import shutil
+import logging
 
 
 def upload_product_files(instance, filename):
-    return f"tmp/{instance.internal_name}/{filename}"
+    return f"{instance.product_type.name}/{instance.internal_name}/{filename}"
 
 
 class ProductStatus(models.IntegerChoices):
     REGISTERING = 0, "Registering"
-    REGISTERED = 1, "Registered"
-    PUBLISHED = 2, "Published"
+    PUBLISHED = 1, "Published"
+    FAILED = 9, "Failed"
 
 
 class Product(models.Model):
@@ -33,15 +37,6 @@ class Product(models.Model):
         max_length=255, null=True, blank=True, default=None
     )
     display_name = models.CharField(max_length=255)
-    # main_file = models.FileField(
-    #     upload_to=upload_product_files, null=False, blank=False
-    # )
-    file_name = models.CharField(max_length=120, null=True, blank=True)
-    file_size = models.IntegerField(null=True, blank=True)
-    file_extension = models.CharField(max_length=10, null=True, blank=True)
-    # description_file = models.FileField(
-    #     upload_to=upload_product_files, null=True, blank=True
-    # )
     official_product = models.BooleanField(default=False)
     survey = models.CharField(max_length=255, null=True, blank=True)
     pz_code = models.CharField(max_length=55, null=True, blank=True)
@@ -55,3 +50,18 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.display_name}"
+
+    def delete(self, *args, **kwargs):
+        # Antes de remover o registro verifica se existe
+        # diretório, se houver remove.
+        # OBS não é executado pelo admin
+        product_path = pathlib.Path(
+            settings.MEDIA_ROOT, f"{self.product_type.name}/{self.internal_name}"
+        )
+        if product_path.exists():
+            try:
+                shutil.rmtree(product_path)
+            except OSError as e:
+                raise Exception("Error: %s : %s" % (product_path, e.strerror))
+
+        super().delete(*args, **kwargs)
