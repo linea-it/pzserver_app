@@ -24,6 +24,7 @@ from core.views import (
     ProductTypeViewSet,
     TestGithubAuth,
     LoggedUserView,
+    get_token,
 )
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -39,6 +40,7 @@ route.register(r"products", ProductViewSet, basename="Products")
 
 
 from shibboleth.views import ShibbolethView, ShibbolethLogoutView, ShibbolethLoginView
+from rest_framework.authtoken import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -51,6 +53,8 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger",
     ),
+    path('api/obtain_token/', views.obtain_auth_token),
+    path('api/get_token', get_token),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api/github/", TestGithubAuth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view()),

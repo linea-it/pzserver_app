@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "drf_spectacular",
+    "rest_framework.authtoken",
     # OAuth2
     "oauth2_provider",
     "social_django",
@@ -157,6 +158,7 @@ REST_FRAMEWORK = {
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "drf_social_oauth2.authentication.SocialAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     # "DEFAULT_PARSER_CLASSES": (
