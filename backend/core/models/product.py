@@ -47,6 +47,7 @@ class Product(models.Model):
         default=ProductStatus.REGISTERING,
         choices=ProductStatus.choices,
     )
+    path = models.FilePathField(verbose_name="Path", null=True, blank=True, default=None)
 
     def __str__(self):
         return f"{self.display_name}"
@@ -55,9 +56,7 @@ class Product(models.Model):
         # Antes de remover o registro verifica se existe
         # diretório, se houver remove.
         # OBS não é executado pelo admin
-        product_path = pathlib.Path(
-            settings.MEDIA_ROOT, f"{self.product_type.name}/{self.internal_name}"
-        )
+        product_path = pathlib.Path(settings.MEDIA_ROOT, self.path)
         if product_path.exists():
             try:
                 shutil.rmtree(product_path)

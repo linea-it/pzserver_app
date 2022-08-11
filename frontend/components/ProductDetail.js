@@ -5,13 +5,16 @@ import {
   Typography,
   Paper,
   Box,
-  Button,
   Chip,
   Stack,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  IconButton,
+  Divider
 } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Link from '../components/Link'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import {
   downloadProduct,
@@ -24,6 +27,7 @@ import prettyBytes from 'pretty-bytes'
 import Loading from '../components/Loading'
 import DefaultErrorPage from 'next/error'
 import PropTypes from 'prop-types'
+import DownloadIcon from '@mui/icons-material/Download'
 
 export default function ProductDetail({ productId, internalName }) {
   const classes = useStyles()
@@ -32,6 +36,7 @@ export default function ProductDetail({ productId, internalName }) {
   const [files, setFiles] = React.useState([])
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
+  const [isDownloading, setDownloading] = React.useState(false)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -121,7 +126,22 @@ export default function ProductDetail({ productId, internalName }) {
   }, [loadFiles, product])
 
   const downloadFile = () => {
-    downloadProduct(product.id, product.file_name)
+    setDownloading(true)
+    downloadProduct(product.id, product.internal_name)
+      .then(res => {
+        const link = document.createElement('a')
+        link.target = '_blank'
+        link.download = product.internal_name
+        link.href = URL.createObjectURL(
+          new Blob([res.data], { type: res.headers['content-type'] })
+        )
+        link.click()
+        setDownloading(false)
+      })
+      .catch(() => {
+        // TODO: Tratar erro no download
+        setDownloading(false)
+      })
   }
 
   const createFileFields = file => {
@@ -131,9 +151,20 @@ export default function ProductDetail({ productId, internalName }) {
     if (file.name.length > 30) {
       name = file.name.substring(0, 26) + file.name.slice(-4)
     }
-
     return (
-      <ListItem key={`file_${file.id}`}>
+      <ListItem
+        key={`file_${file.id}`}
+        // button
+        // component={Link}
+        // href={file.file}
+        // target="_blank"
+        disableGutters
+        secondaryAction={
+          <IconButton component={Link} href={file.file} target="_blank">
+            <DownloadIcon />
+          </IconButton>
+        }
+      >
         {file.role === 0 && (
           <ListItemText
             primary={name}
@@ -204,24 +235,31 @@ export default function ProductDetail({ productId, internalName }) {
         </Grid>
         <Grid item xs={4}>
           <Paper elevation={2} className={classes.paper}>
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              // endIcon={<DownloadIcon />}
-              onClick={downloadFile}
-            >
-              Download
-            </Button>
-            {/* <Typography variant="body2" align="right" color="textSecondary">
-              ({prettyBytes(Number(product.file_size))})
-            </Typography> */}
-            {/* <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}> */}
-            <List>
-              {files.map(pc => {
-                return createFileFields(pc)
-              })}
-            </List>
+            <Stack divider={<Divider flexItem />} spacing={2}>
+              {/* <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                // endIcon={<DownloadIcon />}
+                onClick={downloadFile}
+              >
+                Download
+              </Button> */}
+              <LoadingButton
+                loading={isDownloading}
+                loadingPosition="start"
+                // startIcon={<DownloadIcon />}
+                variant="contained"
+                onClick={downloadFile}
+              >
+                Download
+              </LoadingButton>
+              <List>
+                {files.map(pc => {
+                  return createFileFields(pc)
+                })}
+              </List>
+            </Stack>
           </Paper>
         </Grid>
       </Grid>

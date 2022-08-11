@@ -3,7 +3,8 @@ from django.db import models
 
 
 def upload_product_files(instance, filename):
-    return f"{instance.product.product_type.name}/{instance.product.internal_name}/{filename}"
+    # return f"{instance.product.product_type.name}/{instance.product.internal_name}/{filename}"
+    return f"{instance.product.path}/{filename}"
 
 
 class FileRoles(models.IntegerChoices):

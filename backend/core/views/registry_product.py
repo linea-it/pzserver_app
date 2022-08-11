@@ -178,33 +178,33 @@ class RegistryProduct:
             self.log.error(message)
             raise Exception(message)
 
-    def create_zip(self, from_path, to_path, compresslevel=0):
-        """
-        Comprime um diretorio e seus arquivos para um unico arquivo .zip.
-        """
-        try:
-            self.log.info(f"Compressing the directory: {from_path}")
+    # def create_zip(self, from_path, to_path, compresslevel=0):
+    #     """
+    #     Comprime um diretorio e seus arquivos para um unico arquivo .zip.
+    #     """
+    #     try:
+    #         self.log.info(f"Compressing the directory: {from_path}")
 
-            with zipfile.ZipFile(
-                to_path,
-                "w",
-                compression=zipfile.ZIP_DEFLATED,
-                compresslevel=compresslevel,
-            ) as ziphandle:
-                for root, dirs, files in os.walk(from_path):
-                    for file in files:
-                        origin_file = os.path.join(root, file)
-                        self.log.debug("Adding File: %s" % origin_file)
-                        ziphandle.write(origin_file, arcname=file)
+    #         with zipfile.ZipFile(
+    #             to_path,
+    #             "w",
+    #             compression=zipfile.ZIP_DEFLATED,
+    #             compresslevel=compresslevel,
+    #         ) as ziphandle:
+    #             for root, dirs, files in os.walk(from_path):
+    #                 for file in files:
+    #                     origin_file = os.path.join(root, file)
+    #                     self.log.debug("Adding File: %s" % origin_file)
+    #                     ziphandle.write(origin_file, arcname=file)
 
-            ziphandle.close()
+    #         ziphandle.close()
 
-            self.log.info(f"Compressed directory: {to_path}")
+    #         self.log.info(f"Compressed directory: {to_path}")
 
-        except Exception as e:
-            message = f"Failed to store product files. {e}"
-            self.log.error(message)
-            raise Exception(message)
+    #     except Exception as e:
+    #         message = f"Failed to store product files. {e}"
+    #         self.log.error(message)
+    #         raise Exception(message)
 
     def remove_dir(self, path):
         try:

@@ -21,7 +21,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = ("internal_name",)
-        exclude = ["user"]
+        exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
         try:
