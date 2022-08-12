@@ -5,3 +5,4 @@ from core.views.product_content import ProductContentViewSet
 from core.views.product_file import ProductFileViewSet
 from core.views.github_auth import TestGithubAuth
 from core.views.user import LoggedUserView
+from core.views.user import get_token

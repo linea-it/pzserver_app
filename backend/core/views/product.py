@@ -1,5 +1,3 @@
-import logging
-import os
 import mimetypes
 
 from core.models import Product
