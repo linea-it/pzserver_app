@@ -12,6 +12,7 @@ import zipfile
 import pathlib
 from django.conf import settings
 import secrets
+import os
 
 
 class ProductFilter(filters.FilterSet):
