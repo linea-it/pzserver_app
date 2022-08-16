@@ -19,7 +19,7 @@ export default function ReleaseSelect(props) {
     // <Select
     <TextField
       select
-      value={value}
+      value={releases.length > 0 ? value : ''}
       label="Release"
       onChange={e => onChange(e.target.value)}
       defaultValue=""

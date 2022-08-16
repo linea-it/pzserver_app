@@ -4,7 +4,14 @@ import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 
 export default function FileUploader(props) {
-  const { id, onFileSelectSuccess, onFileSelectError, maxSize, ...rest } = props
+  const {
+    id,
+    onFileSelectSuccess,
+    onFileSelectError,
+    maxSize,
+    buttonProps,
+    ...rest
+  } = props
   // const fileInput = useRef(null)
 
   const handleFileInput = e => {
@@ -13,15 +20,16 @@ export default function FileUploader(props) {
 
     // handle validations
     const file = e.target.files[0]
-
-    if (file.size > mSize) {
-      onFileSelectError({
-        error: `File size cannot exceed more than ${prettyBytes(
-          parseInt(mSize)
-        )}`
-      })
-    } else {
-      onFileSelectSuccess(file)
+    if (file) {
+      if (file.size > mSize) {
+        onFileSelectError({
+          error: `File size cannot exceed more than ${prettyBytes(
+            parseInt(mSize)
+          )}`
+        })
+      } else {
+        onFileSelectSuccess(file)
+      }
     }
   }
 
@@ -41,8 +49,9 @@ export default function FileUploader(props) {
         size="large"
         // disableElevation
         sx={{ height: '100%' }}
+        {...buttonProps}
       >
-        Choose File
+        {buttonProps && buttonProps.label ? buttonProps.label : 'Choose File'}
       </Button>
     </label>
   )
@@ -51,7 +60,8 @@ FileUploader.propTypes = {
   id: PropTypes.string.isRequired,
   onFileSelectSuccess: PropTypes.func.isRequired,
   onFileSelectError: PropTypes.func.isRequired,
-  maxSize: PropTypes.number
+  maxSize: PropTypes.number,
+  buttonProps: PropTypes.object
 }
 FileUploader.defaultProps = {
   maxSize: 50

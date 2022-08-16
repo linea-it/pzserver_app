@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import ProductType, Product, Release, ProductContent
+from core.models import ProductType, Product, Release, ProductContent, ProductFile
 
 
 @admin.register(ProductType)
@@ -29,6 +29,7 @@ class ProductAdmin(admin.ModelAdmin):
         "survey",
         "pz_code",
         "created_at",
+        "status",
     )
 
     search_fields = ("name", "display_name")
@@ -36,4 +37,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductContent)
 class ProductContentAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "column_name", "ucd")
+    list_display = ("id", "product", "column_name", "ucd", "order")
+
+
+@admin.register(ProductFile)
+class ProductFileAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "file", "role", "type", "size", "extension")

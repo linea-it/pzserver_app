@@ -38,7 +38,7 @@ export default function Products() {
             variant="contained"
             color="primary"
             onClick={e => {
-              router.push('/upload')
+              router.push('/product/new')
             }}
           >
             New Product

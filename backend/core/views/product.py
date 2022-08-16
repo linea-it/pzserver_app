@@ -8,8 +8,11 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import FileResponse
-
-# from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
+import zipfile
+import pathlib
+from django.conf import settings
+import secrets
+import os
 
 
 class ProductFilter(filters.FilterSet):
@@ -20,22 +23,27 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ["internal_name", "release", "product_type", "official_product"]
+        fields = [
+            "internal_name",
+            "release",
+            "product_type",
+            "official_product",
+            "status",
+        ]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    # parser_classes = (MultiPartParser, FormParser, FileUploadParser)
-    search_fields = ["display_name", "file_name"]
+    search_fields = [
+        "display_name",
+    ]
     filterset_class = ProductFilter
     ordering_fields = [
         "id",
         "display_name",
         "product_type",
         "created_at",
-        "file_name",
-        "file_size",
     ]
     ordering = ["-created_at"]
 
@@ -45,37 +53,34 @@ class ProductViewSet(viewsets.ModelViewSet):
         instance = self.perform_create(serializer)
 
         try:
-            rp = RegistryProduct(instance.pk)
-            rp.registry()
-
             product = Product.objects.get(pk=instance.pk)
+
+            # Cria um internal name
+            name = self.get_internal_name(product.display_name)
+            product.internal_name = f"{product.pk}_{name}"
+
+            # Cria um path para o produto
+            relative_path = f"{product.product_type.name}/{product.internal_name}"
+            path = pathlib.Path(settings.MEDIA_ROOT, relative_path)
+            path.mkdir(parents=True, exist_ok=False)
+
+            product.path = relative_path
+
+            product.save()
+
             data = self.get_serializer(instance=product).data
             return Response(data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            # Apaga o registro que acabou de ser criado.
-            # TODO: provavelmente seria melhor alterar um status para falha
-            # e guardar a causa do erro para debug
-            instance.delete()
-            # TODO: Remover os arquivos
-            # TODO: Implementar tratamento de erro.
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
-        """Executa antes do create
-        adiciona usuario e internal name.
-        """
-        data = self.request.data
-
-        # Internal Name
-        internal_name = self.get_internal_name(data.get("display_name"))
-
+        """Adiciona usuario e internal name."""
         # Usuario que fez o upload
         uploaded_by = self.request.user
 
         return serializer.save(
-            internal_name=internal_name,
             user=uploaded_by,
         )
 
@@ -93,15 +98,90 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return name
 
-    @action(methods=['GET'], detail=True)
+    @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
-        """ Download product """
-        
-        att = self.get_object()
-        file_handle = att.main_file.open()
+        """Download product"""
+        try:
+            product = self.get_object()
 
-        mimetype, _ = mimetypes.guess_type(att.main_file.path)
-        response = FileResponse(file_handle, content_type=mimetype)
-        response['Content-Length'] = att.file_size
-        response['Content-Disposition'] = "attachment; filename={}".format(att.file_name)
-        return response
+            # Cria um arquivo zip no diretório tmp com os arquivos do produto
+            zip_file = self.zip_product(product.internal_name, product.path)
+
+            # Abre o arquivo e envia em bites para o navegador
+            mimetype, _ = mimetypes.guess_type(zip_file)
+            size = zip_file.stat().st_size
+            name = zip_file.name
+
+            file_handle = open(zip_file, "rb")
+            response = FileResponse(file_handle, content_type=mimetype)
+            response["Content-Length"] = size
+            response["Content-Disposition"] = "attachment; filename={}".format(name)
+            return response
+
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["Post", "Get"], detail=True)
+    def registry(self, request, **kwargs):
+        """Registry product"""
+
+        try:
+            instance = self.get_object()
+
+            rp = RegistryProduct(instance.pk)
+            rp.registry()
+
+            # Alterar o status para Registrado
+            product = Product.objects.get(pk=instance.pk)
+            # Retorna o produto
+            data = self.get_serializer(instance=product).data
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Altera o status do produto para falha
+            # TODO: guardar a causa do erro para debug
+            instance.status = 9
+            instance.save()
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["Get"], detail=False)
+    def pending_publication(self, request, **kwargs):
+        """Pending publication"""
+
+        try:
+            # Procura por produtos criados pelo usuario que ainda não foram publicados
+            product = Product.objects.filter(status=0, user_id=request.user.id).first()
+
+            if product:
+                # Retorna o produto
+                data = self.get_serializer(instance=product).data
+                return Response({"product": data}, status=status.HTTP_200_OK)
+            else:
+                return Response({"product": None}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def zip_product(self, internal_name, path):
+
+        product_path = pathlib.Path(settings.MEDIA_ROOT, path)
+        zip_name = f"{internal_name}_{secrets.token_urlsafe(8)}.zip"
+        zip_path = pathlib.Path(settings.MEDIA_ROOT, "tmp", zip_name)
+
+        with zipfile.ZipFile(
+            zip_path,
+            "w",
+            compression=zipfile.ZIP_DEFLATED,
+            compresslevel=9,
+        ) as ziphandle:
+            for root, dirs, files in os.walk(product_path):
+                for file in files:
+                    origin_file = os.path.join(root, file)
+                    ziphandle.write(origin_file, arcname=file)
+
+        ziphandle.close()
+
+        return zip_path

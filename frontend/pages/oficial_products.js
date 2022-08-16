@@ -20,7 +20,8 @@ export default function Products() {
   const [filters, setFilters] = React.useState({
     release: '',
     product_type: '',
-    official_product: true
+    official_product: true,
+    status: 1 // Published
   })
 
   return (
@@ -39,7 +40,7 @@ export default function Products() {
             variant="contained"
             color="primary"
             onClick={e => {
-              router.push('/upload')
+              router.push('/product/new')
             }}
           >
             New Product
