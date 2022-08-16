@@ -8,7 +8,7 @@ class ProductSerializer(serializers.ModelSerializer):
     release = serializers.PrimaryKeyRelatedField(
         queryset=Release.objects.all(), many=False, allow_null=True, required=False
     )
-    
+
     release_name = serializers.SerializerMethodField()
 
     product_type = serializers.PrimaryKeyRelatedField(
@@ -18,20 +18,10 @@ class ProductSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.SerializerMethodField()
 
-    main_file = serializers.FileField()
-    description_file = serializers.FileField(
-        required=False,
-    )
-
     class Meta:
         model = Product
-        read_only_fields = (
-            "internal_name",
-            "file_size",
-            "file_extension",
-            "file_name",
-        )
-        exclude = ["user"]
+        read_only_fields = ("internal_name",)
+        exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
         try:
