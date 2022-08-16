@@ -8,17 +8,24 @@ import {
   Grid,
   Link as MuiLink,
   Typography,
-  Button
+  IconButton,
+  Menu,
+  MenuItem
 } from '@mui/material'
+
 import { YouTube, Twitter, GitHub } from '@mui/icons-material'
+import MoreIcon from '@mui/icons-material/MoreVert'
 import Link from './Link'
 import useStyles from '../styles/components/Header'
 import { useAuth } from '../contexts/AuthContext'
+import TokenDialog from '../components/TokenDialog'
 
 function Header() {
   const classes = useStyles()
   const router = useRouter()
   const { user, logout } = useAuth()
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const [open, setOpen] = React.useState(false)
 
   const menus = [
     {
@@ -39,6 +46,25 @@ function Header() {
     }
   ]
 
+  const handleMenu = event => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleTokenOpen = () => {
+    // Fecha o menu
+    setAnchorEl(null)
+    // Abre a Dialog Token Api
+    setOpen(true)
+  }
+
+  const handleTokenClose = () => {
+    setOpen(false)
+  }
+
   return (
     <div>
       <AppBar position="static" className={classes.appbar}>
@@ -54,7 +80,32 @@ function Header() {
           </List>
           <div className={classes.separator} />
           <Typography>{user?.username}</Typography>
-          <Button onClick={logout}>Logout</Button>
+          <IconButton
+            size="large"
+            edge="end"
+            color="inherit"
+            onClick={handleMenu}
+          >
+            <MoreIcon />
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right'
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right'
+            }}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={handleTokenOpen}>API Token</MenuItem>
+            <MenuItem onClick={logout}>Logout</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -92,28 +143,6 @@ function Header() {
                   for more details.
                 </p>
               </Typography>
-              {/* <Grid item xs={12}>
-              <Typography variant="body1" component="span">
-                <p>
-                  Welcome to the Photo-z Server! This is an ancillary service
-                  available to Rubin Science Platform users to host lightweight
-                  data products related to photo-zs.
-                </p>
-                <p>
-                  Click{' '}
-                  <MuiLink
-                    variant="body1"
-                    component="button"
-                    onClick={e => {
-                      router.push('/about')
-                    }}
-                  >
-                    here
-                  </MuiLink>{' '}
-                  for more details.
-                </p>
-              </Typography>
-            </Grid> */}
             </Grid>
           </Grid>
           <div className={classes.socialWrapper}>
@@ -147,6 +176,7 @@ function Header() {
           </div>
         </Grid>
       )}
+      <TokenDialog open={open} onClose={handleTokenClose}></TokenDialog>
     </div>
   )
 }
