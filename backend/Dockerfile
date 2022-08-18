@@ -11,11 +11,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # TODO: Instalar as dependencias do LDAP e do Shibboleth.
-# RUN apt-get update && \
-#     apt-get install -y --no-install-recommends \
-#     gcc \
-#     python3-dev \
-#     build-essential \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    vim \
+    gcc \
+    python3-dev \
+    build-essential 
 #     libpcre3 \
 #     libpcre3-dev
 
@@ -29,10 +30,6 @@ RUN pip install --upgrade pip wheel  && \
     pip install -r requirements.txt
 
 
-FROM python:3.10-slim
-
-COPY --from=builder /opt/venv /opt/venv
-
 WORKDIR /app
 
 ENV PATH="/opt/venv/bin:$PATH"
@@ -41,4 +38,18 @@ COPY ./entrypoint.sh /app/entrypoint.sh
 # ENTRYPOINT ./entrypoint.sh
 
 COPY . /app
+
+
+# FROM python:3.10-slim
+
+# COPY --from=builder /opt/venv /opt/venv
+
+# WORKDIR /app
+
+# ENV PATH="/opt/venv/bin:$PATH"
+
+# COPY ./entrypoint.sh /app/entrypoint.sh
+# # ENTRYPOINT ./entrypoint.sh
+
+# COPY . /app
 

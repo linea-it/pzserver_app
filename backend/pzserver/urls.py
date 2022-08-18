@@ -43,8 +43,6 @@ route.register(r"product-contents", ProductContentViewSet, basename="ProductCont
 route.register(r"product-types", ProductTypeViewSet, basename="ProductTypes")
 route.register(r"products", ProductViewSet, basename="Products")
 
-
-from shibboleth.views import ShibbolethView, ShibbolethLogoutView, ShibbolethLoginView
 from rest_framework.authtoken import views
 
 urlpatterns = [
@@ -63,7 +61,9 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api/github/", TestGithubAuth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view()),
-    path("api/shib/", ShibbolethView.as_view(), name="info"),
-    path("api/shib/login", ShibbolethLoginView.as_view(), name="login"),
-    path("api/shib/logout", ShibbolethLogoutView.as_view(), name="logout"),
+    # path("api/shib/$", ShibbolethView.as_view(), name="info"),
+    # path("api/shib/login/$", ShibbolethLoginView.as_view(), name="login"),
+    # path("api/shib/logout/$", ShibbolethLogoutView.as_view(), name="logout"),
+    path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
+    # path('api/accounts/', include('django.contrib.auth.urls')),
 ]
