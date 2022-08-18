@@ -10,14 +10,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # This option has no effect on the stdin stream.
 ENV PYTHONUNBUFFERED=1
 
-# TODO: Instalar as dependencias do LDAP e do Shibboleth.
-# RUN apt-get update && \
-#     apt-get install -y --no-install-recommends \
-#     gcc \
-#     python3-dev \
-#     build-essential \
-#     libpcre3 \
-#     libpcre3-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    build-essential \
+    libpcre3 \
+    libpcre3-dev
 
 RUN python -m venv /opt/venv
 
@@ -38,7 +37,6 @@ WORKDIR /app
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY ./entrypoint.sh /app/entrypoint.sh
-# ENTRYPOINT ./entrypoint.sh
 
 COPY . /app
 

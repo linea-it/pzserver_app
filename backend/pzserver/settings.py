@@ -130,7 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = "/django_static/"
-STATIC_ROOT = "/archive/django_static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = "/archive/data/"
@@ -189,6 +189,7 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOrganizationOAuth2",
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
+    "shibboleth.backends.ShibbolethRemoteUserBackend",
 )
 
 if os.getenv("GITHUB_CLIENT_ID", None) is not None:
@@ -198,13 +199,8 @@ if os.getenv("GITHUB_CLIENT_ID", None) is not None:
     SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
     SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
-LOGIN_REDIRECT_URL = "/api/"
-# ACTIVATE_JWT = True
-# in your settings.py file.
-# from oauth2_provider import settings as oauth2_settings
-
-# # expires in 6 months
-# oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+LOGIN_REDIRECT_URL = "/"
 
 # Shibboleth Authentication
 if os.getenv("AUTH_SHIB_URL", None) is not None:
@@ -227,10 +223,18 @@ LOGGING = {
         "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
     },
     "handlers": {
-        "file": {
+        "default": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
             "filename": os.path.join(LOG_DIR, "django.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "standard",
+        },
+        "db_handler": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "django_db.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
             "formatter": "standard",
@@ -262,9 +266,14 @@ LOGGING = {
     },
     "loggers": {
         "django": {
-            "handlers": ["file"],
+            "handlers": ["default"],
             "level": LOGGING_LEVEL,
             "propagate": True,
+        },
+        "django.db.backends": {
+            "handlers": ["db_handler"],
+            "level": LOGGING_LEVEL,
+            "propagate": False,
         },
         "oauthlib": {
             "handlers": ["oauthlib"],
