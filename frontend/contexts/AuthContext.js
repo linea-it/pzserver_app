@@ -2,7 +2,7 @@
 import { createContext, useEffect, useState, useContext } from 'react'
 import { setCookie, parseCookies, destroyCookie } from 'nookies'
 import Router from 'next/router'
-import { signInRequest } from '../services/auth'
+import { signInRequest, csrfToOauth } from '../services/auth'
 import { api } from '../services/api'
 import { recoverUserInformation } from '../services/user'
 import PropTypes from 'prop-types'
@@ -20,6 +20,15 @@ export function AuthProvider({ children }) {
 
     if (access_token) {
       recoverUserInformation().then(user => setUser(user))
+    } else {
+      console.log('Não tem access token')
+      const { csrftoken } = parseCookies()
+      if (csrftoken) {
+        console.log('Pode estar logado no Django')
+        csrfToOauth().then(res => {
+          Router.push('/')
+        })
+      }
     }
   }, [])
 
@@ -28,7 +37,6 @@ export function AuthProvider({ children }) {
       username,
       password
     })
-
     setCookie('undefined', 'pzserver.access_token', access_token, {
       maxAge: expires_in
     })
@@ -51,6 +59,7 @@ export function AuthProvider({ children }) {
   function logout() {
     destroyCookie(null, 'pzserver.access_token')
     destroyCookie(null, 'pzserver.refresh_token')
+    destroyCookie(null, 'csrftoken')
     setUser(null)
     delete api.defaults.headers.Authorization
     Router.push('/login')

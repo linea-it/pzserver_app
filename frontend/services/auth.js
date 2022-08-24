@@ -36,3 +36,25 @@ export async function refreshToken(token) {
   })
   return res.data
 }
+
+export async function csrfToOauth() {
+  const response = await fetch('/front-api/config')
+  const oauthSecret = await response.json()
+
+  const ax = axios.create({
+    timeout: 5000,
+    headers: {
+      'Content-Type': 'application/json',
+      accept: 'application/json'
+    }
+  })
+  ax.defaults.xsrfCookieName = 'csrftoken'
+  ax.defaults.xsrfHeaderName = 'X-CSRFToken'
+  ax.defaults.withCredentials = true
+
+  return ax
+    .get('/api/csrf_oauth', {
+      client_id: oauthSecret.client_id
+    })
+    .then(res => res.data)
+}

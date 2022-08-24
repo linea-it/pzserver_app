@@ -215,6 +215,10 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     # Including Shibboleth authentication:
     AUTHENTICATION_BACKENDS += ("shibboleth.backends.ShibbolethRemoteUserBackend",)
 
+OAUTH2_PROVIDER = {
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
+}
+
 
 LOGGING = {
     "version": 1,

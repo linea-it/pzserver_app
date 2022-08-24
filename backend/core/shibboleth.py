@@ -44,3 +44,13 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
         log.debug("--------------------------")
 
         return
+
+    def setup_session(self, request):
+        """
+        If you want to add custom code to setup user sessions, you
+        can extend this.
+        """
+        log = logging.getLogger("shibboleth")
+        log.debug("---------- Setup Session ----------")
+
+        return
