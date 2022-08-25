@@ -53,7 +53,7 @@ export async function csrfToOauth() {
   ax.defaults.withCredentials = true
 
   return ax
-    .get('/api/csrf_oauth', {
+    .post('/api/csrf_oauth/', {
       client_id: oauthSecret.client_id
     })
     .then(res => res.data)

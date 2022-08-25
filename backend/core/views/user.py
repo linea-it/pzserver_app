@@ -1,11 +1,16 @@
-from email.mime import application
-from http import client
+import logging
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.utils import timezone
+from oauth2_provider.models import AccessToken, Application, RefreshToken
+from oauthlib.common import generate_token
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view
-import logging
 
 
 class LoggedUserView(APIView):
@@ -39,23 +44,30 @@ def get_token(request):
 class CsrfToOauth(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
+    def post(self, request, format=None):
         log = logging.getLogger("django")
         log.debug("----------------------------------")
         log.debug("Change Csrf Token to Oauth Token")
 
-        from oauthlib.common import generate_token
-        from oauth2_provider.models import AccessToken, RefreshToken, Application
-        from django.utils import timezone
-        from dateutil.relativedelta import relativedelta
-        from django.conf import settings
-        from rest_framework import status
-        from django.http import HttpResponseRedirect
+        client_id = request.data.get("client_id", None)
+        if client_id is None:
+            return Response(
+                {"error": "client_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        log.debug(f"Client ID: {client_id}")
 
-        app = Application.objects.get(
-            client_id="lKPub4YnYGeUq77VIys0gGPoDh25NB0oKv4vwH5G"
-        )
-        log.debug(f"App: {app}")
+        try:
+            app = Application.objects.get(client_id=client_id)
+        except Application.DoesNotExist:
+            return Response(
+                {
+                    "error": "The application linked to the provided client_id could not be found."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        log.debug(f"Application: {app}")
+
         user = request.user
         log.debug(f"User: {user}")
 
@@ -63,6 +75,7 @@ class CsrfToOauth(APIView):
             "ACCESS_TOKEN_EXPIRE_SECONDS", 36000
         )
         log.debug(f"Expire Seconds: {expire_seconds}")
+
         access_token = AccessToken.objects.create(
             user=user,
             token=generate_token(),
@@ -79,16 +92,6 @@ class CsrfToOauth(APIView):
             access_token=access_token,
         )
         log.debug(f"Refresh Token: {refresh_token}")
-
-        # # Usando o Frontend para criar os cookie e fazer o signin
-        # content = {
-        #     "access_token": str(access_token),
-        #     "refresh_token": str(refresh_token),
-        #     "expires_in": expire_seconds,
-        # }
-        # response = Response(content, status=status.HTTP_200_OK)
-
-        # return response
 
         # Usando O Backend para criar os tokens no cookie
         response = HttpResponseRedirect(redirect_to="/")
