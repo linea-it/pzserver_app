@@ -7,25 +7,64 @@ from oauth2_provider.models import AccessToken, Application, RefreshToken
 from oauthlib.common import generate_token
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth import logout
+import requests
+import logging
 
 
 class LoggedUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
+        # `django.contrib.auth.User` instance.
+        username = str(request.user)
+        if (
+            request.user.profile is not None
+            and request.user.profile.display_name is not None
+        ):
+            username = request.user.profile.display_name
+
         content = {
-            "username": str(request.user),  # `django.contrib.auth.User` instance.
+            "username": username,
         }
         return Response(content)
 
 
-@api_view(["POST"])
-def get_token(request):
-    if request.method == "POST":
+# @api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+# def logout(request):
+class Logout(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+
+        if settings.SHIBBOLETH_ENABLED:
+            try:
+                log = logging.getLogger("shibboleth")
+                log.debug(f"User {request.user} request logout ")
+                shib_logout_uri = request.build_absolute_uri("/Shibboleth.sso/Logout")
+                log.debug(f"Logout URL: {shib_logout_uri}")
+                r = requests.get(shib_logout_uri)
+                if r.status_code == 200:
+                    log.debug(f"Logout Success")
+                else:
+                    log.error(f"User {request.user} Logout Failed. {str(r)}")
+            except Exception as e:
+                log.error(f"User {request.user} Logout Failed. {str(e)}")
+
+        logout(request)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class GetToken(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
         """_Cria um novo token para o usuario logado.
             Sempre que este metodo for executado um novo token sera criado,
             Caso o usuario já possua um token ele será removido e um novo será criado.

@@ -25,7 +25,8 @@ from core.views import (
     ProductContentViewSet,
     ProductFileViewSet,
     LoggedUserView,
-    get_token,
+    GetToken,
+    Logout,
     CsrfToOauth,
 )
 from drf_spectacular.views import (
@@ -37,14 +38,12 @@ from drf_spectacular.views import (
 route = routers.DefaultRouter()
 
 route.register(r"releases", ReleaseViewSet, basename="Releases")
-
 route.register(r"product-files", ProductFileViewSet, basename="ProductFiles")
 route.register(r"product-contents", ProductContentViewSet, basename="ProductContents")
 route.register(r"product-types", ProductTypeViewSet, basename="ProductTypes")
 route.register(r"products", ProductViewSet, basename="Products")
 
 
-from shibboleth.views import ShibbolethView, ShibbolethLogoutView, ShibbolethLoginView
 from rest_framework.authtoken import views
 
 urlpatterns = [
@@ -53,9 +52,10 @@ urlpatterns = [
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),
-    path("api/get_token", get_token),
+    path("api/get_token/", GetToken.as_view()),
     path("api/csrf_oauth/", CsrfToOauth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view()),
+    path("api/logout/", Logout.as_view()),
     path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
     # API DOCs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

@@ -2,7 +2,7 @@
 import { createContext, useEffect, useState, useContext } from 'react'
 import { setCookie, parseCookies, destroyCookie } from 'nookies'
 import Router from 'next/router'
-import { signInRequest, csrfToOauth } from '../services/auth'
+import { signInRequest, csrfToOauth, backendLogout } from '../services/auth'
 import { api } from '../services/api'
 import { recoverUserInformation } from '../services/user'
 import PropTypes from 'prop-types'
@@ -21,13 +21,22 @@ export function AuthProvider({ children }) {
     if (access_token) {
       recoverUserInformation().then(user => setUser(user))
     } else {
-      console.log('Não tem access token')
-      const { csrftoken } = parseCookies()
+      // console.log('Não tem access token')
+      const { 'pzserver.csrftoken': csrftoken } = parseCookies()
       if (csrftoken) {
-        console.log('Pode estar logado no Django')
-        csrfToOauth().then(res => {
-          Router.push('/')
-        })
+        // console.log('Pode estar logado no Django')
+        csrfToOauth()
+          .then(res => {
+            // Carrega os dados do usuario logo apos o login
+            // Evita que no primeiro render do index o nome de usuario esteja em branco
+            recoverUserInformation().then(loggedUser => {
+              setUser(loggedUser)
+              Router.push('/')
+            })
+          })
+          .catch(res => {
+            console.log(res)
+          })
       }
     }
   }, [])
@@ -57,11 +66,24 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    const { 'pzserver.csrftoken': csrftoken } = parseCookies()
+    if (csrftoken) {
+      backendLogout()
+        .then(res => {
+          console.log('Backend Logout Success')
+        })
+        .catch(res => {
+          console.log('Failed on Backend logout.')
+        })
+    }
+
     destroyCookie(null, 'pzserver.access_token')
     destroyCookie(null, 'pzserver.refresh_token')
-    destroyCookie(null, 'csrftoken')
+    destroyCookie(null, 'pzserver.csrftoken')
     setUser(null)
+
     delete api.defaults.headers.Authorization
+    delete api.defaults.headers['X-CSRFToken']
     Router.push('/login')
   }
 

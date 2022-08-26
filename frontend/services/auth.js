@@ -1,5 +1,4 @@
 import axios from 'axios'
-
 const apiAuth = axios.create({
   timeout: 5000,
   headers: {
@@ -48,7 +47,7 @@ export async function csrfToOauth() {
       accept: 'application/json'
     }
   })
-  ax.defaults.xsrfCookieName = 'csrftoken'
+  ax.defaults.xsrfCookieName = 'pzserver.csrftoken'
   ax.defaults.xsrfHeaderName = 'X-CSRFToken'
   ax.defaults.withCredentials = true
 
@@ -57,4 +56,24 @@ export async function csrfToOauth() {
       client_id: oauthSecret.client_id
     })
     .then(res => res.data)
+    .catch(res => {
+      if (res.status === 401) {
+        // Usuario não está logado mas tem um cookie de sessao do Django
+      }
+    })
+}
+
+export async function backendLogout() {
+  const ax = axios.create({
+    timeout: 5000,
+    headers: {
+      'Content-Type': 'application/json',
+      accept: 'application/json'
+    }
+  })
+  ax.defaults.xsrfCookieName = 'pzserver.csrftoken'
+  ax.defaults.xsrfHeaderName = 'X-CSRFToken'
+  ax.defaults.withCredentials = true
+
+  return ax.get('/api/logout/')
 }

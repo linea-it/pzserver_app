@@ -4,5 +4,6 @@ from core.views.product import ProductViewSet
 from core.views.product_content import ProductContentViewSet
 from core.views.product_file import ProductFileViewSet
 from core.views.user import LoggedUserView
-from core.views.user import get_token 
+from core.views.user import GetToken
 from core.views.user import CsrfToOauth
+from core.views.user import Logout
