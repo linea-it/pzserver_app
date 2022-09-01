@@ -102,7 +102,7 @@ export default function TokenDialog({ open, onClose }) {
         </DialogContentText>
         <LoadingButton
           loading={isLoading}
-          loadingPosition="start"
+          // loadingPosition="start"
           variant="contained"
           onClick={handleNewApi}
         >

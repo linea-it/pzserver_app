@@ -130,7 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = "/django_static/"
-STATIC_ROOT = "/archive/django_static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = "/archive/data/"
@@ -152,21 +152,18 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
     "DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost http://127.0.0.1"
 ).split(" ")
 
+# https://docs.djangoproject.com/en/4.1/ref/settings/#csrf-cookie-name
+CSRF_COOKIE_NAME = "pzserver.csrftoken"
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "drf_social_oauth2.authentication.SocialAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    # "DEFAULT_PARSER_CLASSES": (
-    #     "rest_framework.parsers.JSONParser",
-    #     "rest_framework.parsers.FormParser",
-    #     "rest_framework.parsers.MultiPartParser",
-    #     "rest_framework.parsers.FileUploadParser",
-    # ),
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -185,28 +182,25 @@ SPECTACULAR_SETTINGS = {
 JSON_EDITOR = True
 
 AUTHENTICATION_BACKENDS = (
-    "social_core.backends.github.GithubOAuth2",
-    "social_core.backends.github.GithubOrganizationOAuth2",
+    # "social_core.backends.github.GithubOAuth2",
+    # "social_core.backends.github.GithubOrganizationOAuth2",
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
+    "shibboleth.backends.ShibbolethRemoteUserBackend",
 )
 
-if os.getenv("GITHUB_CLIENT_ID", None) is not None:
-    SOCIAL_AUTH_GITHUB_ORG_KEY = os.getenv("GITHUB_CLIENT_ID")
-    SOCIAL_AUTH_GITHUB_ORG_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-    SOCIAL_AUTH_GITHUB_ORG_NAME = os.getenv("GITHUB_ORG_NAME", "linea-it")
-    SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
-    SOCIAL_AUTH_JSONFIELD_ENABLED = True
+# if os.getenv("GITHUB_CLIENT_ID", None) is not None:
+#     SOCIAL_AUTH_GITHUB_ORG_KEY = os.getenv("GITHUB_CLIENT_ID")
+#     SOCIAL_AUTH_GITHUB_ORG_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+#     SOCIAL_AUTH_GITHUB_ORG_NAME = os.getenv("GITHUB_ORG_NAME", "linea-it")
+#     SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
+#     SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
-LOGIN_REDIRECT_URL = "/api/"
-# ACTIVATE_JWT = True
-# in your settings.py file.
-# from oauth2_provider import settings as oauth2_settings
-
-# # expires in 6 months
-# oauth2_settings.DEFAULTS["ACCESS_TOKEN_EXPIRE_SECONDS"] = 10
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+LOGIN_REDIRECT_URL = "/"
 
 # Shibboleth Authentication
+SHIBBOLETH_ENABLED = False
 if os.getenv("AUTH_SHIB_URL", None) is not None:
     # https://github.com/Brown-University-Library/django-shibboleth-remoteuser
     SHIBBOLETH_ATTRIBUTE_MAP = {
@@ -219,6 +213,12 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     # Including Shibboleth authentication:
     AUTHENTICATION_BACKENDS += ("shibboleth.backends.ShibbolethRemoteUserBackend",)
 
+    SHIBBOLETH_ENABLED = True
+
+OAUTH2_PROVIDER = {
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
+}
+
 
 LOGGING = {
     "version": 1,
@@ -227,10 +227,18 @@ LOGGING = {
         "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
     },
     "handlers": {
-        "file": {
+        "default": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
             "filename": os.path.join(LOG_DIR, "django.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "standard",
+        },
+        "db_handler": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "django_db.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
             "formatter": "standard",
@@ -262,9 +270,14 @@ LOGGING = {
     },
     "loggers": {
         "django": {
-            "handlers": ["file"],
+            "handlers": ["default"],
             "level": LOGGING_LEVEL,
             "propagate": True,
+        },
+        "django.db.backends": {
+            "handlers": ["db_handler"],
+            "level": LOGGING_LEVEL,
+            "propagate": False,
         },
         "oauthlib": {
             "handlers": ["oauthlib"],
