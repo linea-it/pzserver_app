@@ -47,7 +47,9 @@ class Product(models.Model):
         default=ProductStatus.REGISTERING,
         choices=ProductStatus.choices,
     )
-    path = models.FilePathField(verbose_name="Path", null=True, blank=True, default=None)
+    path = models.FilePathField(
+        verbose_name="Path", null=True, blank=True, default=None
+    )
 
     def __str__(self):
         return f"{self.display_name}"
