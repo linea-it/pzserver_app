@@ -1,5 +1,5 @@
 import mimetypes
-
+from django.contrib.auth.models import User
 from core.models import Product
 from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
@@ -13,6 +13,7 @@ import pathlib
 from django.conf import settings
 import secrets
 import os
+from django.db.models import Q
 
 
 class ProductFilter(filters.FilterSet):
@@ -20,6 +21,7 @@ class ProductFilter(filters.FilterSet):
     # Talvez filtro pelos internal_names de release e product_type
 
     release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
+    uploaded_by = filters.CharFilter(method="filter_user")
 
     class Meta:
         model = Product
@@ -29,7 +31,15 @@ class ProductFilter(filters.FilterSet):
             "product_type",
             "official_product",
             "status",
+            "user",
         ]
+
+    def filter_user(self, queryset, name, value):
+        return queryset.filter(
+            Q(user__username__icontains=value)
+            | Q(user__first_name__icontains=value)
+            | Q(user__last_name__icontains=value)
+        )
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -37,6 +47,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     search_fields = [
         "display_name",
+        "user__username",
+        "user__first_name",
+        "user__last_name",
     ]
     filterset_class = ProductFilter
     ordering_fields = [

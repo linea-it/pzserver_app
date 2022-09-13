@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from core.models import (
     ProductType,
     Product,
@@ -25,6 +26,14 @@ class ReleaseAdmin(admin.ModelAdmin):
     search_fields = ("name", "display_name")
 
 
+class ProductAdminForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        exclude = ["path"]
+        # widgets = {"path": forms.RadioSelect}
+        # fields = "__all__"  # required for Django 3.x
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -42,6 +51,12 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     search_fields = ("name", "display_name")
+
+    form = ProductAdminForm
+
+    # This will help you to disbale add functionality
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(ProductContent)

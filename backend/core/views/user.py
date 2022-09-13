@@ -14,6 +14,9 @@ from rest_framework.views import APIView
 from django.contrib.auth import logout
 import requests
 import logging
+from rest_framework import viewsets
+from django.contrib.auth.models import User
+from core.serializers.user import UserSerializer
 
 
 class LoggedUserView(APIView):
@@ -150,3 +153,8 @@ class CsrfToOauth(APIView):
             secure=settings.SESSION_COOKIE_SECURE or None,
         )
         return response
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

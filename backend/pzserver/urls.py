@@ -28,6 +28,7 @@ from core.views import (
     GetToken,
     Logout,
     CsrfToOauth,
+    UserViewSet,
 )
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -37,6 +38,7 @@ from drf_spectacular.views import (
 
 route = routers.DefaultRouter()
 
+route.register(r"users", UserViewSet, basename="users")
 route.register(r"releases", ReleaseViewSet, basename="Releases")
 route.register(r"product-files", ProductFileViewSet, basename="ProductFiles")
 route.register(r"product-contents", ProductContentViewSet, basename="ProductContents")
