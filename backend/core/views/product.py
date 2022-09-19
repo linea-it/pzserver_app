@@ -7,13 +7,45 @@ from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 import zipfile
 import pathlib
 from django.conf import settings
 import secrets
 import os
+import csv
+import json
 from django.db.models import Q
+from pathlib import Path
+
+
+class CsvHandle(object):
+
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+        with open(self.filepath, newline='') as csvfile:
+            dt = csvfile.read(1024)
+
+        assert (csv.Sniffer().has_header(dt)), "CSV has no valid header"
+
+        self.dialect = csv.Sniffer().sniff(dt)
+        self.delimiter = self.dialect.delimiter 
+        
+    def read(self):
+        """ Read csv product
+        """
+
+        content = list()
+
+        with open(self.filepath, mode='r') as csvfile:
+            csv_reader = csv.DictReader(
+                csvfile, dialect=self.dialect, delimiter=self.delimiter
+            )
+            for row in csv_reader:
+                content.append(row)
+
+        return json.dumps(content, indent=4)
 
 
 class ProductFilter(filters.FilterSet):
@@ -135,6 +167,28 @@ class ProductViewSet(viewsets.ModelViewSet):
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(methods=["GET"], detail=True)
+    def content(self, request, **kwargs):
+        """Content product"""
+        try:
+            product = self.get_object()
+
+            # Recupera informação do main file pela tabela productFile
+            main_file = product.files.get(role=0)
+            main_file_path = Path(main_file.file.path)
+            product_path = pathlib.Path(settings.MEDIA_ROOT, product.path, main_file_path)
+
+            if main_file.extension == '.csv':
+                csv_obj = CsvHandle(product_path)
+                product_content = csv_obj.read()
+            else:
+                raise NotImplementedError
+
+            return JsonResponse(product_content, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(methods=["Post", "Get"], detail=True)
     def registry(self, request, **kwargs):
         """Registry product"""
@@ -198,3 +252,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         ziphandle.close()
 
         return zip_path
+
+
+
