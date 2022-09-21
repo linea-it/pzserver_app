@@ -24,21 +24,21 @@ export default function Contact() {
             <p>
               BRA-LIN S2 Contribution Lead:{' '}
               <Link
-                href="mailto:julia@linea.gov.br"
+                href="mailto:julia@linea.org.br"
                 target="_blank"
                 rel="noreferrer"
               >
-                julia@linea.gov.br
+                julia@linea.org.br
               </Link>
             </p>
             <p>
               Technical support:{' '}
               <Link
-                href="mailto:helpdesk@linea.gov.br"
+                href="mailto:helpdesk@linea.org.br"
                 target="_blank"
                 rel="noreferrer"
               >
-                helpdesk@linea.gov.br
+                helpdesk@linea.org.br
               </Link>
             </p>
           </Typography>

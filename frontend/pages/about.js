@@ -91,11 +91,11 @@ export default function About() {
               </Link>
               , or contact the developers at{' '}
               <Link
-                href="mailto:helpdesk@linea.gov.br"
+                href="mailto:helpdesk@linea.org.br"
                 target="_blank"
                 rel="noreferrer"
               >
-                helpdesk@linea.gov.br
+                helpdesk@linea.org.br
               </Link>
               .
             </p>
