@@ -45,7 +45,7 @@ class CsvHandle(object):
             for row in csv_reader:
                 content.append(row)
 
-        return json.dumps(content, indent=4)
+        return content
 
 
 class ProductFilter(filters.FilterSet):
