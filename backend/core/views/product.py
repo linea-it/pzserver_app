@@ -14,7 +14,7 @@ from django.conf import settings
 import secrets
 import os
 import csv
-import json
+import pandas as pd
 from django.db.models import Q
 from pathlib import Path
 
@@ -36,16 +36,9 @@ class CsvHandle(object):
         """ Read csv product
         """
 
-        content = list()
-
-        with open(self.filepath, mode='r') as csvfile:
-            csv_reader = csv.DictReader(
-                csvfile, dialect=self.dialect, delimiter=self.delimiter
-            )
-            for row in csv_reader:
-                content.append(row)
-
-        return content
+        return pd.DataFrame.to_dict(
+            pd.read_csv(self.filepath, delimiter=self.delimiter)
+        )
 
 
 class ProductFilter(filters.FilterSet):
