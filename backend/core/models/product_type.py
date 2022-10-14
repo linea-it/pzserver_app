@@ -4,7 +4,7 @@ from django.db import models
 class ProductType(models.Model):
     name = models.CharField(max_length=255)
     display_name = models.CharField(max_length=255)
-    attributes = models.JSONField(default=dict, null=True, blank=True)
+    description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -7,28 +7,35 @@
 - model: core.producttype
   pk: 1
   fields:
-    name: photoz_results
-    display_name: Photo-z Results
-    attributes: null
+    name: validation_results
+    display_name: Validation Results
+    description: Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.
     created_at: 2022-05-18 15:36:59.830913+00:00
 - model: core.producttype
   pk: 2
   fields:
     name: specz_catalog
     display_name: Spec-z Catalog
-    attributes: null
+    description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
 - model: core.producttype
   pk: 3
   fields:
-    name: validation_sets
-    display_name: Validation Sets
-    attributes: null
+    name: validation_set
+    display_name: Validation Set
+    description: Validation/test set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
     created_at: 2022-05-18 15:37:33.423568+00:00
 - model: core.producttype
   pk: 4
   fields:
-    name: training_sets
-    display_name: Training Sets
-    attributes: null
+    name: training_set
+    display_name: Training Set
+    description: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
+    created_at: 2022-05-18 15:37:55.565131+00:00
+- model: core.producttype
+  pk: 5
+  fields:
+    name: photoz_table
+    display_name: Photo-z Table
+    description: Results of a photo-z estimation procedure. If the data is larger than the file upload limit (200MB), the product entry stores only the metadata (instructions on accessing the data should be provided in the description field.
     created_at: 2022-05-18 15:37:55.565131+00:00

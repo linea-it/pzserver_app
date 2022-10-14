@@ -7,26 +7,56 @@ from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 import zipfile
 import pathlib
 from django.conf import settings
 import secrets
 import os
+import csv
+import pandas as pd
 from django.db.models import Q
+from pathlib import Path
+
+
+class CsvHandle(object):
+
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+        with open(self.filepath, newline='') as csvfile:
+            dt = csvfile.read(1024)
+
+        assert (csv.Sniffer().has_header(dt)), "CSV has no valid header"
+
+        self.dialect = csv.Sniffer().sniff(dt)
+        self.delimiter = self.dialect.delimiter 
+        
+    def read(self):
+        """ Read csv product
+        """
+
+        return pd.DataFrame.to_dict(
+            pd.read_csv(self.filepath, delimiter=self.delimiter)
+        )
 
 
 class ProductFilter(filters.FilterSet):
-    # TODO: Adicionar Mais Filtros
-    # Talvez filtro pelos internal_names de release e product_type
-
     release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
+    uploaded_by__or = filters.CharFilter(method="filter_user")
     uploaded_by = filters.CharFilter(method="filter_user")
+    product_type__or = filters.CharFilter(method="filter_product_type")
+    product_type = filters.CharFilter(method="filter_product_type")
+    release__or = filters.CharFilter(method="filter_release")
+    release = filters.CharFilter(method="filter_release")
+    product_name__or = filters.CharFilter(method="filter_name")
+    product_name = filters.CharFilter(method="filter_name")
 
     class Meta:
         model = Product
         fields = [
             "internal_name",
+            "display_name",
             "release",
             "product_type",
             "official_product",
@@ -35,11 +65,51 @@ class ProductFilter(filters.FilterSet):
         ]
 
     def filter_user(self, queryset, name, value):
-        return queryset.filter(
-            Q(user__username__icontains=value)
-            | Q(user__first_name__icontains=value)
-            | Q(user__last_name__icontains=value)
+        query = self.format_query_to_char(
+            name, value,
+            ['user__username', 'user__first_name', 'user__last_name']
         )
+
+        return queryset.filter(query)
+
+    def filter_name(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value, ['display_name']
+        )
+
+        return queryset.filter(query)
+
+    def filter_product_type(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value,
+            ['product_type__display_name', 'product_type__name']
+        )
+        
+        return queryset.filter(query)
+
+    def filter_release(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value,
+            ['release__display_name', 'release__name']
+        )
+        return queryset.filter(query)
+
+    @staticmethod
+    def format_query_to_char(key, value, fields):
+        condition = Q.OR if key.endswith('__or') else Q.AND
+        values = value.split(',')
+        query = Q()
+
+        for value in values:
+            subfilter = Q()
+            for field in fields:
+                subfilter.add(
+                    Q(**{f'{field}__icontains': value}), Q.OR
+                )
+
+            query.add(subfilter, condition)
+        
+        return query
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -141,6 +211,28 @@ class ProductViewSet(viewsets.ModelViewSet):
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(methods=["GET"], detail=True)
+    def content(self, request, **kwargs):
+        """Content product"""
+        try:
+            product = self.get_object()
+
+            # Recupera informação do main file pela tabela productFile
+            main_file = product.files.get(role=0)
+            main_file_path = Path(main_file.file.path)
+            product_path = pathlib.Path(settings.MEDIA_ROOT, product.path, main_file_path)
+
+            if main_file.extension == '.csv':
+                csv_obj = CsvHandle(product_path)
+                product_content = csv_obj.read()
+            else:
+                raise NotImplementedError
+
+            return JsonResponse(product_content, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(methods=["Post", "Get"], detail=True)
     def registry(self, request, **kwargs):
         """Registry product"""
@@ -204,3 +296,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         ziphandle.close()
 
         return zip_path
+
+
+

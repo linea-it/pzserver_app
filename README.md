@@ -22,6 +22,7 @@ Crie o arquivo de variáveis de ambiente baseado no `env_template`.
 
 ```bash
 cp env_template .env
+cp .env.local-template .env.local
 ```
 
 Edite o arquivo e altere as variáveis de acordo com seu ambiente, neste primeiro momento de atenção as variáveis referentes ao banco de dados e de conexão do django.

@@ -33,7 +33,7 @@ function Footer() {
           <Typography>
             <span className={classes.poweredBy}>Powered By</span>
             <Link
-              href="https://www.linea.gov.br/"
+              href="https://www.linea.org.br/"
               target="_blank"
               className={classes.logoLink}
             >
