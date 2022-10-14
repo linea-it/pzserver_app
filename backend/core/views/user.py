@@ -28,7 +28,7 @@ class LoggedUserView(APIView):
         if (
             request.user.profile is not None
             and request.user.profile.display_name is not None
-            and request.user.profile.display_name is not ""
+            and request.user.profile.display_name != ""
         ):
             username = request.user.profile.display_name
 
