@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   TextField,
+  Typography,
   FormControl,
   Button,
   Box,
@@ -180,6 +181,10 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   return (
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
+      <Typography paragraph variant="body">
+        Please associate the column names of your file with those expected by
+        the tool.
+      </Typography>
       <Box
         component="form"
         sx={{
