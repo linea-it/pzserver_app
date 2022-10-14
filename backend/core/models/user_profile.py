@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -13,6 +13,18 @@ class Profile(models.Model):
     display_name = models.CharField(
         verbose_name="Display Name", max_length=124, default=None, null=True, blank=True
     )
+
+    def is_admin(self):
+        is_admin = False
+        try:
+            group = self.user.groups.get(name="Admin")
+            if group:
+                is_admin = True
+            else:
+                is_admin = False
+        except Group.DoesNotExist as e:
+            is_admin = False
+        return is_admin
 
     def __str__(self):
         return str(self.user.username)

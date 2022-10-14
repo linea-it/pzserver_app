@@ -13,8 +13,9 @@ import ReleaseSelect from '../../components/ReleaseSelect'
 import { getProduct, createProduct, patchProduct } from '../../services/product'
 import Loading from '../../components/Loading'
 import PropTypes from 'prop-types'
-
+import { useAuth } from '../../contexts/AuthContext'
 export default function NewProductStep1({ productId, onNext }) {
+  const { user } = useAuth()
   const defaultProductValues = {
     id: null,
     display_name: '',
@@ -226,23 +227,25 @@ export default function NewProductStep1({ productId, onNext }) {
             />
           </FormControl>
         )}
-        <FormControl fullWidth>
-          <FormControlLabel
-            control={
-              <Checkbox
-                name="official_product"
-                checked={product.official_product}
-                onChange={e => {
-                  setProduct({
-                    ...product,
-                    official_product: e.target.checked
-                  })
-                }}
-              />
-            }
-            label="Official Product"
-          />
-        </FormControl>
+        {user?.is_admin === true && (
+          <FormControl fullWidth>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="official_product"
+                  checked={product.official_product}
+                  onChange={e => {
+                    setProduct({
+                      ...product,
+                      official_product: e.target.checked
+                    })
+                  }}
+                />
+              }
+              label="Official Product"
+            />
+          </FormControl>
+        )}
         <FormControl fullWidth>
           <TextField
             name="description"

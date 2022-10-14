@@ -217,10 +217,10 @@ export default function NewProduct() {
             // height="400px"
             alignItems="center"
             justifyContent="center"
-            // style={{
-            //   overflow: 'hidden',
-            //   overflowY: 'scroll'
-            // }}
+          // style={{
+          //   overflow: 'hidden',
+          //   overflowY: 'scroll'
+          // }}
           >
             {/* {product && steps[activeStep].component(product.id)} */}
             {activeStep === 0 && step1(productId)}

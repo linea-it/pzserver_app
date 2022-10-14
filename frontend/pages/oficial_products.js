@@ -11,10 +11,12 @@ import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import { parseCookies } from 'nookies'
 import { useRouter } from 'next/router'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Products() {
   const classes = useStyles()
   const router = useRouter()
+  const { user } = useAuth()
 
   const [search, setSearch] = React.useState('')
   const [filters, setFilters] = React.useState({
@@ -36,15 +38,18 @@ export default function Products() {
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={e => {
-              router.push('/product/new')
-            }}
-          >
-            New Product
-          </Button>
+
+          {user?.is_admin === true && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={e => {
+                router.push('/product/new')
+              }}
+            >
+              New Product
+            </Button>
+          )}
         </Grid>
       </Grid>
       <Divider className={classes.titleDivider} variant={'fullWidth'} />
