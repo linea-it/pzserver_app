@@ -78,25 +78,27 @@ export default function ProductGrid(props) {
       {
         field: 'release_name',
         headerName: 'Release',
-        width: 120,
+        width: 200,
         sortable: false
       },
       {
         field: 'product_type_name',
         headerName: 'Product Type',
-        width: 120,
+        // width: 120,
+        flex: 1,
         sortable: false
       },
       {
         field: 'uploaded_by',
         headerName: 'Uploaded By',
-        width: 160,
+        // width: 160,
+        flex: 1,
         sortable: false
       },
       {
         field: 'created_at',
         headerName: 'Created at',
-        width: 180,
+        width: 200,
         sortable: true,
         valueFormatter: params => {
           if (params.value == null) {
@@ -106,21 +108,21 @@ export default function ProductGrid(props) {
           return `${valueFormatted}`
         }
       },
-      { field: 'file_name', headerName: 'Filename', sortable: true, flex: 1 },
-      {
-        field: 'file_size',
-        headerName: 'Size',
-        width: 90,
-        sortable: true,
-        valueFormatter: params => {
-          if (params.value == null) {
-            return ''
-          }
+      // { field: 'file_name', headerName: 'Filename', sortable: true, flex: 1 },
+      // {
+      //   field: 'file_size',
+      //   headerName: 'Size',
+      //   width: 90,
+      //   sortable: true,
+      //   valueFormatter: params => {
+      //     if (params.value == null) {
+      //       return ''
+      //     }
 
-          const valueFormatted = prettyBytes(Number(params.value))
-          return `${valueFormatted}`
-        }
-      },
+      //     const valueFormatted = prettyBytes(Number(params.value))
+      //     return `${valueFormatted}`
+      //   }
+      // },
       {
         field: 'actions',
         type: 'actions',

@@ -201,7 +201,7 @@ export default function ProductDetail({ productId, internalName }) {
             >
               <Typography variant="h4">{product.display_name}</Typography>
 
-              {product.official_product !== '' && (
+              {product.official_product === true && (
                 <Chip
                   variant="outlined"
                   color="success"
@@ -236,19 +236,9 @@ export default function ProductDetail({ productId, internalName }) {
         <Grid item xs={4}>
           <Paper elevation={2} className={classes.paper}>
             <Stack divider={<Divider flexItem />} spacing={2}>
-              {/* <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                // endIcon={<DownloadIcon />}
-                onClick={downloadFile}
-              >
-                Download
-              </Button> */}
               <LoadingButton
                 loading={isDownloading}
                 loadingPosition="start"
-                // startIcon={<DownloadIcon />}
                 variant="contained"
                 onClick={downloadFile}
               >
