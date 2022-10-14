@@ -19,7 +19,8 @@ export default function Products() {
   const [filters, setFilters] = React.useState({
     release: '',
     product_type: '',
-    official_product: false
+    official_product: false,
+    status: 1 // Published
   })
 
   return (

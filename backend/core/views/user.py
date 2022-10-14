@@ -15,25 +15,26 @@ from django.contrib.auth import logout
 import requests
 import logging
 from rest_framework import viewsets
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from core.serializers.user import UserSerializer
 
 
 class LoggedUserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
+    def post(self, request, format=None):
         # `django.contrib.auth.User` instance.
         username = str(request.user)
         if (
             request.user.profile is not None
             and request.user.profile.display_name is not None
+            and request.user.profile.display_name is not ""
         ):
             username = request.user.profile.display_name
 
-        content = {
-            "username": username,
-        }
+        is_admin = request.user.profile.is_admin()
+
+        content = {"username": username, "is_admin": is_admin}
         return Response(content)
 
 

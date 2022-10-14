@@ -138,6 +138,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         try:
             product = Product.objects.get(pk=instance.pk)
 
+            # Verifica se o produto é oficial,
+            # Apenas user que fazem parte do Group=Admin podem criar produtos oficiais.
+            if product.official_product is True:
+                if request.user.profile.is_admin() is False:
+                    raise Exception("Only admin user can create a Official Product.")
+
             # Cria um internal name
             name = self.get_internal_name(product.display_name)
             product.internal_name = f"{product.pk}_{name}"
