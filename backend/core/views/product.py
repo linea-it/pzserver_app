@@ -42,16 +42,21 @@ class CsvHandle(object):
 
 
 class ProductFilter(filters.FilterSet):
-    # TODO: Adicionar Mais Filtros
-    # Talvez filtro pelos internal_names de release e product_type
-
     release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
+    uploaded_by__or = filters.CharFilter(method="filter_user")
     uploaded_by = filters.CharFilter(method="filter_user")
+    product_type__or = filters.CharFilter(method="filter_product_type")
+    product_type = filters.CharFilter(method="filter_product_type")
+    release__or = filters.CharFilter(method="filter_release")
+    release = filters.CharFilter(method="filter_release")
+    product_name__or = filters.CharFilter(method="filter_name")
+    product_name = filters.CharFilter(method="filter_name")
 
     class Meta:
         model = Product
         fields = [
             "internal_name",
+            "display_name",
             "release",
             "product_type",
             "official_product",
@@ -60,11 +65,51 @@ class ProductFilter(filters.FilterSet):
         ]
 
     def filter_user(self, queryset, name, value):
-        return queryset.filter(
-            Q(user__username__icontains=value)
-            | Q(user__first_name__icontains=value)
-            | Q(user__last_name__icontains=value)
+        query = self.format_query_to_char(
+            name, value,
+            ['user__username', 'user__first_name', 'user__last_name']
         )
+
+        return queryset.filter(query)
+
+    def filter_name(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value, ['display_name']
+        )
+
+        return queryset.filter(query)
+
+    def filter_product_type(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value,
+            ['product_type__display_name', 'product_type__name']
+        )
+        
+        return queryset.filter(query)
+
+    def filter_release(self, queryset, name, value):
+        query = self.format_query_to_char(
+            name, value,
+            ['release__display_name', 'release__name']
+        )
+        return queryset.filter(query)
+
+    @staticmethod
+    def format_query_to_char(key, value, fields):
+        condition = Q.OR if key.endswith('__or') else Q.AND
+        values = value.split(',')
+        query = Q()
+
+        for value in values:
+            subfilter = Q()
+            for field in fields:
+                subfilter.add(
+                    Q(**{f'{field}__icontains': value}), Q.OR
+                )
+
+            query.add(subfilter, condition)
+        
+        return query
 
 
 class ProductViewSet(viewsets.ModelViewSet):
