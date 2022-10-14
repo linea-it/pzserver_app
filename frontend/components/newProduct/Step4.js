@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Box, Alert } from '@mui/material'
+import { Button, Box, Alert, Typography } from '@mui/material'
 import Loading from '../../components/Loading'
 import ProductDetail from '../ProductDetail'
 import { changeProductStatus } from '../../services/product'
@@ -55,6 +55,9 @@ export default function NewProductStep4({ productId, onNext, onPrev }) {
   return (
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
+      <Typography paragraph variant="body">
+        Please review your information before pressing the FINISH button.
+      </Typography>
       <Box>
         <Box>
           <ProductDetail productId={productId}></ProductDetail>

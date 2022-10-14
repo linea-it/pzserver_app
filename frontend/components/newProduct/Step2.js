@@ -222,14 +222,27 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   return (
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
+      <Typography paragraph variant="body">
+        Please select the file(s) for the upload. The main file is the one
+        containing the data. It must be a single file. For example, if the
+        product type is Spec-z Sample, Training Set, or Validation Set, the data
+        must be tabular, and the tool supports the formats: CSV, FITS, HDF5, and
+        parquet. Otherwise, if the product type is Validation Results or Photo-z
+        Table, the file format is free. Please provide them compressed in a
+        single .tar file in case of multiple files.
+      </Typography>
+      <Typography paragraph variant="body">
+        The description file is supposed to contain relevant information about
+        the data product. It can be a PDF document, a Jupyter notebook, etc.
+      </Typography>
+      <Typography paragraph variant="body">
+        The Auxiliary Files are in free format and can be multiple files (press
+        the upload button as many times as necessary).
+      </Typography>
       <Box>
         <Grid container spacing={4}>
           <Grid item xs={6}>
             <Box>
-              <Typography variant="body">
-                Main File Lorem ipsum dolor sit amet, consectetur adipiscing
-                elit
-              </Typography>
               <Stack spacing={2}>
                 {mainFile === true && (
                   <Alert severity="success">Main File Uploaded!</Alert>
@@ -261,10 +274,6 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
               </Stack>
             </Box>
             <Box sx={{ mt: 4 }}>
-              <Typography variant="body">
-                Description File Lorem ipsum dolor sit amet, consectetur
-                adipiscing elit
-              </Typography>
               <Stack spacing={2}>
                 {descFile === true && (
                   <Alert severity="success">Description File Uploaded!</Alert>
@@ -296,10 +305,6 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
               </Stack>
             </Box>
             <Box sx={{ mt: 4 }}>
-              <Typography variant="body">
-                Auxiliary Files Lorem ipsum dolor sit amet, consectetur
-                adipiscing elit
-              </Typography>
               <Stack spacing={2}>
                 <FileUploader
                   id="auxiliary_file"

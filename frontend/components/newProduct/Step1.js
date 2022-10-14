@@ -6,6 +6,7 @@ import {
   FormControlLabel,
   Button,
   Box,
+  Typography,
   Alert
 } from '@mui/material'
 import ProductTypeSelect from '../../components/ProductTypeSelect'
@@ -152,6 +153,9 @@ export default function NewProductStep1({ productId, onNext }) {
   return (
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
+      <Typography paragraph variant="body">
+        Please provide the basic information about the new data product.
+      </Typography>
       <Box
         component="form"
         sx={{
