@@ -82,7 +82,7 @@ class ProductFilter(filters.FilterSet):
     def filter_product_type(self, queryset, name, value):
         query = self.format_query_to_char(
             name, value,
-            ['product_type__display_name', 'product_type__name']
+            ['product_type__display_name']
         )
         
         return queryset.filter(query)
@@ -90,7 +90,7 @@ class ProductFilter(filters.FilterSet):
     def filter_release(self, queryset, name, value):
         query = self.format_query_to_char(
             name, value,
-            ['release__display_name', 'release__name']
+            ['release__display_name']
         )
         return queryset.filter(query)
 
