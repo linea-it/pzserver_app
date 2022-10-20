@@ -1,14 +1,14 @@
-import pandas as pd
+import abc
 from pathlib import Path
 from typing import List
-import abc
-from core._typing import PathLike, Column
+
+import pandas as pd
+import tables_io
+
+from core._typing import Column, PathLike
 
 
 class ProductHandle:
-    def __init__(self):
-        print("Product Handle")
-
     def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
         """TODO: Descrever essa função
         OBS: é possivel utilizar todos os argumentos da função pandas.read_csv()
@@ -38,6 +38,19 @@ class FileHandle(object):
         match extension:
             case ".csv":
                 self._handle = CsvHandle(fp)
+            case ".fits":
+                self._handle = TableIOHandle(fp)
+            case ".fit":
+                self._handle = TableIOHandle(fp)
+            case ".hf5":
+                self._handle = TableIOHandle(fp)
+            case ".hdf5":
+                self._handle = TableIOHandle(fp)
+            case ".h5":
+                self._handle = TableIOHandle(fp)
+            case ".pq":
+                self._handle = TableIOHandle(fp)
+            # TODO: .zip, .tar, .tar.gz
             case _:
                 message = f"The {extension} extension has not yet been implemented"
                 raise Exception(message)
@@ -132,3 +145,20 @@ class CsvHandle(BaseHandle):
             columns = [str(i) for i in [*range(0, len(df.iloc[0]))]]
 
         return columns
+
+
+class TableIOHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        # TODO: Tratar arquivos com mais de uma tabela.
+
+        # Le o arquivo utilizando o metodo read da tables_io
+        # O retorno é um astropy table.
+        tb_ap = tables_io.read(self.filepath)
+        # Converte o astropy table para pandas.Dataframe
+        df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
+
+        return df
