@@ -20,21 +20,19 @@ from pathlib import Path
 
 
 class CsvHandle(object):
-
     def __init__(self, filepath):
         self.filepath = filepath
 
-        with open(self.filepath, newline='') as csvfile:
+        with open(self.filepath, newline="") as csvfile:
             dt = csvfile.read(1024)
 
-        assert (csv.Sniffer().has_header(dt)), "CSV has no valid header"
+        assert csv.Sniffer().has_header(dt), "CSV has no valid header"
 
         self.dialect = csv.Sniffer().sniff(dt)
-        self.delimiter = self.dialect.delimiter 
-        
+        self.delimiter = self.dialect.delimiter
+
     def read(self):
-        """ Read csv product
-        """
+        """Read csv product"""
 
         return pd.DataFrame.to_dict(
             pd.read_csv(self.filepath, delimiter=self.delimiter)
@@ -66,49 +64,38 @@ class ProductFilter(filters.FilterSet):
 
     def filter_user(self, queryset, name, value):
         query = self.format_query_to_char(
-            name, value,
-            ['user__username', 'user__first_name', 'user__last_name']
+            name, value, ["user__username", "user__first_name", "user__last_name"]
         )
 
         return queryset.filter(query)
 
     def filter_name(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value, ['display_name']
-        )
+        query = self.format_query_to_char(name, value, ["display_name"])
 
         return queryset.filter(query)
 
     def filter_product_type(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value,
-            ['product_type__display_name']
-        )
-        
+        query = self.format_query_to_char(name, value, ["product_type__display_name"])
+
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value,
-            ['release__display_name']
-        )
+        query = self.format_query_to_char(name, value, ["release__display_name"])
         return queryset.filter(query)
 
     @staticmethod
     def format_query_to_char(key, value, fields):
-        condition = Q.OR if key.endswith('__or') else Q.AND
-        values = value.split(',')
+        condition = Q.OR if key.endswith("__or") else Q.AND
+        values = value.split(",")
         query = Q()
 
         for value in values:
             subfilter = Q()
             for field in fields:
-                subfilter.add(
-                    Q(**{f'{field}__icontains': value}), Q.OR
-                )
+                subfilter.add(Q(**{f"{field}__icontains": value}), Q.OR)
 
             query.add(subfilter, condition)
-        
+
         return query
 
 
@@ -220,9 +207,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             # Recupera informação do main file pela tabela productFile
             main_file = product.files.get(role=0)
             main_file_path = Path(main_file.file.path)
-            product_path = pathlib.Path(settings.MEDIA_ROOT, product.path, main_file_path)
+            product_path = pathlib.Path(
+                settings.MEDIA_ROOT, product.path, main_file_path
+            )
 
-            if main_file.extension == '.csv':
+            if main_file.extension == ".csv":
                 csv_obj = CsvHandle(product_path)
                 product_content = csv_obj.read()
             else:
@@ -296,6 +285,3 @@ class ProductViewSet(viewsets.ModelViewSet):
         ziphandle.close()
 
         return zip_path
-
-
-
