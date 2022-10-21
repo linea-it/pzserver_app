@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from core.models import Product
 from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
+from core.product_handle import ProductHandle
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -203,20 +204,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         """Content product"""
         try:
             product = self.get_object()
-
-            # Recupera informação do main file pela tabela productFile
             main_file = product.files.get(role=0)
             main_file_path = Path(main_file.file.path)
             product_path = pathlib.Path(
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
-
-            if main_file.extension == ".csv":
-                csv_obj = CsvHandle(product_path)
-                product_content = csv_obj.read()
-            else:
-                raise NotImplementedError
-
+            product_content = pd.DataFrame.to_dict(
+                ProductHandle().df_from_file(product_path)
+            )
             return JsonResponse(product_content, safe=False, status=status.HTTP_200_OK)
         except Exception as e:
             content = {"error": str(e)}
