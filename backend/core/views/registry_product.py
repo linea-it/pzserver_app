@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from core.models import Product, ProductContent
-from core.product_handle import ProductHandle
+from core.product_handle import ProductHandle, NotTableError
 
 
 class RegistryProduct:
@@ -46,11 +46,28 @@ class RegistryProduct:
             self.main_file = Path(mf.file.path)
             self.log.info("Main File: [%s]" % self.main_file)
 
-            # Le o arquivo principal e converte para pandas.Dataframe
-            df_product = ProductHandle().df_from_file(self.main_file, nrows=5)
-            # Lista de Colunas no arquivo.
-            product_columns = df_product.columns.tolist()
+            product_columns = list()
+            try:
+                # Le o arquivo principal e converte para pandas.Dataframe
+                df_product = ProductHandle().df_from_file(self.main_file, nrows=5)
+                # Lista de Colunas no arquivo.
+                product_columns = df_product.columns.tolist()
+            except NotTableError:
+                # Acontece com arquivos comprimidos .zip etc.
+                pass
+
+            # Verifica se o product type é specz_catalog
+            # Para esses produtos é mandatório ter acesso as colunas da tabela
+            # Para os demais produtos é opicional.
+            if self.product.product_type.name == "specz_catalog":
+                if len(product_columns) == 0:
+                    raise Exception(
+                        "It was not possible to identify the product columns. for Spec-z Catalogs this is mandatory. Please check the file format."
+                    )
+
             # Registra as colunas do produto no banco de dados.
+            # é possivel ter produtos sem nenhum registro de coluna
+            # Essa regra será tratada no frontend.
             self.create_product_contents(product_columns)
 
             # Salva as alterações feitas no model product

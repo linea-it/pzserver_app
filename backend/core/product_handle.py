@@ -8,6 +8,10 @@ import tables_io
 from core._typing import Column, PathLike
 
 
+class NotTableError(TypeError):
+    pass
+
+
 class ProductHandle:
     def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
         """TODO: Descrever essa função
@@ -50,7 +54,8 @@ class FileHandle(object):
                 self._handle = TableIOHandle(fp)
             case ".pq":
                 self._handle = TableIOHandle(fp)
-            # TODO: .zip, .tar, .tar.gz
+            case ".zip" | ".tar" | ".tar.gz":
+                self._handle = CompressedHandle(fp)
             case _:
                 message = f"The {extension} extension has not yet been implemented"
                 raise Exception(message)
@@ -162,3 +167,14 @@ class TableIOHandle(BaseHandle):
         df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
 
         return df
+
+
+class CompressedHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        raise NotTableError(
+            "It is not possible to return a dataframe from this file type."
+        )
