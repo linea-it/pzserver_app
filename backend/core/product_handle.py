@@ -40,7 +40,7 @@ class FileHandle(object):
         match extension:
             case ".csv":
                 self._handle = CsvHandle(fp)
-            case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".parquet" | ".pq":
+            case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq":
                 self._handle = TableIOHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
