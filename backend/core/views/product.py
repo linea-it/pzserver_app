@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from core.models import Product
 from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
+from core.product_handle import ProductHandle
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -17,26 +18,6 @@ import csv
 import pandas as pd
 from django.db.models import Q
 from pathlib import Path
-
-
-class CsvHandle(object):
-    def __init__(self, filepath):
-        self.filepath = filepath
-
-        with open(self.filepath, newline="") as csvfile:
-            dt = csvfile.read(1024)
-
-        assert csv.Sniffer().has_header(dt), "CSV has no valid header"
-
-        self.dialect = csv.Sniffer().sniff(dt)
-        self.delimiter = self.dialect.delimiter
-
-    def read(self):
-        """Read csv product"""
-
-        return pd.DataFrame.to_dict(
-            pd.read_csv(self.filepath, delimiter=self.delimiter)
-        )
 
 
 class ProductFilter(filters.FilterSet):
@@ -203,20 +184,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         """Content product"""
         try:
             product = self.get_object()
-
-            # Recupera informação do main file pela tabela productFile
             main_file = product.files.get(role=0)
             main_file_path = Path(main_file.file.path)
             product_path = pathlib.Path(
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
-
-            if main_file.extension == ".csv":
-                csv_obj = CsvHandle(product_path)
-                product_content = csv_obj.read()
-            else:
-                raise NotImplementedError
-
+            product_content = pd.DataFrame.to_dict(
+                ProductHandle().df_from_file(product_path)
+            )
             return JsonResponse(product_content, safe=False, status=status.HTTP_200_OK)
         except Exception as e:
             content = {"error": str(e)}
