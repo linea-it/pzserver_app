@@ -9,6 +9,7 @@ from core._typing import Column, PathLike
 
 
 class ProductHandle:
+
     def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
         """TODO: Descrever essa função
         OBS: é possivel utilizar todos os argumentos da função pandas.read_csv()
