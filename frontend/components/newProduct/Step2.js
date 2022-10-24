@@ -27,8 +27,8 @@ import PropTypes from 'prop-types'
 export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [mainFile, setMainFile] = useState(false)
   const [mainFileError, setMainFileError] = useState('')
-  const [descFile, setDescFile] = useState(false)
-  const [descFileError, setDescFileError] = useState('')
+  // const [descFile, setDescFile] = useState(false)
+  // const [descFileError, setDescFileError] = useState('')
   const [files, setFiles] = useState([])
   const [auxFileError, setAuxFileError] = useState('')
   const [isLoading, setLoading] = useState(false)
@@ -39,7 +39,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
     setFormError('')
     setLoading(true)
     let hasMain = false
-    let hasDescription = false
+    // let hasDescription = false
 
     getProductFiles(productId)
       .then(res => {
@@ -48,14 +48,14 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
           if (row.role === 0) {
             hasMain = true
           }
-          if (row.role === 1) {
-            hasDescription = true
-          }
+          // if (row.role === 1) {
+          //   hasDescription = true
+          // }
         })
         setLoading(false)
 
         setMainFile(hasMain)
-        setDescFile(hasDescription)
+        // setDescFile(hasDescription)
 
         setFiles(files)
       })
@@ -169,9 +169,9 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
       case 0:
         setMainFileError(error)
         break
-      case 1:
-        setDescFileError(error)
-        break
+      // case 1:
+      //   setDescFileError(error)
+      //   break
       default:
         setAuxFileError(error)
     }
@@ -231,10 +231,10 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
         Table, the file format is free. Please provide them compressed in a
         single .tar file in case of multiple files.
       </Typography>
-      <Typography paragraph variant="body">
+      {/* <Typography paragraph variant="body">
         The description file is supposed to contain relevant information about
         the data product. It can be a PDF document, a Jupyter notebook, etc.
-      </Typography>
+      </Typography> */}
       <Typography paragraph variant="body">
         The Auxiliary Files are in free format and can be multiple files (press
         the upload button as many times as necessary).
@@ -273,7 +273,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                 )}
               </Stack>
             </Box>
-            <Box sx={{ mt: 4 }}>
+            {/* <Box sx={{ mt: 4 }}>
               <Stack spacing={2}>
                 {descFile === true && (
                   <Alert severity="success">Description File Uploaded!</Alert>
@@ -303,7 +303,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                   </Alert>
                 )}
               </Stack>
-            </Box>
+            </Box> */}
             <Box sx={{ mt: 4 }}>
               <Stack spacing={2}>
                 <FileUploader
