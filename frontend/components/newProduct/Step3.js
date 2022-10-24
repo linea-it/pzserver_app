@@ -42,7 +42,6 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     getProductContents(productId)
       .then(res => {
         setProductColumns(res.results)
-
         setLoading(false)
       })
       .catch(res => {
