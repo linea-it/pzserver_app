@@ -18,6 +18,7 @@ import csv
 import pandas as pd
 from django.db.models import Q
 from pathlib import Path
+from rest_framework import exceptions
 
 
 class CsvHandle(object):
@@ -280,3 +281,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         ziphandle.close()
 
         return zip_path
+
+    def destroy(self, request, pk=None, *args, **kwargs):
+        instance = self.get_object()
+        if self.request.user.id == instance.user.pk:
+            return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)
+        else:
+            raise exceptions.PermissionDenied()
