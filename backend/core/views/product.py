@@ -14,40 +14,19 @@ import pathlib
 from django.conf import settings
 import secrets
 import os
-import csv
 import pandas as pd
 from django.db.models import Q
 from pathlib import Path
-
-
-class CsvHandle(object):
-    def __init__(self, filepath):
-        self.filepath = filepath
-
-        with open(self.filepath, newline="") as csvfile:
-            dt = csvfile.read(1024)
-
-        assert csv.Sniffer().has_header(dt), "CSV has no valid header"
-
-        self.dialect = csv.Sniffer().sniff(dt)
-        self.delimiter = self.dialect.delimiter
-
-    def read(self):
-        """Read csv product"""
-
-        return pd.DataFrame.to_dict(
-            pd.read_csv(self.filepath, delimiter=self.delimiter)
-        )
 
 
 class ProductFilter(filters.FilterSet):
     release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
     uploaded_by__or = filters.CharFilter(method="filter_user")
     uploaded_by = filters.CharFilter(method="filter_user")
-    product_type__or = filters.CharFilter(method="filter_product_type")
-    product_type = filters.CharFilter(method="filter_product_type")
-    release__or = filters.CharFilter(method="filter_release")
-    release = filters.CharFilter(method="filter_release")
+    product_type_name__or = filters.CharFilter(method="filter_type_name")
+    product_type_name = filters.CharFilter(method="filter_type_name")
+    release_name__or = filters.CharFilter(method="filter_release")
+    release_name = filters.CharFilter(method="filter_release")
     product_name__or = filters.CharFilter(method="filter_name")
     product_name = filters.CharFilter(method="filter_name")
 
@@ -75,7 +54,7 @@ class ProductFilter(filters.FilterSet):
 
         return queryset.filter(query)
 
-    def filter_product_type(self, queryset, name, value):
+    def filter_type_name(self, queryset, name, value):
         query = self.format_query_to_char(name, value, ["product_type__display_name"])
 
         return queryset.filter(query)
