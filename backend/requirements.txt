@@ -17,6 +17,8 @@ djangorestframework==3.13.1
 drf-social-oauth2==1.2.1
 drf-spectacular==0.22.0
 ecdsa==0.17.0
+factory-boy==3.2.1
+Faker==15.1.1
 gunicorn==20.1.0
 h5py==3.7.0
 idna==3.3
