@@ -29,6 +29,7 @@ export default function NewProductStep1({ productId, onNext }) {
     status: 0
   }
   const [product, setProduct] = React.useState(defaultProductValues)
+  const [prodType, setProdType] = React.useState(null)
   const [isLoading, setLoading] = React.useState(false)
   const [fieldErrors, setFieldErrors] = React.useState({})
   const [formError, setFormError] = React.useState('')
@@ -180,10 +181,13 @@ export default function NewProductStep1({ productId, onNext }) {
           <ProductTypeSelect
             name="product_type"
             value={product.product_type}
-            onChange={value => {
+            useId={false}
+            onChange={prodType => {
+              console.log(prodType)
               handleInputValue({
-                target: { name: 'product_type', value: value }
+                target: { name: 'product_type', value: prodType.id }
               })
+              setProdType(prodType.name)
             }}
             onBlur={handleInputValue}
             required
@@ -203,8 +207,8 @@ export default function NewProductStep1({ productId, onNext }) {
             helperText={fieldErrors.release}
           />
         </FormControl>
-        {/* Survey necessário Product Type = 2 - Spec-z Catalog */}
-        {product.product_type === 2 && (
+        {/* Survey necessário Product Type = specz_catalog - Spec-z Catalog */}
+        {prodType === 'specz_catalog' && (
           <FormControl fullWidth>
             <TextField
               name="survey"
@@ -217,8 +221,8 @@ export default function NewProductStep1({ productId, onNext }) {
             />
           </FormControl>
         )}
-        {/* Survey necessário Product Type = 1 - Photo-z Results */}
-        {product.product_type === 1 && (
+        {/* Survey necessário Product Type = validation_results - Photo-z Results */}
+        {prodType === 'validation_results' && (
           <FormControl fullWidth>
             <TextField
               name="pz_code"
