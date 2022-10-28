@@ -21,6 +21,26 @@ from pathlib import Path
 from rest_framework import exceptions
 
 
+class CsvHandle(object):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+        with open(self.filepath, newline="") as csvfile:
+            dt = csvfile.read(1024)
+
+        assert csv.Sniffer().has_header(dt), "CSV has no valid header"
+
+        self.dialect = csv.Sniffer().sniff(dt)
+        self.delimiter = self.dialect.delimiter
+
+    def read(self):
+        """Read csv product"""
+
+        return pd.DataFrame.to_dict(
+            pd.read_csv(self.filepath, delimiter=self.delimiter)
+        )
+
+
 class ProductFilter(filters.FilterSet):
     release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
     uploaded_by__or = filters.CharFilter(method="filter_user")

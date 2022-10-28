@@ -9,8 +9,11 @@ import csv
 from core._typing import Column, PathLike
 
 
-class ProductHandle:
+class NotTableError(TypeError):
+    pass
 
+
+class ProductHandle:
     def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
         """TODO: Descrever essa função
         OBS: é possivel utilizar todos os argumentos da função pandas.read_csv()
@@ -42,6 +45,8 @@ class FileHandle(object):
                 self._handle = CsvHandle(fp)
             case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq":
                 self._handle = TableIOHandle(fp)
+            case ".zip" | ".tar" | ".tar.gz":
+                self._handle = CompressedHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
                 message = f"The {extension} extension has not yet been implemented"
@@ -89,13 +94,17 @@ class CsvHandle(BaseHandle):
                 "It is not possible to use the delimiter argument in the df_from_file() method when the file is a .csv file."
             )
 
-        kwargs.update({"delimiter": self.delimiter})
-
         if self.has_hd:
-            df = pd.read_csv(self.filepath, header=0, **kwargs)
+            df = pd.read_csv(
+                self.filepath, header=0, delimiter=self.delimiter, **kwargs
+            )
         else:
             df = pd.read_csv(
-                self.filepath, header=None, names=self.column_names, **kwargs
+                self.filepath,
+                header=None,
+                names=self.column_names,
+                delimiter=self.delimiter,
+                **kwargs,
             )
         return df
 
@@ -147,13 +156,13 @@ class CsvHandle(BaseHandle):
         return columns
 
     def get_delimiter(self):
-        """ Get delimiter from file
+        """Get delimiter from file
 
         Returns:
             str: delimiter
         """
-        with open(self.filepath, 'r') as csvfile:
-            dt = csvfile.readline().replace('\n','')
+        with open(self.filepath, "r") as csvfile:
+            dt = csvfile.readline().replace("\n", "")
             delimiter = csv.Sniffer().sniff(dt).delimiter
 
         return delimiter
@@ -168,6 +177,20 @@ class TableIOHandle(BaseHandle):
         # TODO: Tratar arquivos com mais de uma tabela.
 
         # Le o arquivo utilizando o metodo read da tables_io
-        df = tables_io.read(self.filepath, tables_io.types.PD_DATAFRAME)
+        # O retorno é um astropy table.
+        tb_ap = tables_io.read(self.filepath)
+        # Converte o astropy table para pandas.Dataframe
+        df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
 
         return df
+
+
+class CompressedHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        raise NotTableError(
+            "It is not possible to return a dataframe from this file type."
+        )
