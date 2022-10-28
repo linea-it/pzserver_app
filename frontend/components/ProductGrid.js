@@ -142,16 +142,13 @@ export default function ProductGrid(props) {
         width: 100,
         sortable: false,
         getActions: data => [
-          <>
-            {data.row.is_owner === true ? (
-              <GridActionsCellItem
-                key={'product_delete_' + data.id}
-                icon={<DeleteIcon />}
-                label="Delete Product"
-                onClick={e => handleDelete(data.row)}
-              />
-            ) : null}
-          </>
+          <GridActionsCellItem
+            key={'product_delete_' + data.id}
+            icon={<DeleteIcon />}
+            label="Delete Product"
+            disabled={data.row.is_owner === false}
+            onClick={e => handleDelete(data.row)}
+          />
         ]
       }
     ]
