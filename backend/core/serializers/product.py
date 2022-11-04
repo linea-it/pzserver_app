@@ -18,9 +18,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.SerializerMethodField()
 
+    is_owner = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        read_only_fields = ("internal_name",)
+        read_only_fields = ("internal_name", "is_owner")
         exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
@@ -40,3 +42,10 @@ class ProductSerializer(serializers.ModelSerializer):
             return obj.user.username
         except:
             return None
+
+    def get_is_owner(self, obj):
+        current_user = self.context["request"].user
+        if obj.user.pk == current_user.pk:
+            return True
+        else:
+            return False

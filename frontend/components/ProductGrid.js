@@ -1,11 +1,19 @@
+/* eslint-disable multiline-ternary */
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import DownloadIcon from '@mui/icons-material/Download'
-// import prettyBytes from 'pretty-bytes'
+import DeleteIcon from '@mui/icons-material/Delete'
 import moment from 'moment'
 import { getProducts } from '../services/product'
 import { useRouter } from 'next/router'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+
+import ProductRemove from '../components/ProductRemove'
 
 export default function ProductGrid(props) {
   const router = useRouter()
@@ -18,24 +26,17 @@ export default function ProductGrid(props) {
     { field: 'created_at', sort: 'desc' }
   ])
   const [loading, setLoading] = React.useState(false)
+  const [delRecordId, setDelRecordId] = React.useState(null)
+  const [error, setError] = React.useState(null)
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
   }
 
-  const handleDownload = React.useCallback(
-    data => () => {
-      // Redirecionar para a pagina de detalhe do produto
-      router.push(`/product/${encodeURIComponent(data.row.internal_name)}`)
-    },
-    [router]
-  )
-
-  // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
-  React.useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadProducts = React.useCallback(() => {
     // eslint-disable-next-line prettier/prettier
     let active = true;
-
     // eslint-disable-next-line no-unexpected-multiline
     // eslint-disable-next-line prettier/prettier
     (async () => {
@@ -59,6 +60,11 @@ export default function ProductGrid(props) {
     return () => {
       active = false
     }
+  })
+
+  React.useEffect(() => {
+    loadProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, sortModel, props.query, props.filters])
 
   // Some api client return undefine while loading
@@ -70,10 +76,18 @@ export default function ProductGrid(props) {
     )
   }, [rowCount, setRowCountState])
 
-  const columns = React.useMemo(
-    () => [
+  const columns = React.useMemo(() => {
+    function handleDownload(row) {
+      // Redirecionar para a pagina de detalhe do produto
+      router.push(`/product/${encodeURIComponent(row.internal_name)}`)
+    }
+
+    function handleDelete(row) {
+      setDelRecordId(row.id)
+    }
+
+    return [
       { field: 'id', headerName: 'ID', width: 90, sortable: true },
-      // TODO: Utilizar o Render Cell para gerar um LINK no nome do produto
       { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
       {
         field: 'release_name',
@@ -84,14 +98,12 @@ export default function ProductGrid(props) {
       {
         field: 'product_type_name',
         headerName: 'Product Type',
-        // width: 120,
         flex: 1,
         sortable: false
       },
       {
         field: 'uploaded_by',
         headerName: 'Uploaded By',
-        // width: 160,
         flex: 1,
         sortable: false
       },
@@ -108,60 +120,109 @@ export default function ProductGrid(props) {
           return `${valueFormatted}`
         }
       },
-      // { field: 'file_name', headerName: 'Filename', sortable: true, flex: 1 },
-      // {
-      //   field: 'file_size',
-      //   headerName: 'Size',
-      //   width: 90,
-      //   sortable: true,
-      //   valueFormatter: params => {
-      //     if (params.value == null) {
-      //       return ''
-      //     }
-
-      //     const valueFormatted = prettyBytes(Number(params.value))
-      //     return `${valueFormatted}`
-      //   }
-      // },
       {
-        field: 'actions',
+        field: 'actions_download',
         type: 'actions',
         headerName: 'Download',
         width: 100,
         sortable: false,
-        getActions: row => [
+        getActions: data => [
           <GridActionsCellItem
-            key={'product_download_' + row.id}
+            key={'product_download_' + data.id}
             icon={<DownloadIcon />}
             label="Download"
-            onClick={handleDownload(row)}
+            onClick={e => handleDownload(data.row)}
+          />
+        ]
+      },
+      {
+        field: 'actions_delete',
+        type: 'actions',
+        headerName: 'Delete',
+        width: 100,
+        sortable: false,
+        getActions: data => [
+          <GridActionsCellItem
+            key={'product_delete_' + data.id}
+            icon={<DeleteIcon />}
+            label="Delete Product"
+            disabled={data.row.is_owner === false}
+            onClick={e => handleDelete(data.row)}
           />
         ]
       }
-    ],
-    [handleDownload]
-  )
+    ]
+  }, [router])
+
+  const onDeleteOk = () => {
+    loadProducts()
+    setDelRecordId(null)
+  }
+  const onDeleteCancel = () => {
+    setDelRecordId(null)
+  }
+
+  const handleError = () => {
+    const handleClose = () => {
+      setError(null)
+    }
+    return (
+      <Dialog
+        open={true}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {error}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} autoFocus>
+            Ok
+          </Button>
+        </DialogActions>
+      </Dialog>
+    )
+  }
+
+  const handleDeleteProduct = () => {
+    return (
+      <ProductRemove
+        productId={delRecordId}
+        open={delRecordId !== null}
+        onOk={onDeleteOk}
+        onCancel={onDeleteCancel}
+        onError={e => setError(e)}
+      ></ProductRemove>
+    )
+  }
 
   return (
-    <DataGrid
-      getRowId={row => row.id}
-      rows={rows}
-      columns={columns}
-      disableSelectionOnClick
-      autoHeight
-      sortingMode="server"
-      sortModel={sortModel}
-      onSortModelChange={handleSortModelChange}
-      paginationMode="server"
-      rowCount={rowCountState}
-      pagination
-      page={page}
-      onPageChange={page => setPage(page)}
-      pageSize={pageSize}
-      onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-      rowsPerPageOptions={[25, 50, 100]}
-      loading={loading}
-    />
+    <>
+      {error !== null ? handleError() : null}
+      {delRecordId !== null ? handleDeleteProduct() : null}
+      <DataGrid
+        getRowId={row => row.id}
+        rows={rows}
+        columns={columns}
+        disableSelectionOnClick
+        autoHeight
+        sortingMode="server"
+        sortModel={sortModel}
+        onSortModelChange={handleSortModelChange}
+        paginationMode="server"
+        rowCount={rowCountState}
+        pagination
+        page={page}
+        onPageChange={page => setPage(page)}
+        pageSize={pageSize}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+        rowsPerPageOptions={[25, 50, 100]}
+        loading={loading}
+      />
+    </>
   )
 }
 

@@ -45,7 +45,7 @@ class FileHandle(object):
                 self._handle = CsvHandle(fp)
             case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq":
                 self._handle = TableIOHandle(fp)
-            case ".zip" | ".tar" | ".tar.gz":
+            case ".zip" | ".tar" | ".gz":
                 self._handle = CompressedHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
@@ -71,7 +71,8 @@ class CsvHandle(BaseHandle):
 
     delimiter = str
     has_hd = bool  # True se o arquivo CSV possuir Headers na primeira linha.
-    column_names = [Column]  # Lista com nome das colunas que podem ser str ou int.
+    # Lista com nome das colunas que podem ser str ou int.
+    column_names = [Column]
 
     def __init__(self, filepath: PathLike):
 
@@ -126,8 +127,10 @@ class CsvHandle(BaseHandle):
         # Method: open csv twice considering with header and without header,
         # if the data types are the same in both times it probably doesn't have header.
         # https://stackoverflow.com/questions/53100598/can-pandas-auto-recognize-if-header-is-present/53101192#53101192
-        df = pd.read_csv(self.filepath, header=None, delimiter=self.delimiter, nrows=20)
-        df_header = pd.read_csv(self.filepath, delimiter=self.delimiter, nrows=20)
+        df = pd.read_csv(self.filepath, header=None,
+                         delimiter=self.delimiter, nrows=20)
+        df_header = pd.read_csv(
+            self.filepath, delimiter=self.delimiter, nrows=20)
         if tuple(df.dtypes) != tuple(df_header.dtypes):
             temp.append(True)
         else:
@@ -143,7 +146,8 @@ class CsvHandle(BaseHandle):
 
     def get_column_names(self) -> List[Column]:
 
-        df = pd.read_csv(self.filepath, header=None, delimiter=self.delimiter, nrows=5)
+        df = pd.read_csv(self.filepath, header=None,
+                         delimiter=self.delimiter, nrows=5)
 
         if self.has_hd:
             df = df[1:].reset_index(drop=True).rename(columns=df.iloc[0])
