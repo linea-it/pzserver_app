@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Test python API
     steps:
+    - name: Change directory
+      run: cd backend
     - uses: actions/checkout@v1
     - name: Install requirements
       run: pip install -r requirements.txt
