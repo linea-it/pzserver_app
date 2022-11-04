@@ -7,14 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Test python API
     steps:
-    - name: Change directory
-      run: cd backend
     - uses: actions/checkout@v1
     - name: Install requirements
+      working-directory: ./backend
       run: pip install -r requirements.txt
     - name: Run tests and collect coverage
+      working-directory: ./backend
       run: pytest --cov .
     - name: Upload coverage reports to Codecov
+      working-directory: ./backend
       run: |
         # Replace `linux` below with the appropriate OS
         # Options are `alpine`, `linux`, `macos`, `windows`
