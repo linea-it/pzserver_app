@@ -154,10 +154,6 @@ export default function ProductDetail({ productId, internalName }) {
     return (
       <ListItem
         key={`file_${file.id}`}
-        // button
-        // component={Link}
-        // href={file.file}
-        // target="_blank"
         disableGutters
         secondaryAction={
           <IconButton component={Link} href={file.file} target="_blank">
@@ -238,7 +234,6 @@ export default function ProductDetail({ productId, internalName }) {
             <Stack divider={<Divider flexItem />} spacing={2}>
               <LoadingButton
                 loading={isDownloading}
-                loadingPosition="start"
                 variant="contained"
                 onClick={downloadFile}
               >
