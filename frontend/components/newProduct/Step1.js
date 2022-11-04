@@ -195,18 +195,21 @@ export default function NewProductStep1({ productId, onNext }) {
             helperText={fieldErrors.product_type}
           />
         </FormControl>
-        <FormControl fullWidth>
-          <ReleaseSelect
-            name="release"
-            value={product.release ? product.release : ''}
-            onChange={value => {
-              handleInputValue({ target: { name: 'release', value: value } })
-            }}
-            onBlur={handleInputValue}
-            error={!!fieldErrors.release}
-            helperText={fieldErrors.release}
-          />
-        </FormControl>
+        {/* Release necessário Product Type != specz_catalog - Spec-z Catalog */}
+        {prodType !== 'specz_catalog' && (
+          <FormControl fullWidth>
+            <ReleaseSelect
+              name="release"
+              value={product.release ? product.release : ''}
+              onChange={value => {
+                handleInputValue({ target: { name: 'release', value: value } })
+              }}
+              onBlur={handleInputValue}
+              error={!!fieldErrors.release}
+              helperText={fieldErrors.release}
+            />
+          </FormControl>
+        )}
         {/* Survey necessário Product Type = specz_catalog - Spec-z Catalog */}
         {prodType === 'specz_catalog' && (
           <FormControl fullWidth>
@@ -223,6 +226,20 @@ export default function NewProductStep1({ productId, onNext }) {
         )}
         {/* Survey necessário Product Type = validation_results - Photo-z Results */}
         {prodType === 'validation_results' && (
+          <FormControl fullWidth>
+            <TextField
+              name="pz_code"
+              value={product.pz_code}
+              label="Pz Code"
+              onChange={handleInputValue}
+              onBlur={handleInputValue}
+              error={!!fieldErrors.pz_code}
+              helperText={fieldErrors.pz_code}
+            />
+          </FormControl>
+        )}
+        {/* Survey necessário Product Type = photoz_table - Photo-z Table */}
+        {prodType === 'photoz_table' && (
           <FormControl fullWidth>
             <TextField
               name="pz_code"
