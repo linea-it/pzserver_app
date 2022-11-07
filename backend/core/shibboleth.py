@@ -22,6 +22,12 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
         # Guardar o email do usuario
         user.email = shib_meta.get('email', None)
         log.debug("Updated user email")
+
+        if not shib_meta.get('first_name', None):
+            user.profile.display_name = user.username
+            user.profile.save()
+            log.debug("Added user profile display name")
+
         # Adiciona um display name para o usuario
         if (
             user.profile.display_name is None
