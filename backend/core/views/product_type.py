@@ -7,10 +7,10 @@ from core.serializers import ProductTypeSerializer
 from core import models
 
 
-class ProductTypeViewSet(viewsets.ModelViewSet):
+class ProductTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.ProductType.objects.all()
     serializer_class = ProductTypeSerializer
-    filter_fields = [
+    filterset_fields = [
         "id",
         "name",
     ]

@@ -1,11 +1,12 @@
 import json
 
-from core.models import ProductType
-from core.serializers import ProductTypeSerializer
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
+
+from core.models import ProductType
+from core.serializers import ProductTypeSerializer
 
 
 class ProductTypeListCreateAPIViewTestCase(APITestCase):
@@ -26,6 +27,9 @@ class ProductTypeListCreateAPIViewTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
     def test_create_product_type(self):
+        """Product Type endpoint is ReadOnly
+        only admin users can create new record using admin interface.
+        """
         # Prepare data
         product_type_dict = {
             "name": "validation_results",
@@ -35,7 +39,14 @@ class ProductTypeListCreateAPIViewTestCase(APITestCase):
         # Make request
         response = self.client.post(self.url, product_type_dict)
         # Check status response
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(405, response.status_code)
+
+        # Create with Model
+        record = ProductType.objects.create(
+            name=product_type_dict["name"],
+            display_name=product_type_dict["display_name"],
+            description=product_type_dict["description"],
+        )
         # Check database
         self.assertEqual(ProductType.objects.count(), 1)
 
@@ -91,11 +102,11 @@ class ProductTypeDetailAPIViewTestCase(APITestCase):
 
         # HTTP PUT
         response = self.client.put(self.url, {"name", "Hacked by new user"})
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
         # HTTP PATCH
         response = self.client.patch(self.url, {"name", "Hacked by new user"})
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_product_type_object_update(self):
         response = self.client.put(
@@ -107,23 +118,13 @@ class ProductTypeDetailAPIViewTestCase(APITestCase):
             },
         )
         # Check status response
-        self.assertEqual(200, response.status_code)
-
-        # Check database
-        response_data = json.loads(response.content)
-        product_type = ProductType.objects.get(id=self.product_type.id)
-        self.assertEqual(response_data.get("name"), product_type.name)
+        self.assertEqual(405, response.status_code)
 
     def test_product_type_object_partial_update(self):
         response = self.client.patch(self.url, {"name": "validation_results_1"})
 
         # Check status response
-        self.assertEqual(200, response.status_code)
-
-        # Check database
-        response_data = json.loads(response.content)
-        product_type = ProductType.objects.get(id=self.product_type.id)
-        self.assertEqual(response_data.get("name"), product_type.name)
+        self.assertEqual(405, response.status_code)
 
     def test_product_type_object_delete_authorization(self):
         """
@@ -133,8 +134,8 @@ class ProductTypeDetailAPIViewTestCase(APITestCase):
         new_token = Token.objects.create(user=new_user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
         response = self.client.delete(self.url)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_product_type_object_delete(self):
         response = self.client.delete(self.url)
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(405, response.status_code)

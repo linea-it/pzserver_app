@@ -7,10 +7,10 @@ from core.serializers import ReleaseSerializer
 from core import models
 
 
-class ReleaseViewSet(viewsets.ModelViewSet):
+class ReleaseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Release.objects.all()
     serializer_class = ReleaseSerializer
-    filter_fields = [
+    filterset_fields = [
         "id",
         "name",
     ]

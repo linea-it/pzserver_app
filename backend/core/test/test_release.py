@@ -26,6 +26,9 @@ class ReleaseListCreateAPIViewTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
     def test_create_release(self):
+        """Release endpoint is ReadOnly
+        only admin users can create new record using admin interface.
+        """
         # Prepare data
         release_dict = {
             "name": "lsst_dp0",
@@ -35,7 +38,13 @@ class ReleaseListCreateAPIViewTestCase(APITestCase):
         # Make request
         response = self.client.post(self.url, release_dict)
         # Check status response
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(405, response.status_code)
+        # Create with Model
+        Release.objects.create(
+            name=release_dict["name"],
+            display_name=release_dict["display_name"],
+            description=release_dict["description"],
+        )
         # Check database
         self.assertEqual(Release.objects.count(), 1)
 
@@ -91,11 +100,11 @@ class ReleaseDetailAPIViewTestCase(APITestCase):
 
         # HTTP PUT
         response = self.client.put(self.url, {"name", "Hacked by new user"})
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
         # HTTP PATCH
         response = self.client.patch(self.url, {"name", "Hacked by new user"})
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_release_object_update(self):
         response = self.client.put(
@@ -107,23 +116,13 @@ class ReleaseDetailAPIViewTestCase(APITestCase):
             },
         )
         # Check status response
-        self.assertEqual(200, response.status_code)
-
-        # Check database
-        response_data = json.loads(response.content)
-        release = Release.objects.get(id=self.release.id)
-        self.assertEqual(response_data.get("name"), release.name)
+        self.assertEqual(405, response.status_code)
 
     def test_release_object_partial_update(self):
         response = self.client.patch(self.url, {"name": "lsst_dp2"})
 
         # Check status response
-        self.assertEqual(200, response.status_code)
-
-        # Check database
-        response_data = json.loads(response.content)
-        release = Release.objects.get(id=self.release.id)
-        self.assertEqual(response_data.get("name"), release.name)
+        self.assertEqual(405, response.status_code)
 
     def test_release_object_delete_authorization(self):
         """
@@ -133,8 +132,8 @@ class ReleaseDetailAPIViewTestCase(APITestCase):
         new_token = Token.objects.create(user=new_user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
         response = self.client.delete(self.url)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_release_object_delete(self):
         response = self.client.delete(self.url)
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(405, response.status_code)
