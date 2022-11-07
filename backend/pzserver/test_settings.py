@@ -16,17 +16,17 @@ import os
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LOG_DIR = "/log"
-LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
+LOG_DIR = os.path.join(BASE_DIR, "log")
+LOGGING_LEVEL = "INFO"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = "huDsVcmarNAU7FS6XO6y_Tf2B2PLoEN-jhW2suTMnYY"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.getenv("DEBUG", 1))
+DEBUG = False
 
 # Application definition
 
@@ -93,12 +93,8 @@ WSGI_APPLICATION = "pzserver.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.getenv("DB_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
-        "USER": os.getenv("DB_USER", "user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -132,8 +128,8 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
-MEDIA_URL = "/archive/data/"
-MEDIA_ROOT = "/archive/data/"
+MEDIA_URL = os.path.join(BASE_DIR, "archive/data/")
+MEDIA_ROOT = os.path.join(BASE_DIR, "archive/data/")
 
 
 # Default primary key field type
@@ -183,19 +179,10 @@ SPECTACULAR_SETTINGS = {
 JSON_EDITOR = True
 
 AUTHENTICATION_BACKENDS = (
-    # "social_core.backends.github.GithubOAuth2",
-    # "social_core.backends.github.GithubOrganizationOAuth2",
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
     "shibboleth.backends.ShibbolethRemoteUserBackend",
 )
-
-# if os.getenv("GITHUB_CLIENT_ID", None) is not None:
-#     SOCIAL_AUTH_GITHUB_ORG_KEY = os.getenv("GITHUB_CLIENT_ID")
-#     SOCIAL_AUTH_GITHUB_ORG_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-#     SOCIAL_AUTH_GITHUB_ORG_NAME = os.getenv("GITHUB_ORG_NAME", "linea-it")
-#     SOCIAL_AUTH_GITHUB_ORG_SCOPE = ["user:email", "read:org"]
-#     SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 LOGIN_REDIRECT_URL = "/"
@@ -206,9 +193,9 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     # https://github.com/Brown-University-Library/django-shibboleth-remoteuser
     SHIBBOLETH_ATTRIBUTE_MAP = {
         "eppn": (True, "username"),
-        "cn": (False, "first_name"),
-        "sn": (False, "last_name"),
-        "Shib-inetOrgPerson-mail": (False, "email"),
+        "cn": (True, "first_name"),
+        "sn": (True, "last_name"),
+        "Shib-inetOrgPerson-mail": (True, "email"),
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
     # Including Shibboleth authentication:
@@ -218,82 +205,4 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
 
 OAUTH2_PROVIDER = {
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
-}
-
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
-    },
-    "handlers": {
-        "default": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "django.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "standard",
-        },
-        "db_handler": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "django_db.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "standard",
-        },
-        "oauthlib": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "oauthlib.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "standard",
-        },
-        "shibboleth": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "shibboleth.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "standard",
-        },
-        "registry_product": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "registry_product.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "standard",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["default"],
-            "level": LOGGING_LEVEL,
-            "propagate": True,
-        },
-        "django.db.backends": {
-            "handlers": ["db_handler"],
-            "level": LOGGING_LEVEL,
-            "propagate": False,
-        },
-        "oauthlib": {
-            "handlers": ["oauthlib"],
-            "level": LOGGING_LEVEL,
-            "propagate": True,
-        },
-        "shibboleth": {
-            "handlers": ["shibboleth"],
-            "level": LOGGING_LEVEL,
-            "propagate": True,
-        },
-        "registry_product": {
-            "handlers": ["registry_product"],
-            "level": LOGGING_LEVEL,
-            "propagate": True,
-        },
-    },
 }
