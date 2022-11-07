@@ -207,7 +207,7 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
         "eppn": (True, "username"),
         "cn": (True, "first_name"),
         "sn": (True, "last_name"),
-        "Shib-inetOrgPerson-mail": (True, "email"),
+        "Shib-inetOrgPerson-mail": (False, "email"),
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
     # Including Shibboleth authentication:
