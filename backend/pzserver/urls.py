@@ -39,11 +39,11 @@ from drf_spectacular.views import (
 route = routers.DefaultRouter()
 
 route.register(r"users", UserViewSet, basename="users")
-route.register(r"releases", ReleaseViewSet, basename="Releases")
-route.register(r"product-files", ProductFileViewSet, basename="ProductFiles")
-route.register(r"product-contents", ProductContentViewSet, basename="ProductContents")
-route.register(r"product-types", ProductTypeViewSet, basename="ProductTypes")
-route.register(r"products", ProductViewSet, basename="Products")
+route.register(r"releases", ReleaseViewSet, basename="releases")
+route.register(r"product-types", ProductTypeViewSet, basename="product_types")
+route.register(r"products", ProductViewSet, basename="products")
+route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
+route.register(r"product-files", ProductFileViewSet, basename="product_files")
 
 
 from rest_framework.authtoken import views
