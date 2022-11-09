@@ -50,6 +50,9 @@ class ProductTypeListCreateAPIViewTestCase(APITestCase):
         # Check database
         self.assertEqual(ProductType.objects.count(), 1)
 
+        # Check to Model to String
+        self.assertEqual(str(record), product_type_dict["display_name"])
+
     def test_list_product_type(self):
         # Make request
         response = self.client.get(self.url)

@@ -1,14 +1,19 @@
 import json
+import pathlib
+import shutil
 
-from core.models import ProductType, Release, Product
-from core.serializers import ProductSerializer
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
-import pathlib
-from django.conf import settings
-import shutil
+from rest_framework.test import (
+    APIRequestFactory,
+    APITestCase,
+    force_authenticate,
+)
+
+from core.models import Product, ProductType, Release
+from core.serializers import ProductSerializer
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -36,12 +41,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
             description="Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.",
         )
 
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
-    def test_create_product(self):
-        # Prepare data
-        product_dict = {
+        self.product_dict = {
             "product_type": self.product_type.pk,
             "release": self.release.pk,
             "display_name": "Sample Product",
@@ -50,17 +50,13 @@ class ProductListCreateAPIViewTestCase(APITestCase):
             "pz_code": None,
             "description": "Test product description.",
         }
-        internal_name = "1_sample_product"
 
-        # Path para o produto
-        relative_path = f"{self.product_type.name}/{internal_name}"
-        path = pathlib.Path(settings.MEDIA_ROOT, relative_path)
-        # Remove o diretório caso exista
-        if path.exists():
-            shutil.rmtree(path)
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
+    def test_create_product(self):
         # Make request
-        response = self.client.post(self.url, product_dict)
+        response = self.client.post(self.url, self.product_dict)
         data = json.loads(response.content)
 
         # Check status response
@@ -68,10 +64,12 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         # Check database
         self.assertEqual(Product.objects.count(), 1)
         # Check Internal Name
-        self.assertEqual(data["internal_name"], internal_name)
+        self.assertEqual(data["internal_name"], f"{ data['id'] }_sample_product")
         # Check User
         self.assertEqual(data["uploaded_by"], self.user.username)
         # Check Product Directory
+        relative_path = f"{self.product_type.name}/{data['internal_name']}"
+        path = pathlib.Path(settings.MEDIA_ROOT, relative_path)
         self.assertTrue(path.exists())
         # Check Status = 0
         self.assertEqual(data["status"], 0)
@@ -86,92 +84,304 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.assertTrue(len(data["results"]) == Product.objects.count())
 
 
-# class ProductDetailAPIViewTestCase(APITestCase):
-#     def setUp(self):
-#         # Create a Admin User
-#         self.username = "john"
-#         self.email = "john@snow.com"
-#         self.password = "you_know_nothing"
-#         self.user = User.objects.create_superuser(
-#             self.username, self.email, self.password
-#         )
-#         self.token = Token.objects.create(user=self.user)
-#         self.api_authentication()
+class ProductCreateRulesTestCase(APITestCase):
+    """Tests the business rules applied to the fields when creating a product."""
 
-#         self.name = "validation_results"
-#         self.display_name = "Validation Results"
-#         self.description = "Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics."
-#         self.product = Product.objects.create(
-#             name=self.name, display_name=self.display_name, description=self.description
-#         )
-#         self.url = reverse("products-detail", kwargs={"pk": self.product.pk})
+    url = reverse("products-list")
+    fixtures = [
+        "core/fixtures/initial_data.yaml",
+    ]
 
-#     def api_authentication(self):
-#         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+    def setUp(self):
+        # Create a User
+        self.user = User.objects.create_user(
+            "john", "john@snow.com", "you_know_nothing"
+        )
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
 
-#     def test_product_object_bundle(self):
-#         """
-#         Test to verify object bundle
-#         """
-#         response = self.client.get(self.url)
-#         serializer_data = ProductSerializer(instance=self.product).data
-#         response_data = json.loads(response.content)
-#         self.assertEqual(serializer_data, response_data)
+        # Get Admin group previous created by fixtures
+        self.adm_group = Group.objects.get(name="Admin")
 
-#     def test_product_object_update_authorization(self):
-#         """
-#         Test to verify that put call with user not admin
-#         """
-#         new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-#         new_token = Token.objects.create(user=new_user)
-#         self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+        # Get Release previous created by fixtures
+        self.release = Release.objects.first()
 
-#         # HTTP PUT
-#         response = self.client.put(self.url, {"name", "Hacked by new user"})
-#         self.assertEqual(403, response.status_code)
+        # Get Product Types previous created by fixtures
+        self.validation_results = ProductType.objects.get(name="validation_results")
 
-#         # HTTP PATCH
-#         response = self.client.patch(self.url, {"name", "Hacked by new user"})
-#         self.assertEqual(403, response.status_code)
+        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
 
-#     def test_product_object_update(self):
-#         response = self.client.put(
-#             self.url,
-#             {
-#                 "name": "validation_results_1",
-#                 "display_name": "Validation Results 1",
-#                 "description": "Validation Results 1",
-#             },
-#         )
-#         # Check status response
-#         self.assertEqual(200, response.status_code)
+        self.validation_set = ProductType.objects.get(name="validation_set")
 
-#         # Check database
-#         response_data = json.loads(response.content)
-#         product = Product.objects.get(id=self.product.id)
-#         self.assertEqual(response_data.get("name"), product.name)
+        self.training_set = ProductType.objects.get(name="training_set")
 
-#     def test_product_object_partial_update(self):
-#         response = self.client.patch(self.url, {"name": "validation_results_1"})
+        self.photoz_table = ProductType.objects.get(name="photoz_table")
 
-#         # Check status response
-#         self.assertEqual(200, response.status_code)
+        self.product_dict = {
+            "product_type": self.validation_results.pk,
+            "release": None,
+            "display_name": "Sample Product",
+            "official_product": False,
+            "survey": None,
+            "pz_code": None,
+            "description": "Test product description.",
+        }
 
-#         # Check database
-#         response_data = json.loads(response.content)
-#         product = Product.objects.get(id=self.product.id)
-#         self.assertEqual(response_data.get("name"), product.name)
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
-#     def test_product_object_delete_authorization(self):
-#         """
-#         Test to verify that delete call with not admin user
-#         """
-#         new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-#         new_token = Token.objects.create(user=new_user)
-#         self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
-#         response = self.client.delete(self.url)
-#         self.assertEqual(403, response.status_code)
+    def test_release_field_rules(self):
+        """Release must be null in Spec-z Catalog"""
+        # Not Allowed Product Type
+        product_dict = self.product_dict
+        product_dict["release"] = self.release.pk
 
-#     def test_product_object_delete(self):
-#         response = self.client.delete(self.url)
-#         self.assertEqual(204, response.status_code)
+        # Not Allowed Product Type
+        product_dict["product_type"] = self.specz_catalogs.pk
+        response = self.client.post(self.url, product_dict)
+        data = json.loads(response.content)
+
+        # Check status response
+        self.assertEqual(400, response.status_code)
+
+        self.assertTrue("release" in data)
+
+        # Allowed Product Types
+        for product_type in [
+            self.validation_results.pk,
+            self.validation_set.pk,
+            self.training_set.pk,
+            self.photoz_table.pk,
+        ]:
+            product_dict["product_type"] = product_type
+            response = self.client.post(self.url, product_dict)
+            data = json.loads(response.content)
+
+            # Check status response
+            self.assertEqual(201, response.status_code)
+
+    def test_survey_field_rules(self):
+        """Survey is only allowed in Spec-z Catalog"""
+
+        product_dict = self.product_dict
+        product_dict["survey"] = "Test Survey"
+
+        # Not Allowed Product Types
+        for product_type in [
+            self.validation_results.pk,
+            self.validation_set.pk,
+            self.training_set.pk,
+            self.photoz_table.pk,
+        ]:
+            product_dict["product_type"] = product_type
+            response = self.client.post(self.url, product_dict)
+            data = json.loads(response.content)
+
+            # Check status response
+            self.assertEqual(400, response.status_code)
+
+            self.assertTrue("survey" in data)
+
+        # Allowed Product Type
+        product_dict["product_type"] = self.specz_catalogs.pk
+        response = self.client.post(self.url, product_dict)
+
+        # Check status response
+        self.assertEqual(201, response.status_code)
+
+    def test_pzcode_field_rules(self):
+        """Pzcode is only allowed in Validations Results and Photo-z Table"""
+
+        product_dict = self.product_dict
+        product_dict["pz_code"] = "Test PZ Code"
+
+        # Not Allowed Product Types
+        for product_type in [
+            self.validation_set.pk,
+            self.training_set.pk,
+            self.specz_catalogs.pk,
+        ]:
+            product_dict["product_type"] = product_type
+            response = self.client.post(self.url, product_dict)
+            data = json.loads(response.content)
+
+            # Check status response
+            self.assertEqual(400, response.status_code)
+
+            self.assertTrue("pz_code" in data)
+
+        # Allowed Product Types
+        for product_type in [
+            self.validation_results.pk,
+            self.photoz_table.pk,
+        ]:
+            product_dict["product_type"] = product_type
+            response = self.client.post(self.url, product_dict)
+
+            # Check status response
+            self.assertEqual(201, response.status_code)
+
+    def test_official_product_by_no_admin_user(self):
+        """Official products can only be created by users who are part of the admin group"""
+        product_dict = self.product_dict
+        product_dict["official_product"] = True
+        response = self.client.post(self.url, self.product_dict)
+        # Check status response
+        self.assertEqual(403, response.status_code)
+
+    def test_official_product_by_admin_user(self):
+        """Official products can only be created by users who are part of the admin group"""
+
+        # Create Admin User
+        admin_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+        admin_user.groups.add(self.adm_group)
+        new_token = Token.objects.create(user=admin_user)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+
+        product_dict = self.product_dict
+        product_dict["official_product"] = True
+        response = self.client.post(self.url, self.product_dict)
+        # Check status response
+        self.assertEqual(201, response.status_code)
+
+
+class ProductDetailAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="john", email="john@snow.com", password="you_know_nothing"
+        )
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+        # Create Release
+        self.release = Release.objects.create(
+            name="lsst_dp0", display_name="LSST DP0", description="LSST Data Preview 0"
+        )
+        # Create Product Type
+        self.product_type = ProductType.objects.create(
+            name="validation_results",
+            display_name="Validation Results",
+            description="Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.",
+        )
+
+        self.product_dict = {
+            "product_type": self.product_type.pk,
+            "release": self.release.pk,
+            "display_name": "Sample Product",
+            "official_product": False,
+            "survey": None,
+            "pz_code": None,
+            "description": "Test product description.",
+        }
+
+        response = self.client.post(reverse("products-list"), self.product_dict)
+        data = json.loads(response.content)
+        self.product = Product.objects.get(pk=data["id"])
+
+        self.url = reverse("products-detail", kwargs={"pk": self.product.pk})
+
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
+    def test_product_object_bundle(self):
+        """
+        Test to verify object bundle
+        """
+
+        # Cria uma requisicao com context user par ser usada no serializer
+        factory = APIRequestFactory()
+        request = factory.get(self.url)
+        force_authenticate(request, user=self.user, token=self.user.auth_token)
+        request.user = self.user
+        serializer_data = ProductSerializer(
+            instance=self.product,
+            context={"request": request},
+        ).data
+
+        # Faz a requisição normalmente e compara o resultado com objeto gerado pelo serializer
+        response = self.client.get(self.url)
+        response_data = json.loads(response.content)
+        self.assertEqual(serializer_data, response_data)
+
+    def test_product_serialized_format(self):
+        """Tests if the return json is in the expected format."""
+        expected = {
+            "id": self.product.pk,
+            "release": self.release.pk,
+            "release_name": self.release.display_name,
+            "product_type": self.product_type.pk,
+            "product_type_name": self.product_type.display_name,
+            "uploaded_by": self.user.username,
+            "is_owner": True,
+            "internal_name": self.product.internal_name,
+            "display_name": self.product.display_name,
+            "official_product": self.product.official_product,
+            "survey": self.product.survey,
+            "pz_code": self.product.pz_code,
+            "description": self.product.description,
+            "created_at": self.product.created_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "status": self.product.status,
+        }
+
+        response = self.client.get(self.url)
+        response_data = json.loads(response.content)
+        self.assertEqual(expected, response_data)
+
+
+# def test_product_object_update_authorization(self):
+#     """
+#     Test to verify that put call with user not admin
+#     """
+#     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+#     new_token = Token.objects.create(user=new_user)
+#     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+
+#     # HTTP PUT
+#     response = self.client.put(self.url, {"name", "Hacked by new user"})
+#     self.assertEqual(403, response.status_code)
+
+#     # HTTP PATCH
+#     response = self.client.patch(self.url, {"name", "Hacked by new user"})
+#     self.assertEqual(403, response.status_code)
+
+# def test_product_object_update(self):
+#     response = self.client.put(
+#         self.url,
+#         {
+#             "name": "validation_results_1",
+#             "display_name": "Validation Results 1",
+#             "description": "Validation Results 1",
+#         },
+#     )
+#     # Check status response
+#     self.assertEqual(200, response.status_code)
+
+#     # Check database
+#     response_data = json.loads(response.content)
+#     product = Product.objects.get(id=self.product.id)
+#     self.assertEqual(response_data.get("name"), product.name)
+
+# def test_product_object_partial_update(self):
+#     response = self.client.patch(self.url, {"name": "validation_results_1"})
+
+#     # Check status response
+#     self.assertEqual(200, response.status_code)
+
+#     # Check database
+#     response_data = json.loads(response.content)
+#     product = Product.objects.get(id=self.product.id)
+#     self.assertEqual(response_data.get("name"), product.name)
+
+# def test_product_object_delete_authorization(self):
+#     """
+#     Test to verify that delete call with not admin user
+#     """
+#     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+#     new_token = Token.objects.create(user=new_user)
+#     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+#     response = self.client.delete(self.url)
+#     self.assertEqual(403, response.status_code)
+
+# def test_product_object_delete(self):
+#     response = self.client.delete(self.url)
+#     self.assertEqual(204, response.status_code)

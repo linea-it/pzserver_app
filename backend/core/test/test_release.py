@@ -40,13 +40,16 @@ class ReleaseListCreateAPIViewTestCase(APITestCase):
         # Check status response
         self.assertEqual(405, response.status_code)
         # Create with Model
-        Release.objects.create(
+        record = Release.objects.create(
             name=release_dict["name"],
             display_name=release_dict["display_name"],
             description=release_dict["description"],
         )
         # Check database
         self.assertEqual(Release.objects.count(), 1)
+
+        # Check to Model to String
+        self.assertEqual(str(record), release_dict["display_name"])
 
     def test_list_release(self):
         # Make request
