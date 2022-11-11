@@ -14,6 +14,7 @@ from rest_framework.test import (
 
 from core.models import Product, ProductType, Release
 from core.serializers import ProductSerializer
+from core.views import ProductViewSet
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -75,6 +76,10 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.assertEqual(data["status"], 0)
 
     def test_list_product(self):
+        # Create a New Product
+        response = self.client.post(self.url, self.product_dict)
+        product = json.loads(response.content)
+
         # Make request
         response = self.client.get(self.url)
         # Check status response
@@ -82,6 +87,10 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         # Check database
         data = json.loads(response.content)
         self.assertTrue(len(data["results"]) == Product.objects.count())
+
+        # Check Model to String
+        record = Product.objects.get(id=product["id"])
+        self.assertEqual(str(record), self.product_dict["display_name"])
 
 
 class ProductCreateRulesTestCase(APITestCase):
@@ -288,7 +297,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
         Test to verify object bundle
         """
 
-        # Cria uma requisicao com context user par ser usada no serializer
+        # Cria uma requisicao com context user para ser usada no serializer
         factory = APIRequestFactory()
         request = factory.get(self.url)
         force_authenticate(request, user=self.user, token=self.user.auth_token)
@@ -327,61 +336,91 @@ class ProductDetailAPIViewTestCase(APITestCase):
         response_data = json.loads(response.content)
         self.assertEqual(expected, response_data)
 
+    # def test_product_object_update_authorization(self):
+    #     """
+    #     Test to verify that put call with user not admin
+    #     """
+    #     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+    #     new_token = Token.objects.create(user=new_user)
+    #     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
 
-# def test_product_object_update_authorization(self):
-#     """
-#     Test to verify that put call with user not admin
-#     """
-#     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-#     new_token = Token.objects.create(user=new_user)
-#     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+    #     # HTTP PUT
+    #     response = self.client.put(self.url, {"name", "Hacked by new user"})
+    #     self.assertEqual(403, response.status_code)
 
-#     # HTTP PUT
-#     response = self.client.put(self.url, {"name", "Hacked by new user"})
-#     self.assertEqual(403, response.status_code)
+    #     # HTTP PATCH
+    #     response = self.client.patch(self.url, {"name", "Hacked by new user"})
+    #     self.assertEqual(403, response.status_code)
 
-#     # HTTP PATCH
-#     response = self.client.patch(self.url, {"name", "Hacked by new user"})
-#     self.assertEqual(403, response.status_code)
+    # def test_product_object_update(self):
+    #     response = self.client.put(
+    #         self.url,
+    #         {
+    #             "name": "validation_results_1",
+    #             "display_name": "Validation Results 1",
+    #             "description": "Validation Results 1",
+    #         },
+    #     )
+    #     # Check status response
+    #     self.assertEqual(200, response.status_code)
 
-# def test_product_object_update(self):
-#     response = self.client.put(
-#         self.url,
-#         {
-#             "name": "validation_results_1",
-#             "display_name": "Validation Results 1",
-#             "description": "Validation Results 1",
-#         },
-#     )
-#     # Check status response
-#     self.assertEqual(200, response.status_code)
+    #     # Check database
+    #     response_data = json.loads(response.content)
+    #     product = Product.objects.get(id=self.product.id)
+    #     self.assertEqual(response_data.get("name"), product.name)
 
-#     # Check database
-#     response_data = json.loads(response.content)
-#     product = Product.objects.get(id=self.product.id)
-#     self.assertEqual(response_data.get("name"), product.name)
+    # def test_product_object_partial_update(self):
+    #     response = self.client.patch(self.url, {"name": "validation_results_1"})
 
-# def test_product_object_partial_update(self):
-#     response = self.client.patch(self.url, {"name": "validation_results_1"})
+    #     # Check status response
+    #     self.assertEqual(200, response.status_code)
 
-#     # Check status response
-#     self.assertEqual(200, response.status_code)
+    #     # Check database
+    #     response_data = json.loads(response.content)
+    #     product = Product.objects.get(id=self.product.id)
+    #     self.assertEqual(response_data.get("name"), product.name)
 
-#     # Check database
-#     response_data = json.loads(response.content)
-#     product = Product.objects.get(id=self.product.id)
-#     self.assertEqual(response_data.get("name"), product.name)
+    # def test_product_object_delete_authorization(self):
+    #     """
+    #     Test to verify that delete call with not admin user
+    #     """
+    #     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+    #     new_token = Token.objects.create(user=new_user)
+    #     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+    #     response = self.client.delete(self.url)
+    #     self.assertEqual(403, response.status_code)
 
-# def test_product_object_delete_authorization(self):
-#     """
-#     Test to verify that delete call with not admin user
-#     """
-#     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-#     new_token = Token.objects.create(user=new_user)
-#     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
-#     response = self.client.delete(self.url)
-#     self.assertEqual(403, response.status_code)
+    def test_product_object_delete_authorization(self):
+        """Tests if a product can be removed by a user other than the owner"""
+        view = ProductViewSet.as_view({"delete": "destroy"})
 
-# def test_product_object_delete(self):
-#     response = self.client.delete(self.url)
-#     self.assertEqual(204, response.status_code)
+        new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
+        new_token = Token.objects.create(user=new_user)
+
+        # Cria uma requisicao utilizando Factory
+        # para que o metodo destroy da view tenha acesso ao request.user
+        factory = APIRequestFactory()
+        request = factory.delete(self.url, format="json")
+        force_authenticate(request, user=new_user, token=new_token)
+        request.user = new_user
+
+        raw_response = view(request, pk=self.product.pk)
+        response = raw_response.render()
+
+        self.assertEqual(403, response.status_code)
+
+    def test_product_object_delete(self):
+        """Tests if the product owner can remove it"""
+        view = ProductViewSet.as_view({"delete": "destroy"})
+
+        # Cria uma requisicao utilizando Factory
+        # para que o metodo destroy da view tenha acesso ao request.user
+        factory = APIRequestFactory()
+        request = factory.delete(self.url, format="json")
+        force_authenticate(request, user=self.user, token=self.user.auth_token)
+        request.user = self.user
+
+        raw_response = view(request, pk=self.product.pk)
+        response = raw_response.render()
+
+        self.assertEqual(204, response.status_code)

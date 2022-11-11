@@ -111,7 +111,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             if product.official_product is True:
                 if request.user.profile.is_admin() is False:
                     return Response(
-                        {"error": "Not allowed. Only users with admin permissions can create official products."},
+                        {
+                            "error": "Not allowed. Only users with admin permissions can create official products."
+                        },
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
@@ -307,6 +309,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
+        # TODO: Duvida, Admin pode remover produto que não seja dele?
         instance = self.get_object()
         if self.request.user.id == instance.user.pk:
             return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)
