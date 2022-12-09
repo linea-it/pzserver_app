@@ -2,14 +2,20 @@ import os
 
 from core.models import ProductFile
 from core.serializers import ProductFileSerializer
-from rest_framework import viewsets, status
+from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 
 
-class ProductFileViewSet(viewsets.ModelViewSet):
+class ProductFileViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = ProductFile.objects.all()
     serializer_class = ProductFileSerializer
-    filter_fields = ("id", "product_id")
+    filterset_fields = ("id", "product_id")
     ordering_fields = ["id", "role"]
     ordering = ["id"]
 
@@ -18,25 +24,8 @@ class ProductFileViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         instance = self.perform_create(serializer)
 
-        try:
-            # TODO: Validar o arquivo enviado aplicar regras de negocio e retornar mensagens de erro
-            error = False
-            msg = "Mensagem de erro do arquivo"
-            if error:
-                # Neste ponto o arquivo já foi feito o upload
-                # Remover o arquivo enviado e excluir o model
-                instance.delete()
-                return Response({"error": str(msg)}, status=status.HTTP_400_BAD_REQUEST)
-
-            data = self.get_serializer(instance=instance).data
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            # Neste ponto o arquivo já foi feito o upload
-            # Remover o arquivo enviado e excluir o model
-            instance.delete()
-            content = {"error": str(e)}
-            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        data = self.get_serializer(instance=instance).data
+        return Response(data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         """Adiciona size, name, extension."""

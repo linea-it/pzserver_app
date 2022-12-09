@@ -250,6 +250,7 @@ class ProductCreateRulesTestCase(APITestCase):
         product_dict = self.product_dict
         product_dict["official_product"] = True
         response = self.client.post(self.url, self.product_dict)
+        print(response.content)
         # Check status response
         self.assertEqual(201, response.status_code)
 
@@ -336,60 +337,6 @@ class ProductDetailAPIViewTestCase(APITestCase):
         response_data = json.loads(response.content)
         self.assertEqual(expected, response_data)
 
-    # def test_product_object_update_authorization(self):
-    #     """
-    #     Test to verify that put call with user not admin
-    #     """
-    #     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-    #     new_token = Token.objects.create(user=new_user)
-    #     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
-
-    #     # HTTP PUT
-    #     response = self.client.put(self.url, {"name", "Hacked by new user"})
-    #     self.assertEqual(403, response.status_code)
-
-    #     # HTTP PATCH
-    #     response = self.client.patch(self.url, {"name", "Hacked by new user"})
-    #     self.assertEqual(403, response.status_code)
-
-    # def test_product_object_update(self):
-    #     response = self.client.put(
-    #         self.url,
-    #         {
-    #             "name": "validation_results_1",
-    #             "display_name": "Validation Results 1",
-    #             "description": "Validation Results 1",
-    #         },
-    #     )
-    #     # Check status response
-    #     self.assertEqual(200, response.status_code)
-
-    #     # Check database
-    #     response_data = json.loads(response.content)
-    #     product = Product.objects.get(id=self.product.id)
-    #     self.assertEqual(response_data.get("name"), product.name)
-
-    # def test_product_object_partial_update(self):
-    #     response = self.client.patch(self.url, {"name": "validation_results_1"})
-
-    #     # Check status response
-    #     self.assertEqual(200, response.status_code)
-
-    #     # Check database
-    #     response_data = json.loads(response.content)
-    #     product = Product.objects.get(id=self.product.id)
-    #     self.assertEqual(response_data.get("name"), product.name)
-
-    # def test_product_object_delete_authorization(self):
-    #     """
-    #     Test to verify that delete call with not admin user
-    #     """
-    #     new_user = User.objects.create_user("newuser", "new@user.com", "newpass")
-    #     new_token = Token.objects.create(user=new_user)
-    #     self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
-    #     response = self.client.delete(self.url)
-    #     self.assertEqual(403, response.status_code)
-
     def test_product_object_delete_authorization(self):
         """Tests if a product can be removed by a user other than the owner"""
         view = ProductViewSet.as_view({"delete": "destroy"})
@@ -424,3 +371,16 @@ class ProductDetailAPIViewTestCase(APITestCase):
         response = raw_response.render()
 
         self.assertEqual(204, response.status_code)
+
+    def test_access_another_user_product(self):
+        """Verifica se é possivel um usuario ler produtos de outro usuario.
+        Valida se a flag is_owner retorna False
+        """
+        # Create a new user
+        user = User.objects.create_user("newuser", "new@user.com", "newpass")
+        new_token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + new_token.key)
+
+        response = self.client.get(self.url)
+        response_data = json.loads(response.content)
+        self.assertFalse(response_data["is_owner"])

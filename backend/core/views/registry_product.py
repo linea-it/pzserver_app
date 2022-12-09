@@ -113,11 +113,12 @@ class RegistryProduct:
             self.log.error(message)
             raise Exception(message)
 
-    def remove_dir(self, path):
-        try:
-            shutil.rmtree(path)
-            self.log.info(f"Directory removed: [{path}]")
-        except Exception as e:
-            message = f"Failed to register the product. {e}"
-            self.log.error(message)
-            raise Exception(message)
+    # def remove_dir(self, path):
+    # ! Removida por não estar sendo utilizada.
+    #     try:
+    #         shutil.rmtree(path)
+    #         self.log.info(f"Directory removed: [{path}]")
+    #     except Exception as e:
+    #         message = f"Failed to register the product. {e}"
+    #         self.log.error(message)
+    #         raise Exception(message)
