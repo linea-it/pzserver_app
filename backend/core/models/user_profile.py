@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -20,25 +20,31 @@ class Profile(models.Model):
             group = self.user.groups.get(name="Admin")
             if group:
                 is_admin = True
-            else:
-                is_admin = False
         except Group.DoesNotExist as e:
             is_admin = False
         return is_admin
 
     def __str__(self):
-        return str(self.user.username)
+        return str(self.display_name)
 
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """Cria um profile para o usuario e adiciona um display_name.
+    Só é executado quando um usuario é criado.
+    display_name = username para usuarios sem email.
+    display_name = email.split('@')[0] para usuarios que tem email.
 
-    profile, create = Profile.objects.get_or_create(user=instance)
-    if profile.display_name is None:
-        if instance.email is not None:
-            profile.display_name = instance.email.split("@")[0]
-        else:
-            profile.display_name = instance.username
-        profile.save()
+    Args:
+        instance (User): instancia do model User.
+        created (bool): True se o evento for disparado pela criação de um novo usuario.
+    """
+    if created:
+        display_name = instance.username
 
-    # instance.profile.save()
+        if instance.email:
+            display_name = instance.email.split("@")[0]
+
+        Profile.objects.get_or_create(
+            user=instance, defaults={"display_name": display_name}
+        )

@@ -47,6 +47,17 @@ class UserTestCase(APITestCase):
 
         self.assertTrue(data["is_admin"])
 
+    def test_profile_to_str(self):
+
+        # if email display name is email.split('@')
+        user = User.objects.create_user("john", "john.snow@got.com", "you_know_nothing")
+        self.assertEqual(str(user.profile), user.email.split("@")[0])
+
+        # if email is None display name is username
+        user = User.objects.create_user("daenerys", None, "targaryen")
+        user.refresh_from_db()
+        self.assertEqual(str(user.profile), user.username)
+
 
 class UserListAPIViewTestCase(APITestCase):
 

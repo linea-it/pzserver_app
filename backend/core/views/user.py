@@ -1,6 +1,7 @@
 import logging
 
 import requests
+from core.models import Profile
 from core.serializers.user import UserSerializer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -22,14 +23,18 @@ class LoggedUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
+        # ! Todos os usuarios deveriam ter um profile e um display_name criado automaticamente no momento do registro.
+        # ! Este workaround é temporario para usuarios criados antes de existir a classe UserProfile.
         # `django.contrib.auth.User` instance.
-        username = str(request.user)
-        if (
-            request.user.profile is not None
-            and request.user.profile.display_name is not None
-            and request.user.profile.display_name != ""
-        ):
-            username = request.user.profile.display_name
+        # username = str(request.user)
+        # if (
+        #     request.user.profile is not None
+        #     and request.user.profile.display_name is not None
+        #     and request.user.profile.display_name != ""
+        # ):
+        #     username = request.user.profile.display_name
+
+        username = request.user.profile.display_name
 
         is_admin = request.user.profile.is_admin()
 

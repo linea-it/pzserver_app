@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,7 +22,4 @@ class UserSerializer(serializers.ModelSerializer):
         # ]
 
     def get_display_name(self, obj):
-        try:
-            return obj.profile.display_name
-        except:
-            return None
+        return obj.profile.display_name
