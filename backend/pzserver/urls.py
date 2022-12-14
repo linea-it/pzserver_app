@@ -13,28 +13,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from rest_framework import routers
-
 # from core.api import viewsets as products_viewsets
 from core.views import (
-    ReleaseViewSet,
-    ProductViewSet,
-    ProductTypeViewSet,
+    CsrfToOauth,
+    GetToken,
+    LoggedUserView,
+    Logout,
     ProductContentViewSet,
     ProductFileViewSet,
-    LoggedUserView,
-    GetToken,
-    Logout,
-    CsrfToOauth,
+    ProductTypeViewSet,
+    ProductViewSet,
+    ReleaseViewSet,
     UserViewSet,
 )
+from django.contrib import admin
+from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from rest_framework import routers
 
 route = routers.DefaultRouter()
 
@@ -56,7 +55,7 @@ urlpatterns = [
     path("api/obtain_token/", views.obtain_auth_token),
     path("api/get_token/", GetToken.as_view()),
     path("api/csrf_oauth/", CsrfToOauth.as_view()),
-    path("api/logged_user/", LoggedUserView.as_view()),
+    path("api/logged_user/", LoggedUserView.as_view(), name="logged_user"),
     path("api/logout/", Logout.as_view()),
     path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
     # API DOCs

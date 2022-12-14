@@ -1,22 +1,12 @@
 import json
 import mimetypes
-from pathlib import Path
 
+from core.models import Product, ProductFile, ProductType, Release
+from core.test.util import sample_product_file
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-
-from core.models import Product, ProductFile, ProductType, Release
-from core.serializers import ProductFileSerializer
-from core.test.util import sample_product_file
-import os
-from rest_framework.test import (
-    APIRequestFactory,
-    APITestCase,
-    force_authenticate,
-)
-import pytest
 
 
 class ProductRegistryTestCase(APITestCase):
@@ -117,7 +107,7 @@ class ProductRegistryTestCase(APITestCase):
         url = reverse("products-registry", kwargs={"pk": product.pk})
 
         response = self.client.post(url)
-        print(response.content)
+
         self.assertEqual(response.status_code, 200)
 
     def test_registry_without_columns(self):

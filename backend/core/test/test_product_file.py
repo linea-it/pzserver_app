@@ -1,21 +1,15 @@
 import json
 import mimetypes
+import os
 from pathlib import Path
-
-from django.contrib.auth.models import User
-from django.urls import reverse
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
 
 from core.models import Product, ProductFile, ProductType, Release
 from core.serializers import ProductFileSerializer
 from core.test.util import sample_product_file
-import os
-from rest_framework.test import (
-    APIRequestFactory,
-    APITestCase,
-    force_authenticate,
-)
+from django.contrib.auth.models import User
+from django.urls import reverse
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 
 class ProductFileListCreateAPIViewTestCase(APITestCase):

@@ -1,22 +1,21 @@
 import logging
+
+import requests
+from core.serializers.user import UserSerializer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.contrib.auth import logout
+from django.contrib.auth.models import Group, User
 from django.http import HttpResponseRedirect
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
 from oauthlib.common import generate_token
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import logout
-import requests
-import logging
-from rest_framework import viewsets
-from django.contrib.auth.models import User, Group
-from core.serializers.user import UserSerializer
 
 
 class LoggedUserView(APIView):
@@ -159,3 +158,4 @@ class CsrfToOauth(APIView):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    ordering = ["username"]

@@ -1,12 +1,11 @@
 import json
 
+from core.models import ProductType
+from core.serializers import ProductTypeSerializer
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-
-from core.models import ProductType
-from core.serializers import ProductTypeSerializer
 
 
 class ProductTypeListCreateAPIViewTestCase(APITestCase):

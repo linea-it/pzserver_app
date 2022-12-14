@@ -2,19 +2,14 @@ import json
 import pathlib
 import shutil
 
-from django.conf import settings
-from django.contrib.auth.models import User, Group
-from django.urls import reverse
-from rest_framework.authtoken.models import Token
-from rest_framework.test import (
-    APIRequestFactory,
-    APITestCase,
-    force_authenticate,
-)
-
 from core.models import Product, ProductType, Release
 from core.serializers import ProductSerializer
 from core.views import ProductViewSet
+from django.conf import settings
+from django.contrib.auth.models import Group, User
+from django.urls import reverse
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -250,7 +245,7 @@ class ProductCreateRulesTestCase(APITestCase):
         product_dict = self.product_dict
         product_dict["official_product"] = True
         response = self.client.post(self.url, self.product_dict)
-        print(response.content)
+
         # Check status response
         self.assertEqual(201, response.status_code)
 
