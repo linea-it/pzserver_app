@@ -162,3 +162,5 @@ cython_debug/
 
 # Django
 django_static/
+
+archive/

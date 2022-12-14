@@ -1,12 +1,12 @@
-from rest_framework import viewsets
-from core.serializers import ProductContentSerializer
 from core.models import ProductContent
+from core.serializers import ProductContentSerializer
+from rest_framework import viewsets
 
 
 class ProductContentViewSet(viewsets.ModelViewSet):
     queryset = ProductContent.objects.all()
     serializer_class = ProductContentSerializer
-    filter_fields = ("id", "product_id")
+    filterset_fields = ("id", "product_id")
     ordering_fields = [
         "id",
         "order",
