@@ -1,5 +1,11 @@
-import pandas as pd
+import tarfile
+import zipfile
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import tables_io
+from astropy.table import Table
 
 
 def sample_product_file(extension="csv", compression=None, header=True):
@@ -90,15 +96,33 @@ def sample_product_file(extension="csv", compression=None, header=True):
         ],
     )
     filename = f"sample_file.{extension}"
-    compression_opts = None
-
-    if compression != None:
-        compression_opts = dict(method=compression, archive_name=filename)
-        filename = f"sample_file.{compression}"
-
     filepath = Path("/tmp/", filename)
+    result = filepath
 
     if extension == "csv":
-        df.to_csv(filepath, index=False, header=header, compression=compression_opts)
+        df.to_csv(filepath, index=False, header=header)
 
-    return filepath
+    elif extension in ["fits", "hf5", "hdf5", "h5", "pq"]:
+        # Cria uma Astropy Table
+        td_ap = Table(data)
+
+        result = Path("/tmp/", "sample_file")
+        tempResult = Path("/tmp/", f"sample_file.{extension}")
+        if tempResult.exists():
+            tempResult.unlink()
+        tables_io.write(td_ap, str(result), extension)
+        result = tempResult
+
+    if compression == "zip":
+        filename = "sample_file.zip"
+        result = Path("/tmp/", filename)
+        with zipfile.ZipFile(result, mode="w") as archive:
+            archive.write(filepath)
+
+    elif compression in ["tar", "gz"]:
+        filename = "sample_file.tar.gz" if compression == "gz" else "sample_file.tar"
+        result = Path("/tmp/", filename)
+        with tarfile.open(result, "w:gz") as tar:
+            tar.add(filepath)
+
+    return result
