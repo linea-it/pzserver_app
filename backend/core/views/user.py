@@ -50,7 +50,7 @@ class Logout(APIView):
 
     def get(self, request, format=None):
 
-        if settings.SHIBBOLETH_ENABLED:
+        if settings.SHIBBOLETH_ENABLED:  # pragma: no cover
             try:
                 log = logging.getLogger("shibboleth")
                 log.debug(f"User {request.user} request logout ")
@@ -82,9 +82,10 @@ class GetToken(APIView):
         try:
             token = Token.objects.get(user=request.user)
             token.delete()
-            token = Token.objects.create(user=request.user)
-        except:
-            token = Token.objects.create(user=request.user)
+        except Token.DoesNotExist:
+            pass
+
+        token = Token.objects.create(user=request.user)
         return Response(dict({"token": token.key}))
 
 

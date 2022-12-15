@@ -1,16 +1,14 @@
 import logging
-
-from core.models import ProductType, Release
-from django.contrib.auth.models import User
-from django.db import models
-from django.conf import settings
 import pathlib
 import shutil
-import logging
 
+from core.models import ProductType, Release
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models
 
-def upload_product_files(instance, filename):
-    return f"{instance.product_type.name}/{instance.internal_name}/{filename}"
+# def upload_product_files(instance, filename):
+#     return f"{instance.product_type.name}/{instance.internal_name}/{filename}"
 
 
 class ProductStatus(models.IntegerChoices):
@@ -60,9 +58,10 @@ class Product(models.Model):
         # OBS não é executado pelo admin
         product_path = pathlib.Path(settings.MEDIA_ROOT, self.path)
         if product_path.exists():
-            try:
-                shutil.rmtree(product_path)
-            except OSError as e:
-                raise Exception("Error: %s : %s" % (product_path, e.strerror))
+            # TODO: mover esta exception para uma funcao separada para que possa ser executado o test.
+            # try:
+            shutil.rmtree(product_path)
+            # except OSError as e:
+            # raise OSError("Failed to remove directory: [ %s ] %s" % (product_path, e))
 
         super().delete(*args, **kwargs)

@@ -1,7 +1,10 @@
 import json
+import logging
 import pathlib
 import shutil
+from unittest import mock
 
+import pytest
 from core.models import Product, ProductType, Release
 from core.serializers import ProductSerializer
 from core.views import ProductViewSet
@@ -9,7 +12,8 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
+from rest_framework.test import (APIRequestFactory, APITestCase,
+                                 force_authenticate)
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -379,3 +383,14 @@ class ProductDetailAPIViewTestCase(APITestCase):
         response = self.client.get(self.url)
         response_data = json.loads(response.content)
         self.assertFalse(response_data["is_owner"])
+
+    # def test_delete_product_oserror(self):
+
+    #     with mock.patch("shutil.rmtree") as mock_rmtree:
+    #         mock_rmtree.side_effect = OSError
+
+    #         # self.assertRaises(OSError, self.product.delete())
+    #         self.product.delete()
+    #         self.assertEqual("OSError", mock_rmtree.exception)
+    #         # print("TESTE %e" % mock_rmtree.exception)
+            

@@ -53,10 +53,10 @@ urlpatterns = [
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),
-    path("api/get_token/", GetToken.as_view()),
+    path("api/get_token/", GetToken.as_view(), name="get_token"),
     path("api/csrf_oauth/", CsrfToOauth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view(), name="logged_user"),
-    path("api/logout/", Logout.as_view()),
+    path("api/logout/", Logout.as_view(), name="logout"),
     path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
     # API DOCs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

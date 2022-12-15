@@ -47,6 +47,42 @@ class UserTestCase(APITestCase):
 
         self.assertTrue(data["is_admin"])
 
+    def test_user_logout(self):
+        user = User.objects.create_user("john", "john@snow.com", "you_know_nothing")
+        token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
+
+        url = reverse("logged_user")
+
+        # Make request
+        response = self.client.post(url)
+        data = json.loads(response.content)
+
+        # User Logged
+        self.assertEqual(response.status_code, 200)
+
+        # Make logout request
+        response = self.client.get(reverse("logout"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_get_token(self):
+        user = User.objects.create_user("john", "john@snow.com", "you_know_nothing")
+        token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
+
+        # Make request
+        response = self.client.post(reverse("get_token"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_get_token_without_token(self):
+        user = User.objects.create_user("john", "john@snow.com", "you_know_nothing")
+        self.client.force_authenticate(user=user)
+
+        token = Token.objects.create(user=user)
+        token.delete()
+        response = self.client.post(reverse("get_token"))
+        self.assertEqual(response.status_code, 200)
+
     def test_profile_to_str(self):
 
         # if email display name is email.split('@')
