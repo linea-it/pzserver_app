@@ -16,7 +16,11 @@ RUN apt-get update && \
     python3-dev \
     build-essential \
     libpcre3 \
-    libpcre3-dev
+    libpcre3-dev \
+    && apt-get clean \
+    && apt-get autoclean \
+    && apt-get autoremove --purge  -y \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv /opt/venv
 
@@ -25,11 +29,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 
 RUN pip install --upgrade pip wheel  && \
-    pip install -r requirements.txt
+    pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
 
 
 FROM python:3.10-slim
 
+COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
