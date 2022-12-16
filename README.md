@@ -1,5 +1,7 @@
 # Photo-z Server
 
+[![Test API workflow](https://github.com/linea-it/pz-server/actions/workflows/test.yml/badge.svg)](https://github.com/linea-it/pz-server/actions/workflows/test.yml)
+
 The Photo-z Server is an online service based on software developed and delivered as part of the in-kind contribution program BRA-LIN, from LIneA to the Rubin Observatory's LSST. An overview of this and other contributions is available [here](https://linea-it.github.io/pz-lsst-inkind-doc/). The Photo-z Server design document is available [here](https://docs.google.com/document/d/1ZT-7dyA0ipWoRL4lViJLjuLE9uWgcSyNnuyZllsfGLQ/edit?usp=sharing). 
 
 
