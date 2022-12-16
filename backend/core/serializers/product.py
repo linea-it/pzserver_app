@@ -26,10 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
-        try:
-            return obj.product_type.display_name
-        except:
-            return None
+        return obj.product_type.display_name
 
     def get_release_name(self, obj):
         try:
@@ -38,10 +35,7 @@ class ProductSerializer(serializers.ModelSerializer):
             return None
 
     def get_uploaded_by(self, obj):
-        try:
-            return obj.user.username
-        except:
-            return None
+        return obj.user.username
 
     def get_is_owner(self, obj):
         current_user = self.context["request"].user

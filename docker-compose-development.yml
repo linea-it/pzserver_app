@@ -3,8 +3,10 @@ version: "3.9"
 services:
   database:
     image: postgres:13.6-alpine
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tno_v2
     expose:
       # Deixa a porta do banco de dados acessivel 
       # para ferramentas externas como o dbeaver por exemplo.
@@ -16,8 +18,6 @@ services:
   backend:
     build: ./backend
     command: ./entrypoint.sh
-    env_file:
-      - .env
     volumes:
       - ./backend:/app
       - ./archive/log/backend:/log

@@ -110,7 +110,12 @@ class ProductViewSet(viewsets.ModelViewSet):
             # Apenas user que fazem parte do Group=Admin podem criar produtos oficiais.
             if product.official_product is True:
                 if request.user.profile.is_admin() is False:
-                    raise Exception("Only admin user can create a Official Product.")
+                    return Response(
+                        {
+                            "error": "Not allowed. Only users with admin permissions can create official products."
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
             # Cria um internal name
             name = self.get_internal_name(product.display_name)
@@ -118,10 +123,52 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # Cria um path para o produto
             relative_path = f"{product.product_type.name}/{product.internal_name}"
+            # TODO: Talves mover a criação do path do produto para a parte do upload dos arquivos.
             path = pathlib.Path(settings.MEDIA_ROOT, relative_path)
-            path.mkdir(parents=True, exist_ok=False)
+            path.mkdir(parents=True, exist_ok=True)
 
             product.path = relative_path
+
+            # Verificar campos relacionados ao Produt Type.
+
+            # Release is not allowed in Spec-z Catalog
+            if (
+                product.release is not None
+                and product.product_type.name == "specz_catalog"
+            ):
+                return Response(
+                    {"release": ["Release must be null on Spec-z Catalogs products."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Survey is only allowed in Spec-z Catalog
+            if (
+                product.survey is not None
+                and product.product_type.name != "specz_catalog"
+            ):
+                return Response(
+                    {
+                        "survey": [
+                            f"Survey must be null on {product.product_type.display_name} products."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Pzcode is only allowed in Validations Results and Photo-z Table
+            if product.pz_code is not None and product.product_type.name in (
+                "validation_set",
+                "training_set",
+                "specz_catalog",
+            ):
+                return Response(
+                    {
+                        "pz_code": [
+                            f"Pz Code must be null on {product.product_type.display_name} products."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             product.save()
 
@@ -262,6 +309,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
+        # TODO: Duvida, Admin pode remover produto que não seja dele?
         instance = self.get_object()
         if self.request.user.id == instance.user.pk:
             return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)

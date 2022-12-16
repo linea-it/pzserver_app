@@ -1,5 +1,6 @@
 from core.models import Product
 from django.db import models
+import os
 
 
 def upload_product_files(instance, filename):
@@ -35,7 +36,7 @@ class ProductFile(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product.display_name} - {self.file.name}"
+        return f"{self.product.display_name} - {os.path.basename(self.file.name)}"
 
     def delete(self, *args, **kwargs):
         if self.file:

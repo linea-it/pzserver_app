@@ -50,7 +50,7 @@ class FileHandle(object):
             # TODO: .zip, .tar, .tar.gz
             case _:
                 message = f"The {extension} extension has not yet been implemented"
-                raise Exception(message)
+                raise NotImplementedError(message)
 
     def to_df(self, **kwargs):
         return self._handle.to_df(**kwargs)
@@ -64,7 +64,7 @@ class BaseHandle(object):
 
     @abc.abstractmethod
     def to_df(self, **kwargs) -> pd.DataFrame:
-        pass
+        raise NotImplementedError
 
 
 class CsvHandle(BaseHandle):
@@ -128,7 +128,7 @@ class CsvHandle(BaseHandle):
         # if the data types are the same in both times it probably doesn't have header.
         # https://stackoverflow.com/questions/53100598/can-pandas-auto-recognize-if-header-is-present/53101192#53101192
         df = pd.read_csv(self.filepath, header=None,
-                         delimiter=self.delimiter, nrows=20)
+                        delimiter=self.delimiter, nrows=20)
         df_header = pd.read_csv(
             self.filepath, delimiter=self.delimiter, nrows=20)
         if tuple(df.dtypes) != tuple(df_header.dtypes):

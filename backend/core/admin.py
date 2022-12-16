@@ -63,10 +63,28 @@ class ProductAdmin(admin.ModelAdmin):
 class ProductContentAdmin(admin.ModelAdmin):
     list_display = ("id", "product", "column_name", "ucd", "order")
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
     list_display = ("id", "product", "file", "role", "type", "size", "extension")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ProfileInline(admin.StackedInline):
