@@ -1,9 +1,9 @@
-import { Container, Grid, Typography, Link } from '@mui/material'
-import useStyles from '../styles/pages/tutorials'
-import { parseCookies } from 'nookies'
+import { Container, Grid, Link, Typography } from '@mui/material'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
+import { parseCookies } from 'nookies'
+import useStyles from '../styles/pages/tutorials'
 // import ReactPrismjs from '@uiw/react-prismjs'
 // import 'prismjs/components/prism-bash'
 export default function Tutorials() {
@@ -36,7 +36,7 @@ export default function Tutorials() {
                 <p>
                   To upload a data product, click on the button{' '}
                   <strong>&quot;NEW PRODUCT&quot;</strong> on the top left of
-                  the r{' '}
+                  the{' '}
                   <strong>&quot;User-generated Data Products&quot;</strong> page
                   and fill in the Upload Form with relevant metadata.
                 </p>
@@ -53,11 +53,6 @@ export default function Tutorials() {
                     <strong>Training Set</strong>: Training set for photo-z
                     algorithms (tabular data). It usually contains magnitudes,
                     errors, and true redshifts.
-                  </li>
-                  <li>
-                    <strong>Validation Set</strong>: Validation (also known as
-                    test set) for photo-z algorithms (tabular data). It usually
-                    contains magnitudes, errors, and true redshifts.
                   </li>
                   <li>
                     <strong>Photo-z Validation Results</strong>: Results of a
@@ -98,7 +93,7 @@ export default function Tutorials() {
                   <strong>Instalation via pip</strong>
                 </p>
                 <p>
-                  The PZ Server API is avalialble on pip as
+                  The PZ Server API is avalialble on pip as{' '}
                   <strong>pz-server-lib</strong>. To install the API and its
                   dependencies, type, on the Terminal:
                 </p>
