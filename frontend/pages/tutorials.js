@@ -36,9 +36,8 @@ export default function Tutorials() {
                 <p>
                   To upload a data product, click on the button{' '}
                   <strong>&quot;NEW PRODUCT&quot;</strong> on the top left of
-                  the{' '}
-                  <strong>&quot;User-generated Data Products&quot;</strong> page
-                  and fill in the Upload Form with relevant metadata.
+                  the <strong>&quot;User-generated Data Products&quot;</strong>{' '}
+                  page and fill in the Upload Form with relevant metadata.
                 </p>
                 <p>
                   The photo-z-related products are organized into five
