@@ -119,8 +119,6 @@ class ProductCreateRulesTestCase(APITestCase):
 
         self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
 
-        self.validation_set = ProductType.objects.get(name="validation_set")
-
         self.training_set = ProductType.objects.get(name="training_set")
 
         self.photoz_table = ProductType.objects.get(name="photoz_table")
@@ -157,7 +155,6 @@ class ProductCreateRulesTestCase(APITestCase):
         # Allowed Product Types
         for product_type in [
             self.validation_results.pk,
-            self.validation_set.pk,
             self.training_set.pk,
             self.photoz_table.pk,
         ]:
@@ -177,7 +174,6 @@ class ProductCreateRulesTestCase(APITestCase):
         # Not Allowed Product Types
         for product_type in [
             self.validation_results.pk,
-            self.validation_set.pk,
             self.training_set.pk,
             self.photoz_table.pk,
         ]:
@@ -205,7 +201,6 @@ class ProductCreateRulesTestCase(APITestCase):
 
         # Not Allowed Product Types
         for product_type in [
-            self.validation_set.pk,
             self.training_set.pk,
             self.specz_catalogs.pk,
         ]:

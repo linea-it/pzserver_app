@@ -8,33 +8,26 @@
 - model: core.producttype
   pk: 1
   fields:
-    name: validation_results
-    display_name: Validation Results
-    description: Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.
-    created_at: 2022-05-18 15:36:59.830913+00:00
-- model: core.producttype
-  pk: 2
-  fields:
     name: specz_catalog
     display_name: Spec-z Catalog
     description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
 - model: core.producttype
-  pk: 3
-  fields:
-    name: validation_set
-    display_name: Validation Set
-    description: Validation/test set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
-    created_at: 2022-05-18 15:37:33.423568+00:00
-- model: core.producttype
-  pk: 4
+  pk: 2
   fields:
     name: training_set
     display_name: Training Set
     description: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
     created_at: 2022-05-18 15:37:55.565131+00:00
 - model: core.producttype
-  pk: 5
+  pk: 3
+  fields:
+    name: validation_results
+    display_name: Validation Results
+    description: Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.
+    created_at: 2022-05-18 15:36:59.830913+00:00
+- model: core.producttype
+  pk: 4
   fields:
     name: photoz_table
     display_name: Photo-z Table

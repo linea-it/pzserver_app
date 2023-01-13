@@ -137,7 +137,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # Release is not allowed in Spec-z Catalog
             if (
-                product.release is not None
+                product.release
                 and product.product_type.name == "specz_catalog"
             ):
                 return Response(
@@ -148,8 +148,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # Survey is only allowed in Spec-z Catalog
             if (
-                product.survey is not None
-                and product.product_type.name != "specz_catalog"
+                product.survey
+                and product.product_type.name == "specz_catalog"
             ):
                 return Response(
                     {
@@ -161,15 +161,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                 )
 
             # Pzcode is only allowed in Validations Results and Photo-z Table
-            if product.pz_code is not None and product.product_type.name in (
-                "validation_set",
+            if product.pz_code and product.product_type.name in (
                 "training_set",
                 "specz_catalog",
             ):
                 return Response(
                     {
                         "pz_code": [
-                            f"Pz Code must be null on {product.product_type.display_name} products."
+                            f"Pz Code must be null on {product.product_type.display_name} products. '{product.pz_code}'"
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -251,20 +250,42 @@ class ProductViewSet(viewsets.ModelViewSet):
             file_handle = open(product_path, "rb")
             response = FileResponse(file_handle, content_type=mimetype)
 
-            product_content = FileHandle(product_path)
-
             response["Content-Length"] = size
             response["Content-Disposition"] = "attachment; filename={}".format(
                 name)
-            response["Product-Extension"] = product_content.extension
-
-            if product_content.extension == ".csv":
-                response["Product-CSV-Delimiter"] = product_content.handle.delimiter
-                response["Product-CSV-Header"] = product_content.handle.has_hd
-                response["Product-CSV-Columns"] = ",".join(
-                    product_content.handle.column_names)
-
             return response
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["GET"], detail=True)
+    def main_file(self, request, **kwargs):
+        """Get main file by product"""
+        try:
+            product = self.get_object()
+            product_file = product.files.get(role=0)
+            main_file_path = Path(product_file.file.path)
+            product_path = pathlib.Path(
+                settings.MEDIA_ROOT, product.path, main_file_path
+            )
+
+            data = self.get_serializer(instance=product).data
+            main_file = dict()
+
+            main_file["name"] = product_file.name
+            main_file["type"] = product_file.type
+            main_file["extension"] = product_file.extension
+            main_file["size"] = product_file.size
+
+            if product_file.extension == ".csv":
+                product_content = FileHandle(product_path)
+                main_file["delimiter"] = product_content.handle.delimiter
+                main_file["has_header"] = product_content.handle.has_hd
+                main_file["columns"] = product_content.handle.column_names
+
+            data["main_file"] = main_file
+
+            return Response(data)
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
