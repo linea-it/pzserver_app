@@ -1,27 +1,28 @@
 import mimetypes
-from django.contrib.auth.models import User
+import os
+import pathlib
+import secrets
+import zipfile
+from pathlib import Path
+
+import pandas as pd
 from core.models import Product
+from core.product_handle import FileHandle
 from core.serializers import ProductSerializer
 from core.views.registry_product import RegistryProduct
-from core.product_handle import ProductHandle
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db.models import Q
+from django.http import FileResponse, JsonResponse
 from django_filters import rest_framework as filters
-from rest_framework import status, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import FileResponse, JsonResponse
-import zipfile
-import pathlib
-from django.conf import settings
-import secrets
-import os
-import pandas as pd
-from django.db.models import Q
-from pathlib import Path
-from rest_framework import exceptions
 
 
 class ProductFilter(filters.FilterSet):
-    release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
+    release__isnull = filters.BooleanFilter(
+        field_name="release", lookup_expr="isnull")
     uploaded_by__or = filters.CharFilter(method="filter_user")
     uploaded_by = filters.CharFilter(method="filter_user")
     product_type_name__or = filters.CharFilter(method="filter_type_name")
@@ -45,7 +46,8 @@ class ProductFilter(filters.FilterSet):
 
     def filter_user(self, queryset, name, value):
         query = self.format_query_to_char(
-            name, value, ["user__username", "user__first_name", "user__last_name"]
+            name, value, ["user__username",
+                          "user__first_name", "user__last_name"]
         )
 
         return queryset.filter(query)
@@ -56,12 +58,14 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(query)
 
     def filter_type_name(self, queryset, name, value):
-        query = self.format_query_to_char(name, value, ["product_type__display_name"])
+        query = self.format_query_to_char(
+            name, value, ["product_type__display_name"])
 
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = self.format_query_to_char(name, value, ["release__display_name"])
+        query = self.format_query_to_char(
+            name, value, ["release__display_name"])
         return queryset.filter(query)
 
     @staticmethod
@@ -133,18 +137,19 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # Release is not allowed in Spec-z Catalog
             if (
-                product.release is not None
+                product.release
                 and product.product_type.name == "specz_catalog"
             ):
                 return Response(
-                    {"release": ["Release must be null on Spec-z Catalogs products."]},
+                    {"release": [
+                        "Release must be null on Spec-z Catalogs products."]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Survey is only allowed in Spec-z Catalog
             if (
-                product.survey is not None
-                and product.product_type.name != "specz_catalog"
+                product.survey
+                and product.product_type.name == "specz_catalog"
             ):
                 return Response(
                     {
@@ -156,15 +161,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                 )
 
             # Pzcode is only allowed in Validations Results and Photo-z Table
-            if product.pz_code is not None and product.product_type.name in (
-                "validation_set",
+            if product.pz_code and product.product_type.name in (
                 "training_set",
                 "specz_catalog",
             ):
                 return Response(
                     {
                         "pz_code": [
-                            f"Pz Code must be null on {product.product_type.display_name} products."
+                            f"Pz Code must be null on {product.product_type.display_name} products. '{product.pz_code}'"
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -219,7 +223,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             file_handle = open(zip_file, "rb")
             response = FileResponse(file_handle, content_type=mimetype)
             response["Content-Length"] = size
-            response["Content-Disposition"] = "attachment; filename={}".format(name)
+            response["Content-Disposition"] = "attachment; filename={}".format(
+                name)
             return response
 
         except Exception as e:
@@ -236,10 +241,51 @@ class ProductViewSet(viewsets.ModelViewSet):
             product_path = pathlib.Path(
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
-            product_content = pd.DataFrame.to_dict(
-                ProductHandle().df_from_file(product_path)
+
+            # Abre o arquivo e envia em bites para o navegador
+            mimetype, _ = mimetypes.guess_type(product_path)
+            size = product_path.stat().st_size
+            name = product_path.name
+
+            file_handle = open(product_path, "rb")
+            response = FileResponse(file_handle, content_type=mimetype)
+
+            response["Content-Length"] = size
+            response["Content-Disposition"] = "attachment; filename={}".format(
+                name)
+            return response
+        except Exception as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["GET"], detail=True)
+    def main_file(self, request, **kwargs):
+        """Get main file by product"""
+        try:
+            product = self.get_object()
+            product_file = product.files.get(role=0)
+            main_file_path = Path(product_file.file.path)
+            product_path = pathlib.Path(
+                settings.MEDIA_ROOT, product.path, main_file_path
             )
-            return JsonResponse(product_content, safe=False, status=status.HTTP_200_OK)
+
+            data = self.get_serializer(instance=product).data
+            main_file = dict()
+
+            main_file["name"] = product_file.name
+            main_file["type"] = product_file.type
+            main_file["extension"] = product_file.extension
+            main_file["size"] = product_file.size
+
+            if product_file.extension == ".csv":
+                product_content = FileHandle(product_path)
+                main_file["delimiter"] = product_content.handle.delimiter
+                main_file["has_header"] = product_content.handle.has_hd
+                main_file["columns"] = product_content.handle.column_names
+
+            data["main_file"] = main_file
+
+            return Response(data)
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -274,7 +320,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         try:
             # Procura por produtos criados pelo usuario que ainda não foram publicados
-            product = Product.objects.filter(status=0, user_id=request.user.id).first()
+            product = Product.objects.filter(
+                status=0, user_id=request.user.id).first()
 
             if product:
                 # Retorna o produto

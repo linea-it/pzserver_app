@@ -1,11 +1,10 @@
 import abc
+import csv
 from pathlib import Path
 from typing import List
 
 import pandas as pd
 import tables_io
-import csv
-
 from core._typing import Column, PathLike
 
 
@@ -30,30 +29,31 @@ class ProductHandle:
 
 class FileHandle(object):
 
-    _handle = None
+    handle = None
+    extension = None
 
     def __init__(self, filepath: PathLike):
 
         fp = Path(filepath)
 
         # Identificar o formato do arquivo
-        extension = fp.suffix
+        self.extension = fp.suffix
 
         # Instancia o Handle de acordo com o tipo de arquivo
-        match extension:
+        match self.extension:
             case ".csv":
-                self._handle = CsvHandle(fp)
+                self.handle = CsvHandle(fp)
             case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq":
-                self._handle = TableIOHandle(fp)
+                self.handle = TableIOHandle(fp)
             case ".zip" | ".tar" | ".gz":
-                self._handle = CompressedHandle(fp)
+                self.handle = CompressedHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
-                message = f"The {extension} extension has not yet been implemented"
+                message = f"The {self.extension} extension has not yet been implemented"
                 raise NotImplementedError(message)
 
     def to_df(self, **kwargs):
-        return self._handle.to_df(**kwargs)
+        return self.handle.to_df(**kwargs)
 
 
 class BaseHandle(object):
@@ -128,7 +128,7 @@ class CsvHandle(BaseHandle):
         # if the data types are the same in both times it probably doesn't have header.
         # https://stackoverflow.com/questions/53100598/can-pandas-auto-recognize-if-header-is-present/53101192#53101192
         df = pd.read_csv(self.filepath, header=None,
-                        delimiter=self.delimiter, nrows=20)
+                         delimiter=self.delimiter, nrows=20)
         df_header = pd.read_csv(
             self.filepath, delimiter=self.delimiter, nrows=20)
         if tuple(df.dtypes) != tuple(df_header.dtypes):

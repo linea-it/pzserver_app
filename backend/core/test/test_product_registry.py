@@ -28,11 +28,12 @@ class ProductRegistryTestCase(APITestCase):
         # Get Product Types previous created by fixtures
         self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
 
-        self.validation_set = ProductType.objects.get(name="validation_set")
+        self.validation_results = ProductType.objects.get(
+            name="validation_results")
 
     def create_product(self, specz=False):
 
-        product_type = self.validation_set.pk
+        product_type = self.validation_results.pk
         release = self.release.pk
         if specz == True:
             product_type = self.specz_catalogs.pk
@@ -102,7 +103,8 @@ class ProductRegistryTestCase(APITestCase):
         # Cria um novo produto.
         product = self.create_product()
         # Cria um novo Product File Main.
-        self.upload_main_file(product, extension="csv", compression="zip", header=True)
+        self.upload_main_file(product, extension="csv",
+                              compression="zip", header=True)
         # Url de registro do produto
         url = reverse("products-registry", kwargs={"pk": product.pk})
 
