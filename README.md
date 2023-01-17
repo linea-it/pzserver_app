@@ -8,53 +8,52 @@ The Photo-z Server is an online service based on software developed and delivere
 
 ## Setup Develop Enviroment
 
-Faça o clone do repositório e acesse o diretório.
-
+Clone the repository and access the directory:
 ```bash
 git clone https://github.com/linea-it/pz-server.git pzserver
 cd pzserver
 ```
 
-Copie o arquivo `docker-compose-development.yml` e renomeie para `docker-compose.yml`
+Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
 
 ```bash
 cp docker-compose-development.yml docker-compose.yml
 ```
 
-Crie o arquivo de variáveis de ambiente baseado no `env_template`.
+Create the environment variables file based on `env_template`.
 
 ```bash
 cp env_template .env
 cp .env.local-template .env.local
 ```
 
-Edite o arquivo e altere as variáveis de acordo com seu ambiente, neste primeiro momento de atenção as variáveis referentes ao banco de dados e de conexão do django.
+Edit the files and change the variables according to your environment, in this first moment pay attention to the variables referring to the django database and connection.
 
-Agora inicie o serviço de banco de dados, é importante que a primeira vez o serviço do banco de dados seja ligado sozinho, nesta etapa o postgresql vai criar o banco de dados e o usuario baseado nas settings `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`.
+Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and ` POSTGRES_DB`.
 
 ```bash
 docker-compose up database
 ```
 
-Aguarde a mensagem `database system is ready to accept connections` e depois encerre o serviço com as teclas `CTRL + C` ou `docker-compose stop database` em outro terminal.
+Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker-compose stop database` in another terminal.
 
-Agora inicie o serviço do backend, como é a primeira vez, vai ser feito o pull da imagem base e o build do container, isso pode demorar um pouco. Se tudo ocorrer normalmente a ultima mensagem será algo como `Booting worker with pid...`.
+Now start the backend service. As this is the first time, the base image will be pulled and the container will be built, this may take a while. If everything goes normally the last message will be something like `Booting worker with pid...`.
 
 ```bash
 docker-compose up backend
 ```
 
-Encerre o serviço do backend, para alterar uma das variaveis do Django.
+Shut down the backend service to change one of the Django variables.
 
-Para encerrar utilize `CTRL + C` ou `docker-compose stop`.
+To terminate use `CTRL + C` or `docker-compose stop`.
 
-Com os serviços desligados vamos executar um comando no container do backend para gerar uma SECRET para o Django.
+With the services turned off, let's run a command in the backend container to generate a SECRET for Django.
 
 ```bash
 docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
-Está é a saída do comando:
+This is the output of the command:
 
 ```bash
 $ docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
@@ -62,262 +61,209 @@ Creating pzserver_backend_run ... done
 6klbHhaeA6J2imKt9AVVgS5yl9mCWoiQqrfUV469DLA
 ```
 
-Copie a chave gerada e subistitua o valor da variavel `SECRET` no arquivo `.env`.
+Copy the generated key and replace the `SECRET` variable value in the `.env` file.
 
-Crie o super úsuario do Django.
+Create the Django superuser.
 
 ```bash
 docker-compose run backend python manage.py createsuperuser
 ```
 
-Importe os dados iniciais da aplicação utilizando o seguinte comando:
+Import the application's initial data using the following command:
 
 ```bash
 docker-compose run backend python manage.py loaddata initial_data
 ```
 
-Este comando `loaddata` vai inserir no banco de dados algums registros basicos para o funcionamento da aplicação. estes registros estão no arquivo `core/fixtures/initial_data.yaml`.
+This `loaddata` command will insert some basic records into the database for the application to work. these records are in the `core/fixtures/initial_data.yaml` file.
 
-Agora instale as dependencias do Frontend executando o comando `yarn`. Por ser a primeira vez inciando este container, será feito o pull da imagem base o que pode demorar um pouco.
+Now install the Frontend dependencies by running the `yarn` command. As this is the first time starting this container, the base image will be pulled, which may take a while.
 
 ```bash
 docker-compose run frontend yarn
 ```
 
-Este comando vai criar o diretório `pzserver/frontend/node_modules` caso tenha algum problema com dependencias remova este diretório e execute o comando novamente.
+This command will create the directory `pzserver/frontend/node_modules` if you have any problem with dependencies remove this directory and run the command again.
 
-No ambiente de desenvolvimento não é necessário alterar as configurações do Ngnix.
-Mas caso seja necessário uma alteração local, copie o arquivo `nginx_development.conf` para `nginx.conf`
-Altere também o arquivo `docker-compose.yml` no serviço ngnix na linha `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. Desta forma o arquivo ngnix.conf representa seu ambiente local, caso faça alguma modificação que seja necessária para o projeto, copie esta modificação para o arquivo de template, pois o arquivo nginx.conf não faz parte do repositório.  
+In the development environment it is not necessary to change Ngnix settings.
+But if a local change is needed, copy the `nginx_development.conf` file to `nginx.conf`
+Also change the `docker-compose.yml` file in the ngnix service at the line `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. In this way, the ngnix.conf file represents your local environment, if you make any modifications that are necessary for the project, copy this modification to the template file, as the nginx.conf file is not part of the repository.
 
-Feito isto o processo de setup do ambiente de desenvolvimento está completo.
+Once this is done, the development environment setup process is complete.
 
-**Recomendação:** Antes de realizar o push, é recomendável fazer o build do frontend para evitar que erros com o ESlint atrapalhe o processo de Pull Request:
+**Recommendation:** Before performing the push, it is recommended to build the frontend to prevent errors with ESlint from disrupting the Pull Request process:
 
 ``` bash
 docker-compose run frontend yarn build
 ```
+### Setting Up a New Application to manage authentication
 
-### Alguns comandos de exemplo
+Go to Django ADMIN and add a new Application with the following configuration:
 
-Ligar o ambiente em background.
+![Adding new application](images/new_app.png)
+
+- `client_id` and `client_secret` should be left unchanged
+- `user` should be your superuser
+- `redirect_uris` should be left blank
+- `client_type` should be set to confidential
+- `authorization_grant_type` should be set to **'Resource owner password-based'**
+- `name` can be set to whatever you'd like
+
+Edit the configuration files (**.env** and **.env.local**) again and change the variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` in both files according to the values of `client_id` and `client_secret` respectively.
+
+> **WARNING**: only after editing the configuration files, the `SAVE` button must be pressed.
+
+The installation is done, you can now test the newly configured application.
+
+### Some example commands
+
+Turn on background environment:
 
 ```bash
 docker-compose up -d
 ```
 
-Acesse no navegador:
+    Access in the browser:
+    - Frontend: <http://localhost/>
+    - Django Admin: <http://localhost/admin/>
+    - Django REST: <http://localhost/api>
 
-- Frontend: <http://localhost/>
-- Django Admin: <http://localhost/admin/>
-- Django REST: <http://localhost/api>
-
-Desligar todo ambiente
+Turn off all environment:
 
 ```bash
 docker-compose stop
 ```
 
-Restartar todo ambiente
+Restart all environment:
 
 ```bash
 docker-compose stop && docker-compose up -d
 ```
 
-Executar um terminar em um dos serviços
+Run a terminate on one of the services
 
 ```bash
-# Com o serviço ligado
+# with the service turned on
 docker-compose exec backend bash
-# Com o serviço desligado
+# with the service turned off
 docker-compose run backend bash
 ```
 
-Acessar banco de dados com Psql
+Access database with psql:
 
 ```bash
-# Usar as credenciais que estão no .env
+# Use the credentials that are in the .env
 docker-compose exec database psql -h localhost -U <username> -d <database>
 ```
 
-Adicionar Bibliotecas ao frontend utilizando yarn
+Add libraries to frontend using yarn:
 
 ``` bash
 docker-compose run frontend yarn add <library>
 ```
 
-### Adicionar autenticação OAuth com Github
-
-#### Criando app OAuth no Github
-Primeiramente devemos criar um app OAuth com uma conta Github. Segue link com o passo a passo:
-- <https://docs.github.com/pt/developers/apps/building-oauth-apps/creating-an-oauth-app>
-
-**Importante:**
-- A Homepage URL deverá corresponder ao seguinte padrão: `http://<URL app>/api`
-- A Authorization callback URL deverá corresponder ao seguinte padrão: `http://<URL app>/auth/complete/github-org/` 
-
-Exemplo de URLs para ambiente de desenvolvimento:
-- Homepage URL: `http://localhost/api`
-- Authorization callback URL: `http://localhost/auth/complete/github-org/`
-
-Após a criação, o aplicativo fornecerá um `CLIENT ID` e você deverá gerar um `CLIENT SECRET` na página de configuração da app. Essas informações deverão ser adicionadas ao `.env` do projeto nos respectivos campos:
-``` bash
-GITHUB_CLIENT_ID=<your CLIENT ID>
-GITHUB_CLIENT_SECRET=<your CLIENT SECRET>
-```
-#### Configurando um aplicativo de OAuth interno
-Vá para Django Admin e adicione um novo aplicativo com a seguinte configuração:
-
-- `client_id` e `client_secret` devem ser deixados inalterados
-- O `user` deve ser seu superusuário
-- `redirect_uris` deve ser o mesmo endereço da Authorization callback URL
-- `client_type` deve ser definido como `confidencial`
-- `authorization_grant_type` deve ser definido como 'Authorization Code'
-- `name` pode ser definido para o que você gostaria, sugestão: `Github`
-
-A instalação é concluída, você pode agora testar o aplicativo recém-configurado.
-
-OBS: Você pode adicionar outros aplicativos internos para fornecer tokens para os usuários criados diretamente no banco de dados, ou para se autenticar a outro provedor de OAuth como o do Facebook ou Google por exemplo.
-
-#### Login com Github
-Para se logar com o Github:
-- Acesse a URL: `http://<URL app>/auth/login/github-org/`, você será redirecionado para se autenticar com suas credenciais do Github. 
-- Após se logar, dê permissão ao app de vizualizar a organização linea-it.
-- Você será redirecionado ao endereço: `http://<URL app>/api`
-
-Pronto você esta logado na aplicação com sua conta Github. O próximo passo é converter o código de acesso do Github a um token interno.
-
-#### Converter user access code em token interno
-- Acesse o Django admin e visualize o registro criado na tabela `User social auths` referente ao seu usuário. 
-- Recupere o user access code (access_token) diretamente no registro
-- Use o seguinte comando para converter seu código Github em um token interno, substituindo `URL app`, `client_id`, `client_secret` e o `user_access_token`:
-``` bash
-curl -X POST -d "grant_type=convert_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&backend=github-org&token=<user_access_token>" http://<URL app>/auth/convert-token
-```
-
-Essa solicitação retorna um "access_token" que você deve usar com todas as solicitações HTTP para sua API REST. O que está acontecendo aqui é que estamos convertendo um token de acesso de terceiros (<user_access_token>) em um token de acesso para usar com sua API e seus clientes ("access_token"). Você deve usar esse token em todas as comunicações futuras entre seu sistema/aplicativo e sua API para autenticar cada solicitação e evitar sempre a autenticação com o Github.
-
-Exemplos:
-- Para acessar o endpoint que lista todos releases:
-    ``` bash
-    curl -H "Authorization: Bearer <access_token>" http://<URL app>/api/releases/
-    ```
-- Refresh token:
-    ``` bash
-    curl -X POST -d "grant_type=refresh_token&client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&refresh_token=<your_refresh_token>" http://<URL app>/auth/token
-    ```
-- Revoke a single token:
-    ``` bash
-    curl -X POST -d "client_id=<django-oauth-generated-client_id>&client_secret=<django-oauth-generated-client_secret>&token=<access_token>" http://<URL app>/auth/revoke-token
-    ```
-
-
-### Build manual das imagens e push para docker hub
+### Manual build of images and push to docker hub
 
 Docker Hub: <https://hub.docker.com/repository/docker/linea/pzserver/>
 
-No docker hub é apenas um repositório `linea/pzserver` e as imagens estão divididas em duas tags uma para o backend (**:backend_[version]**) e outra para frontend (**:frontend_[version]**). A identificação unica de cada tag pode ser o numero de versão exemplo: `linea/pzserver:backend_v0.1` ou a hash do commit para versões de desenvolvimento: `linea/pzserver:backend_8816330` para obter o hash do commit usar o comando `$(git describe --always)`.
+The project is concentrated in just the `linea/pzserver` repository in the docker hub and the images are divided into two tags, one for the backend (**:backend_[version]**) and another for the frontend (**:frontend_[version ]**). The unique identification of each tag can be the version number example: `linea/pzserver:backend_v0.1` or the hash of the commit for development versions: `linea/pzserver:backend_8816330` to obtain the hash of the commit use the command ` $(git describe --always)`.
 
-**Importante:** Sempre fazer o build das duas imagens utilizando a mesma versão ou mesmo hash de commit, mesmo que uma das imagens não tenha sido alterada.
+> **WARNING**: Always build both images using the same version or same commit hash, even if one of the images has not been changed.
 
 ```bash
 # Backend
 cd pzserver/backend
 docker build -t linea/pzserver:backend_$(git describe --always) .
-# Para o push copie o nome da imagem que aparece no final do build e faça o docker push 
+# for the push, copy the image name that appears at the end of the build and do the docker push
 docker push linea/pzserver:backend_<commit_hash>
 
 # Frontend
 cd pzserver/frontend
 docker build -t linea/pzserver:frontend_$(git describe --always) .
-# Para o push copie o nome da imagem que aparece no final do build e faça o docker push 
+# for the push, copy the image name that appears at the end of the build and do the docker push
 docker push linea/pzserver:frontend_<commit_hash>
 ```
 
 ## Setup Production Enviroment
 
-No ambiente de produção **Não** é necessário fazer clone do repositório.
+In the production environment **NO** it is necessary to clone the repository.
 
-O exemplo a seguir considera uma instalação onde o banco de dados e ngnix estão em containers como no ambiente de dev e os volumes são diretórios dentro da raiz pzserver.
+The following example assumes an installation where the database and ngnix are in containers as in the dev environment and the volumes are directories within the pzserver root.
 
-Apenas:
+Only:
+- create the folders
+- create `docker-compose.yml` file
+- create `.env` file
+- create `ngnix.conf` file
 
-- crie as pastas
-- crie o arquivo docker-compose.yml
-- crie o arquivo .env
-- crie o arquivo ngnix.conf
-
-Crie os diretórios `pzserver` e `archive`
+Create the `pzserver` and `archive` directories
 
 ```bash
 mkdir pzserver pzserver/archive pzserver/archive/data pzserver/archive/django_static
 cd pzserver
 ```
 
-Crie um arquivo `docker-compose.yml` baseado no template `docker-compose-production.yml`
+Create a `docker-compose.yml` file based on the `docker-compose-production.yml` template
 
-Altere as imagens do frontend e backend para a versão desejada, substitua a string `<VERSION>` pela tag da imagem.
+Change the frontend and backend images to the desired version, replace the string `<VERSION>` with the image tag.
 
-Altere a porta que será utilizada para a aplicação, substitua a string `<PORT>` por uma porta que esteja disponivel no ambiente, está porta é que deverá ser associada a url da aplicação.
+Change the port that will be used for the application, replace the string `<PORT>` by a port that is available in the environment, this port should be associated with the application's url.
 
-Edite o arquivo conforme as necessidades do ambiente.
-Geralmente as mudanças são nos volumes e na porta do ngnix.
+Edit the file as per your environment needs.
+Usually the changes are in ngnix volumes and port.
 
-Crie um arquivo `.env` baseado no arquivo `env_template` edite as variaveis de acesso ao banco de dados.
+Create an `.env` file based on the `env_template` file and edit the database access variables.
 
-Aguarde a mensagem `database system is ready to accept connections` e depois encerre o serviço com as teclas `CTRL + C` ou `docker-compose stop database` em outro terminal.
+Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker-compose stop database` in another terminal.
 
 ```bash
 docker-compose up database
 ```
 
-Inicie o serviço do backend aguarde a mensagem `Booting worker with pid...`.
+Start the backend service and wait for the `Booting worker with pid...` message.
 
 ```bash
 docker-compose up backend
 ```
 
-Encerre o serviço do backend e altere as variaveis do Django.
-Edite o arquivo `.env`
+Shutdown the backend service and change the Django variables.
+Edit the `.env` file
 
-Em produção é **OBRIGATÓRIO** desligar o Debug `DEBUG=0`. e alterar a variavel `SECRET` que deve ser unica para cada ambiente.
+In production it is **MANDATORY** to turn off Debug `DEBUG=0`. and change the `SECRET` variable which must be unique for each environment.
 
-Com o serviço desligado execute o comando abaixo para gerar uma SECRET, copie e cole no .env
+With the service turned off, run the command below to generate a SECRET, copy and paste it into the `.env`
 
 ```bash
 docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
-
 ```bash
 docker-compose run backend python manage.py createsuperuser
 ```
 
-Crie o arquivo de configuração do Ngnix `nginx.conf` baseado no arquivo `nginx_production.conf`
+Create the Ngnix configuration file `nginx.conf` based on the `nginx_production.conf` file
 
-Inicie todos os serviços
-
+Start all services
 ```bash
 docker-compose up -d
 ```
 
-Configure uma URL que direcione para a maquina onde está instalado na porta configurada para o Ngnix no docker-compose.
+Configure a URL that points to the machine where it is installed on the port configured for Ngnix in docker-compose.
 
-No final deste exemplo a pasta pzserver ficou desta forma:
+At the end of this example the pzserver folder looks like this:
 
 ```bash
--rw-r--r--  docker-compose.yml 
--rw-r--r--  nginx.conf # Arquivo de configuração do Ngnix.
--rw-r--r--  .env # Arquivo com as variaveis de configuração
-drwxr-xr-x  archive # Diretório onde ficam os arquivos gerados pela aplicação.
-drwx------  pg_data # Diretório onde ficam os arquivos do postgresql em container
-drwxr-xr-x  pg_backups # Diretório onde ficam os arquivos do postgresql em container
+-rw-r--r-- docker-compose.yml
+-rw-r--r-- nginx.conf # Ngnix configuration file.
+-rw-r--r-- .env # File with configuration variables
+drwxr-xr-x archive # Directory where the files generated by the application are kept.
+drwx------ pg_data # Directory where postgresql files are in container
+drwxr-xr-x pg_backups # Directory where postgresql files are in container
 ```
 
 ## Update Production Enviroment
 
-Procedimento para atualizar o ambiente de produção ou qualquer outro que utilize imagens builded.
-
-- Editar o arquivo docker-compose.yml e alterar a tag das imagens frontend e backend.
-- Editar o arquivo `.env` para adicionar novas variaveis ou altera-las se necessário.
-- Executar o pull das novas imagens com o comando `docker-compose pull`.
-- Restart dos serviços `docker-compose stop && docker-compose up -d`.
+Procedure to update the production environment or any other that uses built images.
+- Edit the `docker-compose.yml` file and change the frontend and backend images tag.
+- Edit the `.env` file to add new variables or change them if necessary.
+- Pull the new images with the `docker-compose pull` command.
+- Restart services `docker-compose stop && docker-compose up -d`.
