@@ -27,7 +27,8 @@ jobs:
           tags: |
             type=raw,enable=${{ startsWith(github.ref, 'refs/tags/v') }},priority=100,prefix=backend_,value=latest
             type=semver,enable=true,priority=200,prefix=backend_v,suffix=,pattern={{version}}
-            type=sha,enable=true,priority=300,prefix=backend_,suffix=,format=short            
+            type=sha,enable=true,priority=300,prefix=backend_,suffix=,format=short
+            type=raw,priority=400,prefix=backend_dev_,value=latest
           flavor: |
             latest=false
 
@@ -64,7 +65,8 @@ jobs:
           tags: |
             type=raw,enable=${{ startsWith(github.ref, 'refs/tags/v') }},priority=100,prefix=frontend_,value=latest
             type=semver,enable=true,priority=200,prefix=frontend_v,suffix=,pattern={{version}}
-            type=sha,enable=true,priority=300,prefix=frontend_,suffix=,format=short            
+            type=sha,enable=true,priority=300,prefix=frontend_,suffix=,format=short
+            type=raw,priority=400,prefix=frontend_dev_,value=latest
           flavor: |
             latest=false
 
