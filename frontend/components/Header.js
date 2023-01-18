@@ -1,24 +1,24 @@
-import React from 'react'
-import { useRouter } from 'next/router'
 import {
   AppBar,
-  Toolbar,
+  Grid,
+  IconButton,
+  Link as MuiLink,
   List,
   ListItem,
-  Grid,
-  Link as MuiLink,
-  Typography,
-  IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  Toolbar,
+  Typography
 } from '@mui/material'
+import { useRouter } from 'next/router'
+import React from 'react'
 
-import { YouTube, Twitter, GitHub } from '@mui/icons-material'
+import { GitHub, Twitter, YouTube } from '@mui/icons-material'
 import MoreIcon from '@mui/icons-material/MoreVert'
-import Link from './Link'
-import useStyles from '../styles/components/Header'
-import { useAuth } from '../contexts/AuthContext'
 import TokenDialog from '../components/TokenDialog'
+import { useAuth } from '../contexts/AuthContext'
+import useStyles from '../styles/components/Header'
+import Link from './Link'
 
 function Header() {
   const classes = useStyles()
@@ -157,7 +157,7 @@ function Header() {
             </MuiLink>
             <MuiLink
               className={classes.social}
-              href="https://twitter.com/LIneA_mcti"
+              href="https://twitter.com/LIneA_org"
               target="_blank"
               color="inherit"
               rel="noreferrer"
