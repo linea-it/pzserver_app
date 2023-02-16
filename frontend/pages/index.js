@@ -17,12 +17,16 @@ export default function Index() {
     {
       title: 'LSST PZ Data Products',
       path: '/oficial_products',
-      background: '/interfaces/lsst-dp.jpg'
+      background: '/interfaces/lsst-dp.jpg',
+      description:
+        'Official data products released by the LSST Data Management team.'
     },
     {
       title: 'User-generated Data Products',
       path: '/user_products',
-      background: '/interfaces/user-dp.jpg'
+      background: '/interfaces/user-dp.jpg',
+      description:
+        'User-generated data products shared by members of the LSST community.'
     }
   ]
 
@@ -64,6 +68,14 @@ export default function Index() {
                         component="h2"
                       >
                         {item.title}
+                      </Typography>
+                      <Typography
+                        gutterBottom
+                        className={classes.ItemDescription}
+                        variant="body"
+                        component="span"
+                      >
+                        {item.description}
                       </Typography>
                     </CardMedia>
                   </CardActionArea>

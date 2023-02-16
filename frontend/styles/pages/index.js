@@ -30,6 +30,15 @@ const useStyles = makeStyles(theme => ({
     color: 'white',
     textShadow: '0.1em 0.1em 0.1em black'
   },
+  ItemDescription: {
+    fontFamily: 'Oxanium',
+    fontSize: '1em',
+    paddingLeft: '1em',
+    color: 'white',
+    textShadow: '0.1em 0.1em 0.1em black',
+    position: 'absolute',
+    bottom: '1em'
+  },
   media: {
     minHeight: 260,
     [theme.breakpoints.down('xl')]: {
