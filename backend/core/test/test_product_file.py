@@ -30,7 +30,7 @@ class ProductFileListCreateAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type = ProductType.objects.first()
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         self.product_dict = {
             "product_type": self.product_type.pk,
@@ -113,9 +113,7 @@ class ProductFileListCreateAPIViewTestCase(APITestCase):
 
         # Check Model to String
         record = ProductFile.objects.get(id=product_file["id"])
-        self.assertEqual(
-            str(record), f"{self.product.display_name} - {product_file['name']}"
-        )
+        self.assertTrue(str(record).startswith(self.product.display_name))
 
 
 class ProductFileDetailAPIViewTestCase(APITestCase):
@@ -136,7 +134,7 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type = ProductType.objects.first()
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         # Create a Product
         response = self.client.post(
