@@ -34,6 +34,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [isLoading, setLoading] = useState(false)
   const [progress, setProgress] = useState(null)
   const [formError, setFormError] = React.useState('')
+  const maxUploadSize = 200
 
   const loadFiles = React.useCallback(async () => {
     setFormError('')
@@ -239,6 +240,16 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
         The Auxiliary Files are in free format and can be multiple files (press
         the upload button as many times as necessary).
       </Typography>
+      <Typography paragraph variant="body">
+        The maximum upload size is {maxUploadSize}MB. For text files, e.g., CSV,
+        all commented lines are ignored. Index column is optional.
+      </Typography>
+      <Typography paragraph variant="body">
+        For text files, e.g., CSV all commented lines are ignored.
+      </Typography>
+      <Typography paragraph variant="body">
+        Index column is optional.
+      </Typography>
       <Box>
         <Grid container spacing={4}>
           <Grid item xs={6}>
@@ -256,7 +267,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                     onFileSelectError={e => {
                       handleFileError(0, e.error)
                     }}
-                    maxSize={200} // 200 MB
+                    maxSize={maxUploadSize} // 200 MB
                     buttonProps={{
                       color: 'primary',
                       disabled: progress !== null,
@@ -314,7 +325,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                   onFileSelectError={e => {
                     handleFileError(2, e.error)
                   }}
-                  maxSize={1} // 200 MB
+                  maxSize={maxUploadSize} // 200 MB
                   buttonProps={{
                     startIcon: <UploadIcon />,
                     disabled: progress !== null,
