@@ -26,7 +26,7 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type = ProductType.objects.first()
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         self.product = self.create_product()
 
@@ -129,7 +129,7 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type = ProductType.objects.first()
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         self.product = self.create_product()
 

@@ -19,6 +19,10 @@ from rest_framework.test import (APIRequestFactory, APITestCase,
 class ProductListCreateAPIViewTestCase(APITestCase):
     url = reverse("products-list")
 
+    fixtures = [
+        "core/fixtures/initial_data.yaml",
+    ]
+
     def setUp(self):
         # Create a Admin User
         self.username = "john"
@@ -30,16 +34,14 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.token = Token.objects.create(user=self.user)
         self.api_authentication()
 
-        # Create Release
-        self.release = Release.objects.create(
-            name="lsst_dp0", display_name="LSST DP0", description="LSST Data Preview 0"
-        )
-        # Create Product Type
-        self.product_type = ProductType.objects.create(
-            name="validation_results",
-            display_name="Validation Results",
-            description="Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.",
-        )
+        # Get Release previous created by fixtures
+        self.release = Release.objects.first()
+
+        # Get Product Types previous created by fixtures
+        self.product_type=ProductType.objects.get(name="validation_results")
+
+        # Get Product Types previous created by fixtures
+        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
 
         self.product_dict = {
             "product_type": self.product_type.pk,
@@ -115,11 +117,11 @@ class ProductCreateRulesTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.validation_results = ProductType.objects.get(name="validation_results")
-
         self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
 
         self.training_set = ProductType.objects.get(name="training_set")
+
+        self.validation_results = ProductType.objects.get(name="validation_results")
 
         self.photoz_table = ProductType.objects.get(name="photoz_table")
 
@@ -179,6 +181,7 @@ class ProductCreateRulesTestCase(APITestCase):
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)
+
             data = json.loads(response.content)
 
             # Check status response

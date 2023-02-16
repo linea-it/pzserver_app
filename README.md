@@ -3,12 +3,12 @@
 [![Test API workflow](https://github.com/linea-it/pz-server/actions/workflows/test.yml/badge.svg)](https://github.com/linea-it/pz-server/actions/workflows/test.yml)
 [![codecov](https://codecov.io/github/linea-it/pz-server/branch/main/graph/badge.svg?token=0VW8HYUFZL)](https://codecov.io/github/linea-it/pz-server)
 
-The Photo-z Server is an online service based on software developed and delivered as part of the in-kind contribution program BRA-LIN, from LIneA to the Rubin Observatory's LSST. An overview of this and other contributions is available [here](https://linea-it.github.io/pz-lsst-inkind-doc/). The Photo-z Server design document is available [here](https://docs.google.com/document/d/1ZT-7dyA0ipWoRL4lViJLjuLE9uWgcSyNnuyZllsfGLQ/edit?usp=sharing). 
-
+The Photo-z Server is an online service based on software developed and delivered as part of the in-kind contribution program BRA-LIN, from LIneA to the Rubin Observatory's LSST. An overview of this and other contributions is available [here](https://linea-it.github.io/pz-lsst-inkind-doc/). The Photo-z Server design document is available [here](https://docs.google.com/document/d/1ZT-7dyA0ipWoRL4lViJLjuLE9uWgcSyNnuyZllsfGLQ/edit?usp=sharing).
 
 ## Setup Develop Enviroment
 
 Clone the repository and access the directory:
+
 ```bash
 git clone https://github.com/linea-it/pz-server.git pzserver
 cd pzserver
@@ -29,7 +29,7 @@ cp .env.local-template .env.local
 
 Edit the files and change the variables according to your environment, in this first moment pay attention to the variables referring to the django database and connection.
 
-Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and ` POSTGRES_DB`.
+Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`.
 
 ```bash
 docker-compose up database
@@ -96,6 +96,7 @@ Once this is done, the development environment setup process is complete.
 ``` bash
 docker-compose run frontend yarn build
 ```
+
 ### Setting Up a New Application to manage authentication
 
 Go to Django ADMIN and add a new Application with the following configuration:
@@ -166,7 +167,7 @@ docker-compose run frontend yarn add <library>
 
 Docker Hub: <https://hub.docker.com/repository/docker/linea/pzserver/>
 
-The project is concentrated in just the `linea/pzserver` repository in the docker hub and the images are divided into two tags, one for the backend (**:backend_[version]**) and another for the frontend (**:frontend_[version ]**). The unique identification of each tag can be the version number example: `linea/pzserver:backend_v0.1` or the hash of the commit for development versions: `linea/pzserver:backend_8816330` to obtain the hash of the commit use the command ` $(git describe --always)`.
+The project is concentrated in just the `linea/pzserver` repository in the docker hub and the images are divided into two tags, one for the backend (**:backend_[version]**) and another for the frontend (**:frontend_[version ]**). The unique identification of each tag can be the version number example: `linea/pzserver:backend_v0.1` or the hash of the commit for development versions: `linea/pzserver:backend_8816330` to obtain the hash of the commit use the command `$(git describe --always)`.
 
 > **WARNING**: Always build both images using the same version or same commit hash, even if one of the images has not been changed.
 
@@ -184,6 +185,32 @@ docker build -t linea/pzserver:frontend_$(git describe --always) .
 docker push linea/pzserver:frontend_<commit_hash>
 ```
 
+### Run backend unit tests
+
+run all tests
+
+```bash
+docker-compose exec backend pytest
+```
+
+run only a file
+
+```bash
+docker-compose exec backend pytest core/test/test_product_file.py
+```
+
+run only a class
+
+```bash
+docker-compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase
+```
+
+run single test method
+
+```bash
+docker-compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase::test_list_product_file
+```
+
 ## Setup Production Enviroment
 
 In the production environment **NO** it is necessary to clone the repository.
@@ -191,6 +218,7 @@ In the production environment **NO** it is necessary to clone the repository.
 The following example assumes an installation where the database and ngnix are in containers as in the dev environment and the volumes are directories within the pzserver root.
 
 Only:
+
 - create the folders
 - create `docker-compose.yml` file
 - create `.env` file
@@ -236,6 +264,7 @@ With the service turned off, run the command below to generate a SECRET, copy an
 ```bash
 docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
+
 ```bash
 docker-compose run backend python manage.py createsuperuser
 ```
@@ -243,6 +272,7 @@ docker-compose run backend python manage.py createsuperuser
 Create the Ngnix configuration file `nginx.conf` based on the `nginx_production.conf` file
 
 Start all services
+
 ```bash
 docker-compose up -d
 ```
@@ -263,6 +293,7 @@ drwxr-xr-x pg_backups # Directory where postgresql files are in container
 ## Update Production Enviroment
 
 Procedure to update the production environment or any other that uses built images.
+
 - Edit the `docker-compose.yml` file and change the frontend and backend images tag.
 - Edit the `.env` file to add new variables or change them if necessary.
 - Pull the new images with the `docker-compose pull` command.

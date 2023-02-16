@@ -149,7 +149,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             # Survey is only allowed in Spec-z Catalog
             if (
                 product.survey
-                and product.product_type.name == "specz_catalog"
+                and product.product_type.name != "specz_catalog"
             ):
                 return Response(
                     {
