@@ -28,25 +28,9 @@ export default function Contact() {
                   , or contact our team.
                 </p>
                 <p>
-                  BRA-LIN S2 Contribution Lead:{' '}
-                  <Link
-                    href="mailto:julia@linea.org.br"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    julia@linea.org.br
-                  </Link>
+                  BRA-LIN S2 Contribution Lead: julia at linea dot org dot br
                 </p>
-                <p>
-                  Technical support:{' '}
-                  <Link
-                    href="mailto:helpdesk@linea.org.br"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    helpdesk@linea.org.br
-                  </Link>
-                </p>
+                <p>Technical support: helpdesk at linea dot org dot br</p>
               </Typography>
             </CardContent>{' '}
           </Card>
