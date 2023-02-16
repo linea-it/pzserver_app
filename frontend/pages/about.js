@@ -68,21 +68,21 @@ export default function About() {
                   The Photo-z Server is being designed with a special focus on
                   helping RSP users participating in the Photo-z Validation
                   Cooperative, a DM team&apos;s initiative that will take place
-                  during LSST commissioning phase (
+                  during LSST commissioning phase (see technical note{' '}
                   <Link
                     href="https://dmtn-049.lsst.io/"
                     target="_blank"
                     rel="noreferrer"
                   >
-                    see technical note dmtn-049 for details
-                  </Link>
-                  ), but it is planned to continue serving the LSST Community
-                  during subsequent years. During the Photo-z Validation
-                  Cooperative, the Photo-z Coordination Group will be able to
-                  use the Photo-z Server to host and distribute standardized
-                  training and validation sets to be used in algorithm
-                  performance comparison experiments, as well as to collect the
-                  results obtained by different users.
+                    dmtn-049
+                  </Link>{' '}
+                  for details), but it is planned to continue serving the LSST
+                  Community during subsequent years. During the Photo-z
+                  Validation Cooperative, the Photo-z Coordination Group will be
+                  able to use the Photo-z Server to host and distribute
+                  standardized training and validation sets to be used in
+                  algorithm performance comparison experiments, as well as to
+                  collect the results obtained by different users.
                 </p>
                 <p>
                   Beyond the Photo-z Validation Cooperative, the RSP users will
