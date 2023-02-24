@@ -259,6 +259,12 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(methods=["GET"], detail=True)
+    def api_schema(self, request):
+        meta = self.metadata_class()
+        data = meta.determine_metadata(request, self)
+        return Response(data)
+
+    @action(methods=["GET"], detail=True)
     def main_file(self, request, **kwargs):
         """Get main file by product"""
         try:
