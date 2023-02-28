@@ -166,6 +166,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_PAGINATION_CLASS": "core.pagination.CustomPageNumberPagination",
+    "DEFAULT_METADATA_CLASS": "core.SimpleMetadataWithFilters",
     "PAGE_SIZE": 100,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
@@ -199,7 +200,8 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
     # Including Shibboleth authentication:
-    AUTHENTICATION_BACKENDS += ("shibboleth.backends.ShibbolethRemoteUserBackend",)
+    AUTHENTICATION_BACKENDS += (
+        "shibboleth.backends.ShibbolethRemoteUserBackend",)
 
     SHIBBOLETH_ENABLED = True
 
