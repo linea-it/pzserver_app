@@ -4,14 +4,20 @@ from rest_framework.metadata import SimpleMetadata
 class SimpleMetadataWithFilters(SimpleMetadata):
 
     def determine_metadata(self, request, view):
-
         metadata = super(
             SimpleMetadataWithFilters, self
         ).determine_metadata(request, view)
 
-        if hasattr(view, 'filterset_class'):
+        filter_items = list()
+
+        if hasattr(view, 'filterset_class'):  # django-filter plugin
+            filter_items = view.filterset_class.base_filters.items()
+        elif hasattr(view, 'filter_class'):  # drf default
+            filter_items = view.filter_class.base_filters.items()
+
+        if filter_items:
             filters = list()
-            for filter_name, filter_type in view.filterset_class.base_filters.items():
+            for filter_name, filter_type in filter_items:
                 filter_obj = {
                     "name": filter_name,
                     "type": filter_type.__class__.__name__
@@ -29,7 +35,10 @@ class SimpleMetadataWithFilters(SimpleMetadata):
 
                 filters.append(filter_obj)
 
-            metadata['filters'] = filters
+            metadata['filter_classes'] = filters
+
+        if hasattr(view, 'filterset_fields'):
+            metadata['filterset'] = view.filterset_fields
 
         if hasattr(view, 'search_fields'):
             metadata['search'] = view.search_fields
