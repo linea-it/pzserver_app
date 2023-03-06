@@ -103,7 +103,7 @@ docker-compose up
 Go to Django ADMIN (for local installation, open a web browser and go to the URL: http://localhost/admin) and add a new Application with the following configuration:
 
 - `client_id` and `client_secret` should be left unchanged (copy these two tokens and paste them as the values for variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` inside **.env** and **.env.local**). 
-- `user` should be your superuser
+- `user` should be your superuser numeric ID (if you are the only user, it should be = 1)
 - `redirect_uris` should be left blank
 - `client_type` should be set to confidential
 - `authorization_grant_type` should be set to **'Resource owner password-based'**
