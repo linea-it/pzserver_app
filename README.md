@@ -102,16 +102,16 @@ docker-compose up
 
 Go to Django ADMIN (for local installation, open a web browser and go to the URL: http://localhost/admin) and add a new Application with the following configuration:
 
-- `client_id` and `client_secret` should be left unchanged
+- `client_id` and `client_secret` should be left unchanged (copy these two tokens and paste them as the values for variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` inside **.env** and **.env.local**). 
 - `user` should be your superuser
 - `redirect_uris` should be left blank
 - `client_type` should be set to confidential
 - `authorization_grant_type` should be set to **'Resource owner password-based'**
 - `name` can be set to whatever you'd like
+- checkbox for `Skip authorization` should remain unchecked 
+- `Algorithm`: keep the default option (No OIDC support) 
 
-**Before** clicking on the SAVE button, edit the configuration files (**.env** and **.env.local**) again and change the variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` in both files according to the values of `client_id` and `client_secret` respectively.
-
-> **WARNING**: only after editing the configuration files, the `SAVE` button must be pressed.
+> **WARNING**: As mentioned above, **BEFORE** clicking on the SAVE button, you must edit the configuration files (**.env** and **.env.local**) and change the variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` in both files according to the values of `client_id` and `client_secret` respectively. only after editing the configuration files, the `SAVE` button must be pressed.
 
 ![Adding new application](images/new_app.png)
 
