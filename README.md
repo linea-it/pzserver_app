@@ -119,7 +119,8 @@ The installation is done, you can now test the newly configured application.
 
 ### Some example commands
 
-Turn on background environment:
+Turn on background environment (if you have the application already running on the terminal, stop it with `CTRL + C` keys and up ir again, but in the background using `-d` argument):
+
 
 ```bash
 docker-compose up -d
