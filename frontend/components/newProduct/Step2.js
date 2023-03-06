@@ -226,7 +226,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
       <Typography paragraph variant="body">
         Please select the file(s) for the upload. The main file is the one
         containing the data. It must be a single file. For example, if the
-        product type is Spec-z Sample, Training Set, or Validation Set, the data
+        product type is Spec-z Sample or Training Set, the data
         must be tabular, and the tool supports the formats: CSV, FITS, HDF5, and
         parquet. Otherwise, if the product type is Validation Results or Photo-z
         Table, the file format is free. Please provide them compressed in a
