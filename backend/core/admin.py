@@ -1,13 +1,7 @@
-from django.contrib import admin
+from core.models import (Product, ProductContent, ProductFile, ProductType,
+                         Profile, Release)
 from django import forms
-from core.models import (
-    ProductType,
-    Product,
-    Release,
-    ProductContent,
-    ProductFile,
-    Profile,
-)
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
@@ -75,7 +69,8 @@ class ProductContentAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "file", "role", "type", "size", "extension")
+    list_display = ("id", "product", "file", "role",
+                    "type", "size", "extension")
 
     def has_add_permission(self, request):
         return False
@@ -96,8 +91,8 @@ class ProfileInline(admin.StackedInline):
 
 class CustomUserAdmin(UserAdmin):
     inlines = (ProfileInline,)
-
     list_display = (
+        "id",
         "username",
         "get_display_name",
         "email",
@@ -106,7 +101,7 @@ class CustomUserAdmin(UserAdmin):
         "is_staff",
         "get_group",
     )
-
+    readonly_fields = ("id",)
     list_select_related = ("profile",)
 
     def get_display_name(self, instance):
