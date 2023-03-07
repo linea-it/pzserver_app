@@ -2,6 +2,7 @@ import mimetypes
 import os
 import pathlib
 import secrets
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -122,8 +123,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                     )
 
             # Cria um internal name
-            name = self.get_internal_name(product.display_name)
-            product.internal_name = f"{product.pk}_{name}"
+            product.internal_name = self.get_internal_name(
+                product.display_name)
 
             # Cria um path para o produto
             relative_path = f"{product.product_type.name}/{product.internal_name}"
@@ -194,17 +195,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_internal_name(self, display_name):
         """
-        Cria um internal name sem caracteres especiais
-        e nem espaços.
-        o internal name pode ser usado para paths, urls e tablenames.
+        Creates an internal name without special characters or spaces.
+        The internal name can be used for paths, urls and tablenames.
         """
-        # troca espacos por "_", converte para lowercase, remove espacos do final
+
+        # change spaces to "_", convert to lowercase, remove trailing spaces.
         name = display_name.replace(" ", "_").lower().strip().strip("\n")
 
-        # Retirar qualquer caracter que nao seja alfanumerico exceto "_"
+        # strip any non-alphanumeric character except "_"
         name = "".join(e for e in name if e.isalnum() or e == "_")
 
-        return name
+        return f"{name}_{secrets.token_urlsafe(5)}"
 
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
@@ -212,20 +213,22 @@ class ProductViewSet(viewsets.ModelViewSet):
         try:
             product = self.get_object()
 
-            # Cria um arquivo zip no diretório tmp com os arquivos do produto
-            zip_file = self.zip_product(product.internal_name, product.path)
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                # Cria um arquivo zip no diretório tmp com os arquivos do produto
+                zip_file = self.zip_product(
+                    product.internal_name, product.path, tmpdirname)
 
-            # Abre o arquivo e envia em bites para o navegador
-            mimetype, _ = mimetypes.guess_type(zip_file)
-            size = zip_file.stat().st_size
-            name = zip_file.name
+                # Abre o arquivo e envia em bites para o navegador
+                mimetype, _ = mimetypes.guess_type(zip_file)
+                size = zip_file.stat().st_size
+                name = zip_file.name
 
-            file_handle = open(zip_file, "rb")
-            response = FileResponse(file_handle, content_type=mimetype)
-            response["Content-Length"] = size
-            response["Content-Disposition"] = "attachment; filename={}".format(
-                name)
-            return response
+                file_handle = open(zip_file, "rb")
+                response = FileResponse(file_handle, content_type=mimetype)
+                response["Content-Length"] = size
+                response["Content-Disposition"] = "attachment; filename={}".format(
+                    name)
+                return response
 
         except Exception as e:
             content = {"error": str(e)}
@@ -340,11 +343,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def zip_product(self, internal_name, path):
+    def zip_product(self, internal_name, path, tmpdir):
 
         product_path = pathlib.Path(settings.MEDIA_ROOT, path)
-        zip_name = f"{internal_name}_{secrets.token_urlsafe(8)}.zip"
-        zip_path = pathlib.Path(settings.MEDIA_ROOT, "tmp", zip_name)
+        thash = ''.join(secrets.choice(secrets.token_hex(16))
+                        for i in range(5))
+        zip_name = f"{internal_name}_{thash}.zip"
+        zip_path = pathlib.Path(tmpdir, zip_name)
 
         with zipfile.ZipFile(
             zip_path,
