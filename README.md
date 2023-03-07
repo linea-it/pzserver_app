@@ -27,7 +27,7 @@ cp env_template .env
 cp .env.local-template .env.local
 ```
 
-Edit the files and change the variables according to your environment, in this first moment pay attention to the variables referring to the django database and connection.
+Edit the files and change the variables according to your environment, in this first moment pay attention to the variables referring to the django database and connection (optional).
 
 Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`.
 
@@ -37,12 +37,13 @@ docker-compose up database
 
 Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker-compose stop database` in another terminal.
 
-Now start the backend service. As this is the first time, the base image will be pulled and the container will be built, this may take a while. If everything goes normally the last message will be something like `Booting worker with pid...`.
+Now start the backend service. As this is the first time, the base image will be pulled and the container will be built, this may take a while.
 
 ```bash
 docker-compose up backend
 ```
-
+If everything goes normally the last message will be something like `... spawned uWSGI worker x (pid: xx, cores: x)`
+ 
 Shut down the backend service to change one of the Django variables.
 
 To terminate use `CTRL + C` or `docker-compose stop`.
@@ -91,34 +92,35 @@ Also change the `docker-compose.yml` file in the ngnix service at the line `- ./
 
 Once this is done, the development environment setup process is complete.
 
-**Recommendation:** Before performing the push, it is recommended to build the frontend to prevent errors with ESlint from disrupting the Pull Request process:
+Finally, to start the whole application: 
 
 ``` bash
-docker-compose run frontend yarn build
+docker-compose up 
 ```
 
 ### Setting Up a New Application to manage authentication
 
-Go to Django ADMIN and add a new Application with the following configuration:
+Go to Django ADMIN (for local installation, open a web browser and go to the URL: http://localhost/admin) and add a new Application with the following configuration:
 
-![Adding new application](images/new_app.png)
-
-- `client_id` and `client_secret` should be left unchanged
-- `user` should be your superuser
+- `client_id` and `client_secret` should be left unchanged (copy these two tokens and paste them as the values for variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` inside **.env** and **.env.local**). 
+- `user` should be your superuser numeric ID (if you are the only user, it should be = 1)
 - `redirect_uris` should be left blank
 - `client_type` should be set to confidential
 - `authorization_grant_type` should be set to **'Resource owner password-based'**
 - `name` can be set to whatever you'd like
+- checkbox for `Skip authorization` should remain unchecked 
+- `Algorithm`: keep the default option (No OIDC support) 
 
-Edit the configuration files (**.env** and **.env.local**) again and change the variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` in both files according to the values of `client_id` and `client_secret` respectively.
+> **WARNING**: As mentioned above, **BEFORE** clicking on the SAVE button, you must edit the configuration files (**.env** and **.env.local**) and change the variables `DJANGO_OAUTH_CLIENT_ID` and `DJANGO_OAUTH_CLIENT_SECRET` in both files according to the values of `client_id` and `client_secret` respectively. only after editing the configuration files, the `SAVE` button must be pressed.
 
-> **WARNING**: only after editing the configuration files, the `SAVE` button must be pressed.
+![Adding new application](images/new_app.png)
 
 The installation is done, you can now test the newly configured application.
 
 ### Some example commands
 
-Turn on background environment:
+Turn on background environment (if you have the application already running on the terminal, stop it with `CTRL + C` keys and up ir again, but in the background using `-d` argument):
+
 
 ```bash
 docker-compose up -d
@@ -161,6 +163,12 @@ Add libraries to frontend using yarn:
 
 ``` bash
 docker-compose run frontend yarn add <library>
+```
+
+Check front-end changes before pushing new commits to the remote repository (it is recommended to build the frontend to prevent errors with ESlint from disrupting the Pull Request process):
+
+``` bash
+docker-compose run frontend yarn build
 ```
 
 ### Manual build of images and push to docker hub
