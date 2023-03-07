@@ -34,6 +34,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [isLoading, setLoading] = useState(false)
   const [progress, setProgress] = useState(null)
   const [formError, setFormError] = React.useState('')
+  const maxUploadSize = 200
 
   const loadFiles = React.useCallback(async () => {
     setFormError('')
@@ -225,7 +226,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
       <Typography paragraph variant="body">
         Please select the file(s) for the upload. The main file is the one
         containing the data. It must be a single file. For example, if the
-        product type is Spec-z Sample, Training Set, or Validation Set, the data
+        product type is Spec-z Sample or Training Set, the data
         must be tabular, and the tool supports the formats: CSV, FITS, HDF5, and
         parquet. Otherwise, if the product type is Validation Results or Photo-z
         Table, the file format is free. Please provide them compressed in a
@@ -238,6 +239,16 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
       <Typography paragraph variant="body">
         The Auxiliary Files are in free format and can be multiple files (press
         the upload button as many times as necessary).
+      </Typography>
+      <Typography paragraph variant="body">
+        The maximum upload size is {maxUploadSize}MB. For text files, e.g., CSV,
+        all commented lines are ignored. Index column is optional.
+      </Typography>
+      <Typography paragraph variant="body">
+        For text files, e.g., CSV all commented lines are ignored.
+      </Typography>
+      <Typography paragraph variant="body">
+        Index column is optional.
       </Typography>
       <Box>
         <Grid container spacing={4}>
@@ -256,7 +267,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                     onFileSelectError={e => {
                       handleFileError(0, e.error)
                     }}
-                    maxSize={200} // 200 MB
+                    maxSize={maxUploadSize} // 200 MB
                     buttonProps={{
                       color: 'primary',
                       disabled: progress !== null,
@@ -314,7 +325,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                   onFileSelectError={e => {
                     handleFileError(2, e.error)
                   }}
-                  maxSize={1} // 200 MB
+                  maxSize={maxUploadSize} // 200 MB
                   buttonProps={{
                     startIcon: <UploadIcon />,
                     disabled: progress !== null,
