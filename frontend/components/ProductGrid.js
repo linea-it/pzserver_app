@@ -1,17 +1,17 @@
 /* eslint-disable multiline-ternary */
-import * as React from 'react'
-import PropTypes from 'prop-types'
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
-import DownloadIcon from '@mui/icons-material/Download'
 import DeleteIcon from '@mui/icons-material/Delete'
-import moment from 'moment'
-import { getProducts } from '../services/product'
-import { useRouter } from 'next/router'
+import DownloadIcon from '@mui/icons-material/Download'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
+import moment from 'moment'
+import { useRouter } from 'next/router'
+import PropTypes from 'prop-types'
+import * as React from 'react'
+import { getProducts } from '../services/product'
 
 import ProductRemove from '../components/ProductRemove'
 
@@ -87,7 +87,8 @@ export default function ProductGrid(props) {
     }
 
     return [
-      { field: 'id', headerName: 'ID', width: 90, sortable: true },
+      // Hide Id Column ISSUE #123
+      // { field: 'id', headerName: 'ID', width: 90, sortable: true },
       { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
       {
         field: 'release_name',
