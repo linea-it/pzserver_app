@@ -1,4 +1,3 @@
-import DownloadIcon from '@mui/icons-material/Download'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
@@ -6,7 +5,6 @@ import {
   Chip,
   Divider,
   Grid,
-  IconButton,
   List,
   ListItem,
   ListItemText,
@@ -18,7 +16,6 @@ import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Link from '../components/Link'
 import Loading from '../components/Loading'
 import ProductNotFound from '../components/ProductNotFound'
 import {
@@ -151,18 +148,19 @@ export default function ProductDetail({ productId, internalName }) {
     // Se o nome do arquivo for grande,
     // exibe só os primeiros caracteres + extensao.
     let name = file.name
+    const extension = file.name.split('.').pop()
     if (file.name.length > 30) {
-      name = file.name.substring(0, 26) + file.name.slice(-4)
+      name = file.name.substring(0, 23) + '...' + extension
     }
     return (
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-        secondaryAction={
-          <IconButton component={Link} href={file.file} target="_blank">
-            <DownloadIcon />
-          </IconButton>
-        }
+      // secondaryAction={
+      //   <IconButton component={Link} href={file.file} target="_blank">
+      //     <DownloadIcon />
+      //   </IconButton>
+      // }
       >
         {file.role === 0 && (
           <ListItemText
