@@ -1,33 +1,30 @@
-import React from 'react'
-import useStyles from '../styles/pages/product'
+import VerifiedIcon from '@mui/icons-material/Verified'
+import LoadingButton from '@mui/lab/LoadingButton'
 import {
-  Grid,
-  Typography,
-  Paper,
   Box,
   Chip,
-  Stack,
+  Divider,
+  Grid,
   List,
   ListItem,
   ListItemText,
-  IconButton,
-  Divider
+  Paper,
+  Stack,
+  Typography
 } from '@mui/material'
-import LoadingButton from '@mui/lab/LoadingButton'
-import Link from '../components/Link'
-import VerifiedIcon from '@mui/icons-material/Verified'
+import moment from 'moment'
+import DefaultErrorPage from 'next/error'
+import prettyBytes from 'pretty-bytes'
+import PropTypes from 'prop-types'
+import React from 'react'
+import Loading from '../components/Loading'
 import {
   downloadProduct,
-  getProductFiles,
   getProduct,
+  getProductFiles,
   getProducts
 } from '../services/product'
-import moment from 'moment'
-import prettyBytes from 'pretty-bytes'
-import Loading from '../components/Loading'
-import DefaultErrorPage from 'next/error'
-import PropTypes from 'prop-types'
-import DownloadIcon from '@mui/icons-material/Download'
+import useStyles from '../styles/pages/product'
 
 export default function ProductDetail({ productId, internalName }) {
   const classes = useStyles()
@@ -148,18 +145,19 @@ export default function ProductDetail({ productId, internalName }) {
     // Se o nome do arquivo for grande,
     // exibe só os primeiros caracteres + extensao.
     let name = file.name
+    const extension = file.name.split('.').pop()
     if (file.name.length > 30) {
-      name = file.name.substring(0, 26) + file.name.slice(-4)
+      name = file.name.substring(0, 23) + '...' + extension
     }
     return (
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-        secondaryAction={
-          <IconButton component={Link} href={file.file} target="_blank">
-            <DownloadIcon />
-          </IconButton>
-        }
+        // secondaryAction={
+        //   <IconButton component={Link} href={file.file} target="_blank">
+        //     <DownloadIcon />
+        //   </IconButton>
+        // }
       >
         {file.role === 0 && (
           <ListItemText
