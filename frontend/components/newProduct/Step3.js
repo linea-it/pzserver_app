@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import {
-  TextField,
-  Typography,
-  FormControl,
-  Button,
-  Box,
-  Stack,
-  Alert
-} from '@mui/material'
-import MenuItem from '@mui/material/MenuItem'
-import Loading from '../Loading'
-import InputAdornment from '@mui/material/InputAdornment'
 import CloseIcon from '@mui/icons-material/Close'
+import {
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import { getProductContents, contentAssociation } from '../../services/product'
+import InputAdornment from '@mui/material/InputAdornment'
+import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
+import React, { useEffect, useState } from 'react'
+import { contentAssociation, getProductContents } from '../../services/product'
+import Loading from '../Loading'
 
 export default function NewProductStep3({ productId, onNext, onPrev }) {
   const ucds = [
@@ -184,6 +184,13 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         Please associate the column names of your file with those expected by
         the tool.
       </Typography>
+      <Typography paragraph variant="body">
+        It is okay to leave columns unassociated.
+      </Typography>
+      <Typography paragraph variant="body">
+        Skip this step if the data is not tabular.
+      </Typography>
+
       <Box
         component="form"
         sx={{

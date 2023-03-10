@@ -245,7 +245,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
         all commented lines are ignored. Index column is optional.
       </Typography>
       <Typography paragraph variant="body">
-        For text files, e.g., CSV all commented lines are ignored.
+        For text files, the header is optional (multiline headers are ignored).
       </Typography>
       <Typography paragraph variant="body">
         Index column is optional.
