@@ -1,20 +1,20 @@
-import React from 'react'
 import {
-  TextField,
+  Alert,
+  Box,
+  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
-  Button,
-  Box,
-  Typography,
-  Alert
+  TextField,
+  Typography
 } from '@mui/material'
+import PropTypes from 'prop-types'
+import React from 'react'
+import Loading from '../../components/Loading'
 import ProductTypeSelect from '../../components/ProductTypeSelect'
 import ReleaseSelect from '../../components/ReleaseSelect'
-import { getProduct, createProduct, patchProduct } from '../../services/product'
-import Loading from '../../components/Loading'
-import PropTypes from 'prop-types'
 import { useAuth } from '../../contexts/AuthContext'
+import { createProduct, getProduct, patchProduct } from '../../services/product'
 export default function NewProductStep1({ productId, onNext }) {
   const { user } = useAuth()
   const defaultProductValues = {
@@ -211,7 +211,8 @@ export default function NewProductStep1({ productId, onNext }) {
           </FormControl>
         )}
         {/* Survey necessário Product Type = specz_catalog - Spec-z Catalog */}
-        {prodType === 'specz_catalog' && (
+        {/* ISSUE #116 - Remove Survey Field */}
+        {/* {prodType === 'specz_catalog' && (
           <FormControl fullWidth>
             <TextField
               name="survey"
@@ -223,7 +224,7 @@ export default function NewProductStep1({ productId, onNext }) {
               helperText={fieldErrors.survey}
             />
           </FormControl>
-        )}
+        )} */}
         {/* Survey necessário Product Type = validation_results - Photo-z Results */}
         {prodType === 'validation_results' && (
           <FormControl fullWidth>
