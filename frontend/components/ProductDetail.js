@@ -13,11 +13,12 @@ import {
   Typography
 } from '@mui/material'
 import moment from 'moment'
-import DefaultErrorPage from 'next/error'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Loading from '../components/Loading'
+import ProductNotFound from '../components/ProductNotFound'
+
 import {
   downloadProduct,
   getProduct,
@@ -65,6 +66,9 @@ export default function ProductDetail({ productId, internalName }) {
         if (res.results.length === 1) {
           setLoading(false)
           setProduct(res)
+        }
+        if (res.results.length === 0) {
+          setNotFound(true)
         }
       })
       .catch(res => {
@@ -173,79 +177,84 @@ export default function ProductDetail({ productId, internalName }) {
   }
 
   if (isLoading) return <Loading isLoading={isLoading} />
-  if (notFound) return <DefaultErrorPage statusCode={404} />
+  if (notFound) return <ProductNotFound />
   if (!product) return null
 
   return (
     <React.Fragment>
-      <Grid
-        container
-        spacing={3}
-        direction="row"
-        justifyContent="flex-start"
-        alignItems="stretch"
-      >
-        <Grid item xs={8}>
-          <Paper elevation={2} className={classes.paper}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="flex-start"
-              spacing={2}
-            >
-              <Typography variant="h4">{product.display_name}</Typography>
-
-              {product.official_product === true && (
-                <Chip
-                  variant="outlined"
-                  color="success"
-                  label="Official Product"
-                  icon={<VerifiedIcon />}
-                />
-              )}
-            </Stack>
-            <Stack
-              direction="row"
-              justifyContent="flex-start"
-              alignItems="flex-start"
-              spacing={2}
-            >
-              <Typography variant="subtitle1" color="textSecondary">
-                <strong>Created at:</strong>{' '}
-                {moment(product.created_at).format('L LTS')}
-              </Typography>
-              <Typography variant="subtitle1" color="textSecondary">
-                <strong>Uploaded by:</strong> {product.uploaded_by}
-              </Typography>
-            </Stack>
-            <Box sx={{ m: 2 }}></Box>
-            <Typography variant="h6">
-              {product.release_name} - {product.product_type_name}
-            </Typography>
-            {product.description !== '' && (
-              <Typography variant="body">{product.description}</Typography>
-            )}
-          </Paper>
-        </Grid>
-        <Grid item xs={4}>
-          <Paper elevation={2} className={classes.paper}>
-            <Stack divider={<Divider flexItem />} spacing={2}>
-              <LoadingButton
-                loading={isDownloading}
-                variant="contained"
-                onClick={downloadFile}
+      <Box className={classes.pageHeader}>
+        <Typography variant="h6">Product</Typography>
+      </Box>
+      <Box component="form" noValidate autoComplete="off">
+        <Grid
+          container
+          spacing={3}
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
+          <Grid item xs={8}>
+            <Paper elevation={2} className={classes.paper}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                spacing={2}
               >
-                Download
-              </LoadingButton>
-              <List>
-                {files.map(pc => {
-                  return createFileFields(pc)
-                })}
-              </List>
-            </Stack>
-          </Paper>
+                <Typography variant="h4">{product.display_name}</Typography>
+
+                {product.official_product === true && (
+                  <Chip
+                    variant="outlined"
+                    color="success"
+                    label="Official Product"
+                    icon={<VerifiedIcon />}
+                  />
+                )}
+              </Stack>
+              <Stack
+                direction="row"
+                justifyContent="flex-start"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                <Typography variant="subtitle1" color="textSecondary">
+                  <strong>Created at:</strong>{' '}
+                  {moment(product.created_at).format('L LTS')}
+                </Typography>
+                <Typography variant="subtitle1" color="textSecondary">
+                  <strong>Uploaded by:</strong> {product.uploaded_by}
+                </Typography>
+              </Stack>
+              <Box sx={{ m: 2 }}></Box>
+              <Typography variant="h6">
+                {product.release_name} - {product.product_type_name}
+              </Typography>
+              {product.description !== '' && (
+                <Typography variant="body">{product.description}</Typography>
+              )}
+            </Paper>
+          </Grid>
+          <Grid item xs={4}>
+            <Paper elevation={2} className={classes.paper}>
+              <Stack divider={<Divider flexItem />} spacing={2}>
+                <LoadingButton
+                  loading={isDownloading}
+                  variant="contained"
+                  onClick={downloadFile}
+                >
+                  Download
+                </LoadingButton>
+                <List>
+                  {files.map(pc => {
+                    return createFileFields(pc)
+                  })}
+                </List>
+              </Stack>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
     </React.Fragment>
   )
 }

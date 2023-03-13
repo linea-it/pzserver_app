@@ -1,8 +1,8 @@
+import { Container } from '@mui/material'
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
-import useStyles from '../../styles/pages/product'
-import { Container, Typography, Box } from '@mui/material'
 import ProductDetail from '../../components/ProductDetail'
+import useStyles from '../../styles/pages/product'
 
 export default function Product() {
   const classes = useStyles()
@@ -11,12 +11,12 @@ export default function Product() {
 
   return (
     <Container className={classes.root}>
-      <Box className={classes.pageHeader}>
+      {/* <Box className={classes.pageHeader}>
         <Typography variant="h6">Product</Typography>
       </Box>
-      <Box component="form" noValidate autoComplete="off">
-        <ProductDetail internalName={pid}></ProductDetail>
-      </Box>
+      <Box component="form" noValidate autoComplete="off"> */}
+      <ProductDetail internalName={pid}></ProductDetail>
+      {/* </Box> */}
     </Container>
   )
 }
