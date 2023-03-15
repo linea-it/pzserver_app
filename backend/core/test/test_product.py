@@ -48,7 +48,6 @@ class ProductListCreateAPIViewTestCase(APITestCase):
             "release": self.release.pk,
             "display_name": "Sample Product",
             "official_product": False,
-            "survey": None,
             "pz_code": None,
             "description": "Test product description.",
         }
@@ -130,7 +129,6 @@ class ProductCreateRulesTestCase(APITestCase):
             "release": None,
             "display_name": "Sample Product",
             "official_product": False,
-            "survey": None,
             "pz_code": None,
             "description": "Test product description.",
         }
@@ -166,28 +164,6 @@ class ProductCreateRulesTestCase(APITestCase):
 
             # Check status response
             self.assertEqual(201, response.status_code)
-
-    def test_survey_field_rules(self):
-        """Survey is only allowed in Spec-z Catalog"""
-
-        product_dict = self.product_dict
-        product_dict["survey"] = "Test Survey"
-
-        # Not Allowed Product Types
-        for product_type in [
-            self.validation_results.pk,
-            self.training_set.pk,
-            self.photoz_table.pk,
-        ]:
-            product_dict["product_type"] = product_type
-            response = self.client.post(self.url, product_dict)
-
-            data = json.loads(response.content)
-
-            # Check status response
-            self.assertEqual(400, response.status_code)
-
-            self.assertTrue("survey" in data)
 
         # Allowed Product Type
         product_dict["product_type"] = self.specz_catalogs.pk
@@ -276,7 +252,6 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "release": self.release.pk,
             "display_name": "Sample Product",
             "official_product": False,
-            "survey": None,
             "pz_code": None,
             "description": "Test product description.",
         }
@@ -323,7 +298,6 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "internal_name": self.product.internal_name,
             "display_name": self.product.display_name,
             "official_product": self.product.official_product,
-            "survey": self.product.survey,
             "pz_code": self.product.pz_code,
             "description": self.product.description,
             "created_at": self.product.created_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),

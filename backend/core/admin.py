@@ -38,7 +38,6 @@ class ProductAdmin(admin.ModelAdmin):
         "internal_name",
         "display_name",
         "official_product",
-        "survey",
         "pz_code",
         "created_at",
         "status",

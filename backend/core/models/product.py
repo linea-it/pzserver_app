@@ -30,13 +30,13 @@ class Product(models.Model):
         blank=True,
         default=None,
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="products")
     internal_name = models.CharField(
         max_length=255, null=True, blank=True, default=None
     )
     display_name = models.CharField(max_length=255)
     official_product = models.BooleanField(default=False)
-    survey = models.CharField(max_length=255, null=True, blank=True)
     pz_code = models.CharField(max_length=55, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
