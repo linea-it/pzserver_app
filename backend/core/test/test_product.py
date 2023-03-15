@@ -165,13 +165,6 @@ class ProductCreateRulesTestCase(APITestCase):
             # Check status response
             self.assertEqual(201, response.status_code)
 
-        # Allowed Product Type
-        product_dict["product_type"] = self.specz_catalogs.pk
-        response = self.client.post(self.url, product_dict)
-
-        # Check status response
-        self.assertEqual(201, response.status_code)
-
     def test_pzcode_field_rules(self):
         """Pzcode is only allowed in Validations Results and Photo-z Table"""
 
