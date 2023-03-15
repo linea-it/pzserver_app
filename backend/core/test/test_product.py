@@ -65,7 +65,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         # Check database
         self.assertEqual(Product.objects.count(), 1)
         # Check Internal Name
-        self.assertTrue(data["internal_name"].startswith("sample_product"))
+        self.assertEqual(data["internal_name"], f"{ data['id'] }_sample_product")
         # Check User
         self.assertEqual(data["uploaded_by"], self.user.username)
         # Check Product Directory
