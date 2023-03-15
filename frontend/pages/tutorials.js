@@ -40,7 +40,7 @@ export default function Tutorials() {
                   page and fill in the Upload Form with relevant metadata.
                 </p>
                 <p>
-                  The photo-z-related products are organized into five
+                  The photo-z-related products are organized into four
                   categories (product types):
                 </p>
                 <ul>
