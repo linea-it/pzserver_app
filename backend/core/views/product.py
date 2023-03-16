@@ -123,8 +123,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                     )
 
             # Cria um internal name
-            product.internal_name = self.get_internal_name(
-                product.display_name)
+            name = self.get_internal_name(product.display_name)
+            product.internal_name = f"{product.pk}_{name}"
 
             # Cria um path para o produto
             relative_path = f"{product.product_type.name}/{product.internal_name}"
@@ -144,20 +144,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"release": [
                         "Release must be null on Spec-z Catalogs products."]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Survey is only allowed in Spec-z Catalog
-            if (
-                product.survey
-                and product.product_type.name != "specz_catalog"
-            ):
-                return Response(
-                    {
-                        "survey": [
-                            f"Survey must be null on {product.product_type.display_name} products."
-                        ]
-                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -185,13 +171,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
-        """Adiciona usuario e internal name."""
-        # Usuario que fez o upload
-        uploaded_by = self.request.user
+        """Create user and add internal_name"""
 
-        return serializer.save(
-            user=uploaded_by,
-        )
+        uploaded_by = self.request.user
+        return serializer.save(user=uploaded_by)
 
     def get_internal_name(self, display_name):
         """
@@ -203,9 +186,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         name = display_name.replace(" ", "_").lower().strip().strip("\n")
 
         # strip any non-alphanumeric character except "_"
-        name = "".join(e for e in name if e.isalnum() or e == "_")
-
-        return f"{name}_{secrets.token_urlsafe(5)}"
+        return "".join(e for e in name if e.isalnum() or e == "_")
 
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
@@ -229,14 +210,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                 response["Content-Disposition"] = "attachment; filename={}".format(
                     name)
                 return response
-
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(methods=["GET"], detail=True)
-    def content(self, request, **kwargs):
-        """Content product"""
+    def download_main_file(self, request, **kwargs):
+        """Download product main file"""
         try:
             product = self.get_object()
             main_file = product.files.get(role=0)
@@ -268,8 +248,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @action(methods=["GET"], detail=True)
-    def main_file(self, request, **kwargs):
-        """Get main file by product"""
+    def main_file_info(self, request, **kwargs):
+        """Get information about the main product file."""
         try:
             product = self.get_object()
             product_file = product.files.get(role=0)
