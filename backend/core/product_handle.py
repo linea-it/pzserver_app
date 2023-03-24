@@ -203,10 +203,10 @@ class TxtHandle(BaseHandle):
         super().__init__(filepath)
 
         self.delimiter = self.get_delimiter()
-        # Heder False para todos os arquivos de formato não especificado.
-        self.has_hd = False
 
         self.skiprows = self.count_skiprows()
+
+        self.has_hd = self.has_header()
 
         self.column_names = self.get_column_names()
 
@@ -222,28 +222,39 @@ class TxtHandle(BaseHandle):
 
         return df
 
-    def numpy_loadtxt(self, max_rows=None) -> np.ndarray:
+    def numpy_loadtxt(self) -> np.ndarray:
         try:
-            return np.loadtxt(self.filepath, skiprows=self.skiprows, max_rows=max_rows)
+            return np.loadtxt(
+                self.filepath, skiprows=self.skiprows, delimiter=self.delimiter
+            )
         except ValueError as e:
             msg = f"Invalid format. {str(e)}. For {self.filepath.suffix} files, all values must be numeric. Lines starting with # will be ignored."
             raise ValueError(msg)
 
-    def get_column_names(self) -> List[Column]:
-        # Cria nomes para as colunas de forma sequencial [0...len(headers)]
-        # o Resultado é uma lista de str: ['0', ...,'10',...]
-        df = pd.DataFrame(self.numpy_loadtxt(max_rows=2))
-        columns = [str(i) for i in [*range(0, len(df.iloc[0]))]]
-
-        # Tenta ler o nome das colunas apenas para arquivos onde a primeira linha é toda de string.
+    def has_header(self) -> bool:
         if self.skiprows == 1:
+            return True
+        else:
+            return False
+
+    def get_column_names(self) -> List[Column]:
+        # Tenta ler o nome das colunas apenas para arquivos onde a primeira linha é toda de string.
+        if self.has_hd:
             with open(self.filepath, "r") as fp:
-                line = fp.readline().replace("\n", "")
+                line = fp.readline().replace("\r\n", "")
                 if line.startswith("#"):
                     line = line.strip("#").strip()
 
-                columns = [str(i).strip() for i in line.split()]
-
+                columns = [str(i).strip() for i in line.split(self.delimiter)]
+        else:
+            # Cria nomes para as colunas de forma sequencial [0...len(headers)]
+            # o Resultado é uma lista de str: ['0', ...,'10',...]
+            df = pd.DataFrame(
+                np.loadtxt(
+                    self.filepath, delimiter=self.delimiter, skiprows=self.skiprows
+                )
+            )
+            columns = [str(i) for i in [*range(0, len(df.iloc[0]))]]
         return columns
 
     def get_delimiter(self):
@@ -256,6 +267,8 @@ class TxtHandle(BaseHandle):
             dt = csvfile.readline().replace("\n", "")
             delimiter = csv.Sniffer().sniff(dt).delimiter
 
+        if delimiter.isspace():
+            return None
         return delimiter
 
     def count_skiprows(
@@ -264,21 +277,16 @@ class TxtHandle(BaseHandle):
         count = 0
         with open(self.filepath, "r") as f:
             for line in f:
-                if line.startswith("#"):
-                    count += 1
-                elif self.valid_list(line):
+                if line.startswith("#") or self.is_line_str(line.strip("\r\n")):
                     count += 1
                 else:
-                    return count
+                    break
+        return count
 
-    def isfloatstr(self, x):
-        try:
-            float(x)
-            return True
-        except ValueError:
-            return False
-
-    def valid_list(self, line):
+    def is_line_str(self, line):
         return all(
-            (isinstance(el, str) and not self.isfloatstr(el)) for el in line.split()
+            (
+                isinstance(el, str) and not el.isnumeric()
+                for el in line.split(self.delimiter)
+            )
         )

@@ -8,7 +8,15 @@ import tables_io
 from astropy.table import Table
 
 
-def sample_product_file(extension="csv", compression=None, header=True):
+def sample_product_file(
+    extension="csv",
+    compression=None,
+    header=True,
+    delimiter=";",
+    comment="#",
+    commented_lines=0,
+    value_error=False,
+):
     data = [
         {
             "coadd_objects_id": 18599476134425520,
@@ -84,16 +92,22 @@ def sample_product_file(extension="csv", compression=None, header=True):
         },
     ]
 
+    if value_error:
+        # Troca um dos valores do primeiro registro por uma string.
+        data[0]["extendedness"] = "string_value"
+
+    columns = [
+        "coadd_objects_id",
+        "z_true",
+        "ra",
+        "dec",
+        "extendedness",
+        "mag_g",
+    ]
+
     df = pd.DataFrame(
         data=data,
-        columns=[
-            "coadd_objects_id",
-            "z_true",
-            "ra",
-            "dec",
-            "extendedness",
-            "mag_g",
-        ],
+        columns=columns,
     )
     filename = f"sample_file.{extension}"
     filepath = Path("/tmp/", filename)
@@ -112,6 +126,30 @@ def sample_product_file(extension="csv", compression=None, header=True):
             tempResult.unlink()
         tables_io.write(td_ap, str(result), extension)
         result = tempResult
+
+    else:
+        with open(filepath, "w") as f:
+            header_lines = []
+            end = "\r\n"
+            if header:
+                start = ""
+                if commented_lines > 0:
+                    start = f"{comment} "
+                content = str(delimiter).join(columns).strip()
+
+                line = f"{start}{content}{end}"
+
+                header_lines.append(line)
+            if commented_lines > 1:
+                for i in range(0, commented_lines):
+                    line = f"{comment} Lorem ipsum dolor sit amet consectetur{end}"
+                    header_lines.append(line)
+
+            f.writelines(header_lines)
+
+            for row in data:
+                line = str(delimiter).join(map(str, row.values()))
+                f.write(line.strip() + "\r\n")
 
     if compression == "zip":
         filename = "sample_file.zip"
