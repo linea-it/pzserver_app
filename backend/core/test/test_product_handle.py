@@ -82,18 +82,19 @@ class TestProductHandleClass(APITestCase):
                 "delimiter": " ",
                 "commented_lines": 5,
             },
+            {
+                "extension": "txt",
+                "header": False,
+                "compression": None,
+                "delimiter": " ",
+                "str_value": True,
+            },
         ]
 
     def test_df_from_file(self):
         for tcase in self.tcases:
             # Cria o arquivo de teste
-            sample_file = sample_product_file(
-                extension=tcase["extension"],
-                header=tcase["header"],
-                compression=tcase["compression"],
-                delimiter=tcase.get("delimiter", None),
-                commented_lines=tcase.get("commented_lines", 0),
-            )
+            sample_file = sample_product_file(**tcase)
 
             if tcase["compression"] != None:
                 with pytest.raises(NotTableError):
@@ -145,14 +146,14 @@ class TestProductHandleClass(APITestCase):
         with pytest.raises(NotImplementedError):
             BaseHandle(sample_file).to_df()
 
-    def test_txt_handle_value_error_exception(self):
-        sample_file = sample_product_file(
-            extension="txt",
-            header=True,
-            compression=None,
-            delimiter=" ",
-            commented_lines=0,
-            value_error=True,
-        )
-        with pytest.raises(ValueError):
-            ProductHandle().df_from_file(sample_file)
+    # def test_txt_handle_str_value_exception(self):
+    #     sample_file = sample_product_file(
+    #         extension="txt",
+    #         header=True,
+    #         compression=None,
+    #         delimiter=" ",
+    #         commented_lines=0,
+    #         str_value=True,
+    #     )
+    #     with pytest.raises(ValueError):
+    #         ProductHandle().df_from_file(sample_file)

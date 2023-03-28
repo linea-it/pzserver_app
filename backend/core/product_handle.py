@@ -204,6 +204,10 @@ class TxtHandle(BaseHandle):
 
         self.delimiter = self.get_delimiter()
 
+        self.delim_whitespace = False
+        if self.delimiter == None:
+            self.delim_whitespace = True
+
         self.skiprows = self.count_skiprows()
 
         self.has_hd = self.has_header()
@@ -216,20 +220,15 @@ class TxtHandle(BaseHandle):
         # ignores all initial lines that after the split have only string.
         # Acept space as delimiter.
         # Does not accept string values.
-        df = pd.DataFrame(self.numpy_loadtxt())
-        # Rename columns in dataframe
-        df = df.set_axis(self.column_names, axis=1, inplace=False)
-
+        df = pd.read_csv(
+            self.filepath,
+            delimiter=self.delimiter,
+            skiprows=self.skiprows,
+            names=self.column_names,
+            header=None,
+            delim_whitespace=self.delim_whitespace,
+        )
         return df
-
-    def numpy_loadtxt(self) -> np.ndarray:
-        try:
-            return np.loadtxt(
-                self.filepath, skiprows=self.skiprows, delimiter=self.delimiter
-            )
-        except ValueError as e:
-            msg = f"Invalid format. {str(e)}. For {self.filepath.suffix} files, all values must be numeric. Lines starting with # will be ignored."
-            raise ValueError(msg)
 
     def has_header(self) -> bool:
         if self.skiprows == 1:
@@ -249,10 +248,12 @@ class TxtHandle(BaseHandle):
         else:
             # Cria nomes para as colunas de forma sequencial [0...len(headers)]
             # o Resultado é uma lista de str: ['0', ...,'10',...]
-            df = pd.DataFrame(
-                np.loadtxt(
-                    self.filepath, delimiter=self.delimiter, skiprows=self.skiprows
-                )
+            df = pd.read_csv(
+                self.filepath,
+                delimiter=self.delimiter,
+                skiprows=self.skiprows,
+                header=None,
+                delim_whitespace=self.delim_whitespace,
             )
             columns = [str(i) for i in [*range(0, len(df.iloc[0]))]]
         return columns
@@ -269,6 +270,7 @@ class TxtHandle(BaseHandle):
 
         if delimiter.isspace():
             return None
+
         return delimiter
 
     def count_skiprows(

@@ -15,7 +15,7 @@ def sample_product_file(
     delimiter=";",
     comment="#",
     commented_lines=0,
-    value_error=False,
+    str_value=False,
 ):
     data = [
         {
@@ -92,7 +92,7 @@ def sample_product_file(
         },
     ]
 
-    if value_error:
+    if str_value:
         # Troca um dos valores do primeiro registro por uma string.
         data[0]["extendedness"] = "string_value"
 
