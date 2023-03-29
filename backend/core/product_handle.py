@@ -3,6 +3,7 @@ import csv
 from pathlib import Path
 from typing import List
 
+import numpy as np
 import pandas as pd
 import tables_io
 from core._typing import Column, PathLike
@@ -28,12 +29,10 @@ class ProductHandle:
 
 
 class FileHandle(object):
-
     handle = None
     extension = None
 
     def __init__(self, filepath: PathLike):
-
         fp = Path(filepath)
 
         # Identificar o formato do arquivo
@@ -49,8 +48,10 @@ class FileHandle(object):
                 self.handle = CompressedHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
-                message = f"The {self.extension} extension has not yet been implemented"
-                raise NotImplementedError(message)
+                # Try TxtHandle
+                self.handle = TxtHandle(fp)
+                # message = f"The {self.extension} extension has not yet been implemented"
+                # raise NotImplementedError(message)
 
     def to_df(self, **kwargs):
         return self.handle.to_df(**kwargs)
@@ -68,14 +69,12 @@ class BaseHandle(object):
 
 
 class CsvHandle(BaseHandle):
-
     delimiter = str
     has_hd = bool  # True se o arquivo CSV possuir Headers na primeira linha.
     # Lista com nome das colunas que podem ser str ou int.
     column_names = [Column]
 
     def __init__(self, filepath: PathLike):
-
         super().__init__(filepath)
 
         self.delimiter = self.get_delimiter()
@@ -83,7 +82,6 @@ class CsvHandle(BaseHandle):
         self.column_names = self.get_column_names()
 
     def to_df(self, **kwargs) -> pd.DataFrame:
-
         # Check for header parameter
         if "header" in kwargs:
             raise Exception(
@@ -127,10 +125,8 @@ class CsvHandle(BaseHandle):
         # Method: open csv twice considering with header and without header,
         # if the data types are the same in both times it probably doesn't have header.
         # https://stackoverflow.com/questions/53100598/can-pandas-auto-recognize-if-header-is-present/53101192#53101192
-        df = pd.read_csv(self.filepath, header=None,
-                         delimiter=self.delimiter, nrows=20)
-        df_header = pd.read_csv(
-            self.filepath, delimiter=self.delimiter, nrows=20)
+        df = pd.read_csv(self.filepath, header=None, delimiter=self.delimiter, nrows=20)
+        df_header = pd.read_csv(self.filepath, delimiter=self.delimiter, nrows=20)
         if tuple(df.dtypes) != tuple(df_header.dtypes):
             temp.append(True)
         else:
@@ -145,9 +141,7 @@ class CsvHandle(BaseHandle):
         return all(temp)
 
     def get_column_names(self) -> List[Column]:
-
-        df = pd.read_csv(self.filepath, header=None,
-                         delimiter=self.delimiter, nrows=5)
+        df = pd.read_csv(self.filepath, header=None, delimiter=self.delimiter, nrows=5)
 
         if self.has_hd:
             df = df[1:].reset_index(drop=True).rename(columns=df.iloc[0])
@@ -174,7 +168,6 @@ class CsvHandle(BaseHandle):
 
 class TableIOHandle(BaseHandle):
     def __init__(self, filepath: PathLike):
-
         super().__init__(filepath)
 
     def to_df(self, **kwargs) -> pd.DataFrame:
@@ -191,10 +184,111 @@ class TableIOHandle(BaseHandle):
 
 class CompressedHandle(BaseHandle):
     def __init__(self, filepath: PathLike):
-
         super().__init__(filepath)
 
     def to_df(self, **kwargs) -> pd.DataFrame:
         raise NotTableError(
             "It is not possible to return a dataframe from this file type."
+        )
+
+
+class TxtHandle(BaseHandle):
+    delimiter = str
+    has_hd = bool
+    skiprows = int
+    # Lista com nome das colunas que podem ser str ou int.
+    column_names = [Column]
+
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+        self.delimiter = self.get_delimiter()
+
+        self.delim_whitespace = False
+        if self.delimiter == None:
+            self.delim_whitespace = True
+
+        self.skiprows = self.count_skiprows()
+
+        self.has_hd = self.has_header()
+
+        self.column_names = self.get_column_names()
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        # Try read table using numpy
+        # Ignore all lines start with #
+        # ignores all initial lines that after the split have only string.
+        # Acept space as delimiter.
+        # Does not accept string values.
+        df = pd.read_csv(
+            self.filepath,
+            delimiter=self.delimiter,
+            skiprows=self.skiprows,
+            names=self.column_names,
+            header=None,
+            delim_whitespace=self.delim_whitespace,
+        )
+        return df
+
+    def has_header(self) -> bool:
+        if self.skiprows == 1:
+            return True
+        else:
+            return False
+
+    def get_column_names(self) -> List[Column]:
+        # Tenta ler o nome das colunas apenas para arquivos onde a primeira linha é toda de string.
+        if self.has_hd:
+            with open(self.filepath, "r") as fp:
+                line = fp.readline().replace("\r\n", "")
+                if line.startswith("#"):
+                    line = line.strip("#").strip()
+
+                columns = [str(i).strip() for i in line.split(self.delimiter)]
+        else:
+            # Cria nomes para as colunas de forma sequencial [0...len(headers)]
+            # o Resultado é uma lista de str: ['0', ...,'10',...]
+            df = pd.read_csv(
+                self.filepath,
+                delimiter=self.delimiter,
+                skiprows=self.skiprows,
+                header=None,
+                delim_whitespace=self.delim_whitespace,
+            )
+            columns = [str(i) for i in [*range(0, len(df.iloc[0]))]]
+        return columns
+
+    def get_delimiter(self):
+        """Get delimiter from file
+
+        Returns:
+            str: delimiter
+        """
+        with open(self.filepath, "r") as csvfile:
+            dt = csvfile.readline().replace("\n", "")
+            delimiter = csv.Sniffer().sniff(dt).delimiter
+
+        if delimiter.isspace():
+            return None
+
+        return delimiter
+
+    def count_skiprows(
+        self,
+    ):
+        count = 0
+        with open(self.filepath, "r") as f:
+            for line in f:
+                if line.startswith("#") or self.is_line_str(line.strip("\r\n")):
+                    count += 1
+                else:
+                    break
+        return count
+
+    def is_line_str(self, line):
+        return all(
+            (
+                isinstance(el, str) and not el.isnumeric()
+                for el in line.split(self.delimiter)
+            )
         )

@@ -201,6 +201,12 @@ run all tests
 docker-compose exec backend pytest
 ```
 
+run all tests with coverage, Check local coverage in localhost/coverage
+
+```bash
+docker-compose exec backend pytest --cov=./ --cov-report=html
+```
+
 run only a file
 
 ```bash
