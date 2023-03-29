@@ -14,6 +14,7 @@ services:
     # ATENÇÃO: Substitua a imagem pela versão desejada
     image: linea/pzserver:backend_<VERSION>
     command: ./entrypoint.sh
+    user: 1000:10000
     env_file:
       - .env
     volumes:

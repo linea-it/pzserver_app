@@ -31,7 +31,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip wheel  && \
     pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
 
-
 FROM python:3.10-slim
 
 COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
@@ -39,9 +38,17 @@ COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
 
+ARG USERNAME=pzapp 
+ARG UID=1000
+ARG GID=$UID
+
+RUN groupadd --gid $GID $USERNAME \
+    && useradd --uid $UID --gid $GID -m $USERNAME \
+    && chown -R $UID:$GID /app
+
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY ./entrypoint.sh /app/entrypoint.sh
+COPY --chown=$USERNAME:$USERNAME ./entrypoint.sh /app/entrypoint.sh
+COPY --chown=$USERNAME:$USERNAME . /app
 
-COPY . /app
-
+USER $USERNAME
