@@ -29,6 +29,22 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     {
       name: 'Dec',
       value: 'pos.eq.dec;meta.main'
+    },
+    {
+      name: 'z',
+      value: 'src.redshift'
+    },
+    {
+      name: 'z_err',
+      value: 'stat.error;src.redshift'
+    },
+    {
+      name: 'z_flag',
+      value: 'stat.rank'
+    },
+    {
+      name: 'survey',
+      value: 'meta.curation'
     }
   ]
 
