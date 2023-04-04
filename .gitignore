@@ -9,7 +9,6 @@ venv.bak/
 *.http
 
 # Postgresql stuffs
-pg_data/
 pg_backups/
 
 # Ngnix 

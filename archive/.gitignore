@@ -2,3 +2,5 @@
 */
 !.gitignore
 !django_static
+!log
+!data

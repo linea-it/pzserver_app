@@ -15,7 +15,7 @@ uwsgi \
     --processes=4 \
     --threads=2 \
     --static-map /django_static=/app/django_static \
-    --py-autoreload=1 
+    --py-autoreload=${AUTORELOAD:-0}
     # --static-map /django_static/rest_framework=/app/static/rest_framework \
 
     
