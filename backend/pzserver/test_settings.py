@@ -16,7 +16,7 @@ import os
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LOG_DIR = os.path.join(BASE_DIR, "log")
+LOG_DIR = os.getenv("LOG_DIR", "archive/log/backend")
 LOGGING_LEVEL = "INFO"
 
 # Quick-start development settings - unsuitable for production
