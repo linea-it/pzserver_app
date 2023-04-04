@@ -11,20 +11,20 @@ services:
       - 5432
     volumes:
       - ./pg_data:/var/lib/postgresql/data
-      - ./pg_backups:/pg_backups
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        - "USERID=${USERID:-1000}"
+        - "GROUPID=${GROUPID:-1000}"
+        - "USERNAME=${USERNAME:-pzapp}"
     command: ./entrypoint.sh
-    args:
-      - "UID=${UID:-1000}"
-      - "GID=${GID:-1000}"
-      - "USERNAME=${USERNAME:-pzapp}"
     env_file:
       - .env
     volumes:
       - ./backend:/app
-      - ./archive/log/backend:/log
+      - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
     depends_on:
       - database

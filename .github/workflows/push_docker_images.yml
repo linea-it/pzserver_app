@@ -49,6 +49,10 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            USERNAME=${{ secrets.PZ_USERNAME }}
+            USERID=${{ secrets.PZ_USERID }}
+            GROUPID=${{ secrets.PZ_GROUPID }}
 
   build_frontend:
     name: Build and Push Frontend
@@ -91,3 +95,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            USERID=${{ secrets.PZ_USERID }}
+            GROUPID=${{ secrets.PZ_GROUPID }}

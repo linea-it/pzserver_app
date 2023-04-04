@@ -12,14 +12,14 @@ RUN yarn build
 FROM node:16.14.2-slim as runner
 WORKDIR /app
 
-ARG UID=1000
-ARG GID=1000
+ARG USERID=1000
+ARG GROUPID=1000
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends build-essential \
   && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man \
   && apt-get clean \
-  && groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
+  && groupmod -g "${GROUPID}" node && usermod -u "${USERID}" -g "${GROUPID}" node
 
 ENV NODE_ENV production
 

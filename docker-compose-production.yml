@@ -2,26 +2,15 @@ version: "3.9"
 
 services:
 
-  database:
-    image: postgres:13.6-alpine
-    env_file:
-      - .env
-    volumes:
-      - ./pg_data:/var/lib/postgresql/data
-      - ./pg_backups:/pg_backups
-
   backend:
     # ATENÇÃO: Substitua a imagem pela versão desejada
     image: linea/pzserver:backend_<VERSION>
     command: ./entrypoint.sh
-    user: 1000:10000
     env_file:
       - .env
     volumes:
       - ./archive/data:/archive/data
       - ./archive/log/backend:/log
-    depends_on:
-      - database
 
   frontend:
     # ATENÇÃO: Substitua a imagem pela versão desejada

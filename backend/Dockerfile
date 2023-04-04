@@ -38,17 +38,19 @@ COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
 
-ARG USERNAME=pzapp 
-ARG UID=1000
-ARG GID=$UID
+ARG USERNAME=pzapp
+ARG USERID=1000
+ARG GROUPID=1000
 
-RUN groupadd --gid $GID $USERNAME \
-    && useradd --uid $UID --gid $GID -m $USERNAME \
-    && chown -R $UID:$GID /app
+RUN groupadd --gid ${GROUPID} $USERNAME \
+    && useradd --uid ${USERID} --gid ${GROUPID} -m ${USERNAME} \
+    && mkdir -p /archive/data /archive/logs \
+    && chown -R ${USERNAME}:${USERNAME} /app \
+    && chown -R ${USERNAME}:${USERNAME} /archive
 
-ENV PATH="/opt/venv/bin:$PATH"
-
-COPY --chown=$USERNAME:$USERNAME ./entrypoint.sh /app/entrypoint.sh
-COPY --chown=$USERNAME:$USERNAME . /app
+COPY --chown=${USERNAME}:${USERNAME} ./entrypoint.sh /app/entrypoint.sh
+COPY --chown=${USERNAME}:${USERNAME} . /app
 
 USER $USERNAME
+
+ENV PATH="/opt/venv/bin:$PATH"
