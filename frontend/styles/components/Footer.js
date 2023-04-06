@@ -52,6 +52,10 @@ const useStyles = makeStyles(theme => ({
     color: '#fff',
     fontFamily: 'League Gothic',
     fontSize: 32
+  },
+  images_credits: {
+    color: '#fff',
+    paddingTop: '15px'
   }
 }))
 
