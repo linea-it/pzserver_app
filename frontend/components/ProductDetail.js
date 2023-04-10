@@ -160,11 +160,11 @@ export default function ProductDetail({ productId, internalName }) {
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-      // secondaryAction={
-      //   <IconButton component={Link} href={file.file} target="_blank">
-      //     <DownloadIcon />
-      //   </IconButton>
-      // }
+        // secondaryAction={
+        //   <IconButton component={Link} href={file.file} target="_blank">
+        //     <DownloadIcon />
+        //   </IconButton>
+        // }
       >
         {file.role === 0 && (
           <ListItemText
