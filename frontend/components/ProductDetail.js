@@ -238,13 +238,15 @@ export default function ProductDetail({ productId, internalName }) {
           <Grid item xs={4}>
             <Paper elevation={2} className={classes.paper}>
               <Stack divider={<Divider flexItem />} spacing={2}>
-                <LoadingButton
-                  loading={isDownloading}
-                  variant="contained"
-                  onClick={downloadFile}
-                >
-                  Download
-                </LoadingButton>
+                {product.status === 1 && (
+                  <LoadingButton
+                    loading={isDownloading}
+                    variant="contained"
+                    onClick={downloadFile}
+                  >
+                    Download
+                  </LoadingButton>
+                )}
                 <List>
                   {files.map(pc => {
                     return createFileFields(pc)
