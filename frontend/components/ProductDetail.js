@@ -2,6 +2,9 @@ import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
   Box,
+  Card,
+  CardContent,
+  CardHeader,
   Chip,
   Divider,
   Grid,
@@ -17,8 +20,8 @@ import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Loading from '../components/Loading'
+import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
-
 import {
   downloadProduct,
   getProduct,
@@ -157,11 +160,11 @@ export default function ProductDetail({ productId, internalName }) {
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-        // secondaryAction={
-        //   <IconButton component={Link} href={file.file} target="_blank">
-        //     <DownloadIcon />
-        //   </IconButton>
-        // }
+      // secondaryAction={
+      //   <IconButton component={Link} href={file.file} target="_blank">
+      //     <DownloadIcon />
+      //   </IconButton>
+      // }
       >
         {file.role === 0 && (
           <ListItemText
@@ -252,6 +255,14 @@ export default function ProductDetail({ productId, internalName }) {
                 </List>
               </Stack>
             </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Card elevation={2}>
+              <CardHeader title="Table preview" />
+              <CardContent>
+                <ProductDataGrid productId={product.id}></ProductDataGrid>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

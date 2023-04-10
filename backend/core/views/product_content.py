@@ -6,7 +6,7 @@ from rest_framework import viewsets
 class ProductContentViewSet(viewsets.ModelViewSet):
     queryset = ProductContent.objects.all()
     serializer_class = ProductContentSerializer
-    filterset_fields = ("id", "product_id")
+    filterset_fields = ("id", "product")
     ordering_fields = [
         "id",
         "order",
