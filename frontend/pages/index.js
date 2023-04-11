@@ -1,21 +1,21 @@
+import Head from 'next/head'
 import {
+  Grid,
   Card,
   CardActionArea,
   CardMedia,
-  Grid,
   Typography
 } from '@mui/material'
-import Head from 'next/head'
-import { parseCookies } from 'nookies'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/index'
+import { parseCookies } from 'nookies'
 
 export default function Index() {
   const classes = useStyles()
 
   const interfaces = [
     {
-      title: 'Rubin Observatory PZ Data Products',
+      title: 'LSST PZ Data Products',
       path: '/oficial_products',
       background: '/interfaces/lsst-dp.jpg',
       description:
