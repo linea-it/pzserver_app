@@ -48,8 +48,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     background: 'url(/header.jpg)',
     backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    backgroundPositionY: '-400px'
+    backgroundSize: 'cover'
     // height: '30%'
     // marginBottom: theme.spacing(4)
   },
