@@ -10,15 +10,13 @@ POSTGRES_DB=pzdev
 # export GROUPID=1000      # gid
 # export USERNAME=pzapp    # container user
 
-# Select 1 to enable auto reload and 0 to turn off. In production we must 
-# disable it.
-export AUTORELOAD=1
-
 # Backend/Django
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
 LOGGING_LEVEL=DEBUG
-
+# AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must 
+# disable it.
+AUTORELOAD=1
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY=Z-cVO6l8catnpijVIKXcwwaKeGJTzJ2hiItn3lw2a4M
 

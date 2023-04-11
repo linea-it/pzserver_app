@@ -12,8 +12,8 @@ uwsgi \
     --wsgi-file /app/pzserver/wsgi.py \
     --module pzserver.wsgi:application \
     --buffer-size=32768 \
-    --processes=4 \
-    --threads=2 \
+    --processes=1 \
+    --threads=1 \
     --static-map /django_static=/app/django_static \
     --py-autoreload=${AUTORELOAD:-0}
     # --static-map /django_static/rest_framework=/app/static/rest_framework \

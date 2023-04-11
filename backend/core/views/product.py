@@ -4,20 +4,24 @@ import pathlib
 import secrets
 import tempfile
 import zipfile
+from json import dumps, loads
 from pathlib import Path
 
 import pandas as pd
 from core.models import Product
-from core.product_handle import FileHandle
-from core.serializers import ProductSerializer
+from core.pagination import CustomPageNumberPagination
+from core.product_handle import FileHandle, NotTableError
+from core.serializers import ProductContentSerializer, ProductSerializer
 from core.views.registry_product import RegistryProduct
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import FileResponse, JsonResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 
@@ -239,6 +243,34 @@ class ProductViewSet(viewsets.ModelViewSet):
             return response
         except Exception as e:
             content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=["GET"], detail=True)
+    def read_data(self, request, **kwargs):
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 100))
+
+        product = self.get_object()
+        product_file = product.files.get(role=0)
+        main_file_path = Path(product_file.file.path)
+
+        try:
+            df = FileHandle(main_file_path).to_df()
+            records = loads(df.to_json(orient='records'))
+            paginator = Paginator(records, page_size)
+            records = paginator.get_page(page)
+
+            return Response({
+                'count': df.shape[0],
+                'columns': df.columns,
+                'results': records.object_list})
+
+        except NotTableError as e:
+            content = {
+                "message": "Table preview not available for this product type."}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            content = {"message": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(methods=["GET"], detail=True)
