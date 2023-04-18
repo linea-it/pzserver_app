@@ -48,7 +48,8 @@
 				"oderwat.indent-rainbow",
 				"DavidAnson.vscode-markdownlint",
 				"mervin.markdown-formatter",
-				"ms-python.isort"
+				"ms-python.isort",
+				"njpwerner.autodocstring"
 			]
 		}
 	},

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-import { api } from './api'
 import forIn from 'lodash/forIn'
+import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
 export const getReleases = ({ }) => {
@@ -136,6 +136,16 @@ export const getProduct = product_id => {
   return api.get(`/api/products/${product_id}/`).then(res => res.data)
 }
 
+export const fetchProductData = ({ queryKey }) => {
+  const [_, params] = queryKey
+  const { productId, page, pageSize: page_size } = params
+  if (!productId) {
+    return
+  }
+  page += 1
+  return api.get(`/api/products/${productId}/read_data/`, { params: { page, page_size } }).then(res => res.data)
+}
+
 export const deleteProduct = product_id => {
   return api.delete(`/api/products/${product_id}/`)
 }
@@ -147,7 +157,7 @@ export const getProductPendingPublication = () => {
 export const getProductContents = product_id => {
   return api
     .get('/api/product-contents/', {
-      params: { product_id: product_id, ordering: 'order' }
+      params: { product: product_id, ordering: 'order' }
     })
     .then(res => res.data)
 }

@@ -2,6 +2,9 @@ import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
   Box,
+  Card,
+  CardContent,
+  CardHeader,
   Chip,
   Divider,
   Grid,
@@ -17,8 +20,8 @@ import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Loading from '../components/Loading'
+import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
-
 import {
   downloadProduct,
   getProduct,
@@ -238,13 +241,15 @@ export default function ProductDetail({ productId, internalName }) {
           <Grid item xs={4}>
             <Paper elevation={2} className={classes.paper}>
               <Stack divider={<Divider flexItem />} spacing={2}>
-                <LoadingButton
-                  loading={isDownloading}
-                  variant="contained"
-                  onClick={downloadFile}
-                >
-                  Download
-                </LoadingButton>
+                {product.status === 1 && (
+                  <LoadingButton
+                    loading={isDownloading}
+                    variant="contained"
+                    onClick={downloadFile}
+                  >
+                    Download
+                  </LoadingButton>
+                )}
                 <List>
                   {files.map(pc => {
                     return createFileFields(pc)
@@ -252,6 +257,14 @@ export default function ProductDetail({ productId, internalName }) {
                 </List>
               </Stack>
             </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Card elevation={2}>
+              <CardHeader title="Table preview" />
+              <CardContent>
+                <ProductDataGrid productId={product.id}></ProductDataGrid>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>
