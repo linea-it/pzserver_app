@@ -1,22 +1,36 @@
 #!/bin/bash
 
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput --clear
+# if any of the commands in your code fails for any reason, the entire script fails
+set -o errexit
+# fail exit if one of your pipe command fails
+set -o pipefail
+# exits if any of your variables is not set
+set -o nounset
 
-# Para produção é necessário usar o uWSGI!
-# uWSGI para servir o app e ter compatibilidade com Shibboleth
-# https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html
-# TODO: Em produção não é recomendado o auto reload. utilizar uma variavel de ambiente para ligar ou desligar esta opção.
-uwsgi \
-    --socket 0.0.0.0:8000 \
-    --wsgi-file /app/pzserver/wsgi.py \
-    --module pzserver.wsgi:application \
-    --buffer-size=32768 \
-    --processes=1 \
-    --threads=1 \
-    --static-map /django_static=/app/django_static \
-    --py-autoreload=${AUTORELOAD:-0}
-    # --static-map /django_static/rest_framework=/app/static/rest_framework \
+postgres_ready() {
+python << END
+import sys
 
-    
+import psycopg2
 
+try:
+    psycopg2.connect(
+        dbname="${DB_DATABASE}",
+        user="${DB_USER}",
+        password="${DB_PASSWORD}",
+        host="${DB_HOST}",
+        port="${DB_PORT}",
+    )
+except psycopg2.OperationalError:
+    sys.exit(-1)
+sys.exit(0)
+
+END
+}
+until postgres_ready; do
+    >&2 echo 'Waiting for PostgreSQL to become available...'
+    sleep 1
+done
+>&2 echo 'PostgreSQL is available'
+
+exec "$@"

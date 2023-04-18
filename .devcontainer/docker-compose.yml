@@ -7,7 +7,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspaces:cached
-      - ./archive/log/backend:/log
+      - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
 
     # Overrides default command so things don't shut down after the process ends.
