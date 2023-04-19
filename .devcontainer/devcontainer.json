@@ -12,15 +12,11 @@
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"installZsh": true,
 			"installOhMyZsh": true,
-			"upgradePackages": true,
-			"username": "none",
-			"userUid": "1000",
-			"userGid": "1000"
+			"upgradePackages": true
 		},
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
 			"plugins": "ssh-agent npm",
-			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions",
-			"username": "root"
+			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions"
 		},
 		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
 		"ghcr.io/devcontainers/features/node:1": {
