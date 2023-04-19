@@ -62,5 +62,5 @@ tables-io==0.7.9
 tomli==2.0.1
 uritemplate==4.1.1
 urllib3==1.26.9
-uWSGI==2.0.20
+uWSGI==2.0.21
 wrapt==1.14.1

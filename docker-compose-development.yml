@@ -19,7 +19,7 @@ services:
         - "USERID=${USERID:-1000}"
         - "GROUPID=${GROUPID:-1000}"
         - "USERNAME=${USERNAME:-pzapp}"
-    command: ./entrypoint.sh
+    command: /start.sh
     env_file:
       - .env
     volumes:
