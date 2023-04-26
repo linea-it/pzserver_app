@@ -1,6 +1,6 @@
-import React from 'react'
+import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
-import { Typography, Grid } from '@mui/material'
+import React from 'react'
 import Link from '../components/Link'
 import useStyles from '../styles/components/Footer'
 
@@ -28,6 +28,29 @@ function Footer() {
           <Link href="https://data.lsst.cloud/" target="_blank">
             <Typography className={classes.rsp}>RSP</Typography>
           </Link>
+          <div className={classes.images_credits}>
+            {/* <Typography >Image credits: NOIRLab public images archive and LSST gallery.</Typography> */}
+            <Typography variant="body2" component="span">
+              <p>
+                Image credits:{' '}
+                <Link
+                  href="https://noirlab.edu/public/images/archive/category/vro/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  NOIRLab public images archive
+                </Link>{' '}
+                and{' '}
+                <Link
+                  href="https://gallery.lsst.org/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  LSST gallery.
+                </Link>{' '}
+              </p>
+            </Typography>
+          </div>
         </Grid>
         <Grid item className={classes.marginItem}>
           <Typography>
