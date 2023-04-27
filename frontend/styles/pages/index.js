@@ -52,8 +52,8 @@ const useStyles = makeStyles(theme => ({
 
   gridApplicationLg: {
     [theme.breakpoints.up('lg')]: {
-      width: '20%',
-      maxWidth: '20%'
+      width: '80%',
+      maxWidth: '80%'
     }
   }
 }))
