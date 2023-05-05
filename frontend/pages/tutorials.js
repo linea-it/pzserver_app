@@ -121,7 +121,7 @@ export default function Tutorials() {
                   A Jupyter Notebook with instructions and use-case examples is
                   available also in the{' '}
                   <Link
-                    href="https://github.com/linea-it/pzserver/blob/main/pz_server_tutorial.ipynb"
+                    href="https://github.com/linea-it/pzserver/blob/main/notebooks/pz_server_tutorial.ipynb"
                     target="_blank"
                     rel="noreferrer"
                   >
