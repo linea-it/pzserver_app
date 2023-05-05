@@ -80,7 +80,7 @@ export default function Tutorials() {
                   The internal documentation of the API functions is available
                   on the{' '}
                   <Link
-                    href="https://linea-it.github.io/pz-server-lib/html/index.html"
+                    href="https://linea-it.github.io/pzserver/html/index.html"
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -92,12 +92,12 @@ export default function Tutorials() {
                   <strong>Instalation via pip</strong>
                 </p>
                 <p>
-                  The PZ Server API is avalialble on pip as{' '}
-                  <strong>pz-server-lib</strong>. To install the API and its
+                  The PZ Server API is avalialble as a Python library on pip as{' '}
+                  <strong>pzserver</strong>. To install the API and its
                   dependencies, type, on the Terminal:
                 </p>
                 <pre className={classes.codeBlock}>
-                  <code>$ pip install pz-server-lib </code>
+                  <code>$ pip install pzserver </code>
                 </pre>
                 <p>
                   <strong>Repository clone</strong>
@@ -105,7 +105,7 @@ export default function Tutorials() {
                 <p>Alternatively, if you have cloned the repository with:</p>
                 <pre className={classes.codeBlock}>
                   <code>
-                    $ git clone https://github.com/linea-it/pz-server-lib.git
+                    $ git clone https://github.com/linea-it/pzserver.git
                   </code>
                 </pre>
                 <p>To install the API and its dependencies, type:</p>
@@ -121,7 +121,7 @@ export default function Tutorials() {
                   A Jupyter Notebook with instructions and use-case examples is
                   available also in the{' '}
                   <Link
-                    href="https://github.com/linea-it/pz-server-lib/blob/main/pz_server_tutorial.ipynb"
+                    href="https://github.com/linea-it/pzserver/blob/main/pz_server_tutorial.ipynb"
                     target="_blank"
                     rel="noreferrer"
                   >
