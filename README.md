@@ -1,7 +1,7 @@
 # Photo-z Server
 
-[![Test API workflow](https://github.com/linea-it/pz-server/actions/workflows/test.yml/badge.svg)](https://github.com/linea-it/pz-server/actions/workflows/test.yml)
-[![codecov](https://codecov.io/github/linea-it/pz-server/branch/main/graph/badge.svg?token=0VW8HYUFZL)](https://codecov.io/github/linea-it/pz-server)
+[![Test API workflow](https://github.com/linea-it/pzserver_app/actions/workflows/test.yml/badge.svg)](https://github.com/linea-it/pzserver_app/actions/workflows/test.yml)
+[![codecov](https://codecov.io/github/linea-it/pzserver_app/branch/main/graph/badge.svg?token=0VW8HYUFZL)](https://codecov.io/github/linea-it/pzserver_app)
 
 The Photo-z Server is an online service based on software developed and delivered as part of the in-kind contribution program BRA-LIN, from LIneA to the Rubin Observatory's LSST. An overview of this and other contributions is available [here](https://linea-it.github.io/pz-lsst-inkind-doc/). The Photo-z Server design document is available [here](https://docs.google.com/document/d/1ZT-7dyA0ipWoRL4lViJLjuLE9uWgcSyNnuyZllsfGLQ/edit?usp=sharing).
 
@@ -10,8 +10,8 @@ The Photo-z Server is an online service based on software developed and delivere
 Clone the repository and access the directory:
 
 ```bash
-git clone https://github.com/linea-it/pz-server.git pzserver
-cd pzserver
+git clone https://github.com/linea-it/pzserver_app.git  
+cd pzserver_app
 ```
 
 Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
