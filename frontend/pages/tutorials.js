@@ -22,7 +22,7 @@ export default function Tutorials() {
               <Typography variant="body1" component="span">
                 <p>
                   To download a data product available on the Photo-z Server, go
-                  to one of the two pages by clicking on the card &quot;LSST PZ
+                  to one of the two pages by clicking on the card &quot;Rubin Observatory PZ
                   Data Products&quot; (for official products released by LSST DM
                   Team) or &quot;User-generated Data Products&quot; (for
                   products uploaded by the members of LSST community. The
