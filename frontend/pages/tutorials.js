@@ -80,7 +80,7 @@ export default function Tutorials() {
                   The internal documentation of the API functions is available
                   on the{' '}
                   <Link
-                    href="https://linea-it.github.io/pzserver/html/index.html"
+                    href="https://linea-it.github.io/pzserver"
                     target="_blank"
                     rel="noreferrer"
                   >
