@@ -9,18 +9,27 @@ import {
   MenuItem,
   Toolbar,
   Typography
-} from '@mui/material'
+}
+from '@mui/material'
 import { useRouter } from 'next/router'
-import React from 'react'
+import { ListItemIcon } from '@mui/material';
 
-import { GitHub, Twitter, YouTube } from '@mui/icons-material'
+import React from 'react'
+import {
+  GitHub,
+  Twitter,
+  YouTube,
+  Brightness4,
+  Brightness7,
+  Logout
+} from '@mui/icons-material'
 import MoreIcon from '@mui/icons-material/MoreVert'
 import TokenDialog from '../components/TokenDialog'
 import { useAuth } from '../contexts/AuthContext'
 import useStyles from '../styles/components/Header'
 import Link from './Link'
 
-function Header() {
+function Header({ darkMode, setDarkMode }) {
   const classes = useStyles()
   const router = useRouter()
   const { user, logout } = useAuth()
@@ -55,14 +64,16 @@ function Header() {
   }
 
   const handleTokenOpen = () => {
-    // Fecha o menu
     setAnchorEl(null)
-    // Abre a Dialog Token Api
     setOpen(true)
   }
 
   const handleTokenClose = () => {
     setOpen(false)
+  }
+
+  const handleToggleDarkMode = () => {
+    setDarkMode(prevMode => !prevMode)
   }
 
   return (
@@ -80,6 +91,14 @@ function Header() {
           </List>
           <div className={classes.separator} />
           <Typography>{user?.username}</Typography>
+          <IconButton
+            size="large"
+            edge="end"
+            color="inherit"
+            onClick={handleToggleDarkMode}
+          >
+            {darkMode ? <Brightness7 /> : <Brightness4 />}
+          </IconButton>
           <IconButton
             size="large"
             edge="end"
@@ -104,11 +123,15 @@ function Header() {
             onClose={handleClose}
           >
             <MenuItem onClick={handleTokenOpen}>API Token</MenuItem>
-            <MenuItem onClick={logout}>Logout</MenuItem>
+            <MenuItem onClick={logout}>
+              <ListItemIcon>
+                <Logout fontSize="small" />
+              </ListItemIcon>
+              <Typography variant="inherit">Logout</Typography>
+            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
-
       {router.pathname === '/' && (
         <Grid className={classes.banner}>
           <Grid
@@ -119,7 +142,6 @@ function Header() {
             className={classes.container}
           >
             <Grid item xs={12} className={classes.titleWrapper}>
-              {/* <h1 className={classes.title}>Photo-z Server</h1> */}
               <Typography variant="h1" className={classes.title}>
                 Photo-z Server
               </Typography>

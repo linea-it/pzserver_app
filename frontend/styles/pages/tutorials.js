@@ -1,3 +1,4 @@
+import { TheaterComedy } from '@mui/icons-material'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(theme => ({
@@ -11,7 +12,9 @@ const useStyles = makeStyles(theme => ({
     margin: 0,
     borderRadius: '2px',
     overflowX: 'auto',
-    background: '#f7f7f7'
+    // background: theme.palette.grey[400],
+    //  color: theme.palette.text.primary
+    background: theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[700]
   }
 }))
 

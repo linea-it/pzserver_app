@@ -6,7 +6,7 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '4px',
     padding: theme.spacing(3),
     flex: '1 1 0%',
-    background: 'rgb(247, 249, 252)'
+    // background: 'rgb(247, 249, 252)'
   },
   gridTitle: {
     display: 'flex',
