@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import Footer from '../components/Footer'
 import { AuthProvider } from '../contexts/AuthContext'
 import '../styles/global.css'
-import Header from '../components/Header' 
+import Header from '../components/Header'
 
 const queryClient = new QueryClient()
 
@@ -22,20 +22,29 @@ export default function MyApp(props) {
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
+
+    const savedDarkMode = localStorage.getItem('darkMode')
+    setDarkMode(savedDarkMode === 'true')
   }, [])
+
+  const handleToggleDarkMode = () => {
+    const newDarkMode = !darkMode
+    setDarkMode(newDarkMode)
+    localStorage.setItem('darkMode', String(newDarkMode))
+  }
 
   const light = createTheme({
     palette: {
-    mode: 'light',
+      mode: 'light',
     },
   })
 
   const dark = createTheme({
     palette: {
-    mode: 'dark',
+      mode: 'dark',
     },
   })
-  
+
   return (
     <>
       <Head>
@@ -60,7 +69,7 @@ export default function MyApp(props) {
               {route.pathname !== '/login' && (
                 <Header
                   darkMode={darkMode}
-                  setDarkMode={setDarkMode}
+                  setDarkMode={handleToggleDarkMode}
                   route={route}
                 />
               )}
