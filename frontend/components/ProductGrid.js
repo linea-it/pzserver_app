@@ -7,6 +7,8 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Link from '@mui/material/Link'
+import ShareIcon from '@mui/icons-material/Share'
+import TextField from '@mui/material/TextField'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -19,74 +21,78 @@ import ProductRemove from '../components/ProductRemove'
 export default function ProductGrid(props) {
   const router = useRouter()
   const [rows, setRows] = React.useState([])
-  const [rowCount, setRowCount] = React.useState(undefined)
-
+  const [rowCount, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
   const [sortModel, setSortModel] = React.useState([
     { field: 'created_at', sort: 'desc' }
-  ])
+  ]);
   const [loading, setLoading] = React.useState(false)
   const [delRecordId, setDelRecordId] = React.useState(null)
   const [error, setError] = React.useState(null)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
+  const [shareUrl, setShareUrl] = React.useState('');
+  const [selectedFileUrl, setSelectedFileUrl] = React.useState('');
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadProducts = React.useCallback(() => {
-    // eslint-disable-next-line prettier/prettier
-    let active = true;
-    // eslint-disable-next-line no-unexpected-multiline
-    // eslint-disable-next-line prettier/prettier
-    (async () => {
-      setLoading(true)
+  const getDownloadUrl = row => {
+    const currentUrl = window.location.href;
+    const downloadUrl = currentUrl + '/download/' + row.id;
+    return downloadUrl;
+  };
+
+  const handleDownload = row => {
+    router.push(`/product/${encodeURIComponent(row.internal_name)}`);
+  };
+
+  const handleDelete = row => {
+    setDelRecordId(row.id);
+  };
+
+  const handleShare = row => {
+    const downloadUrl = getDownloadUrl(row);
+    setSelectedFileUrl(downloadUrl);
+    setShareDialogOpen(true);
+  };
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(selectedFileUrl)
+      .then(() => {})
+      .catch(error => {});
+  };
+
+  const handleCloseShareDialog = () => {
+    setShareDialogOpen(false);
+  };
+
+  const loadProducts = React.useCallback(async () => {
+    setLoading(true);
+    try {
       const response = await getProducts({
         filters: props.filters,
-        page: page,
+        page,
         page_size: pageSize,
         sort: sortModel,
         search: props.query
-      })
-
-      if (!active) {
-        return
-      }
-      setRows(response.results)
-      setRowCount(response.count)
-      setLoading(false)
-    })()
-
-    return () => {
-      active = false
+      });
+      setRows(response.results);
+      setRowCount(response.count);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
     }
-  })
+  }, [page, pageSize, sortModel, props.query, props.filters]);
 
   React.useEffect(() => {
-    loadProducts()
+    loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, sortModel, props.query, props.filters])
-
-  // Some api client return undefine while loading
-  // Following lines are here to prevent `rowCountState` from being undefined during the loading
-  const [rowCountState, setRowCountState] = React.useState(rowCount || 0)
-  React.useEffect(() => {
-    setRowCountState(prevRowCountState =>
-      rowCount !== undefined ? rowCount : prevRowCountState
-    )
-  }, [rowCount, setRowCountState])
+  }, [loadProducts]);
 
   const columns = React.useMemo(() => {
-    function handleDownload(row) {
-      // Redirecionar para a pagina de detalhe do produto
-      router.push(`/product/${encodeURIComponent(row.internal_name)}`)
-    }
-
-    function handleDelete(row) {
-      setDelRecordId(row.id)
-    }
-
     return [
       // Hide Id Column ISSUE #123
       // { field: 'id', headerName: 'ID', width: 90, sortable: true },
@@ -95,13 +101,11 @@ export default function ProductGrid(props) {
         headerName: 'Name',
         sortable: true,
         flex: 1,
-        renderCell: params => {
-          return (
-            <Link component="button" onClick={e => handleDownload(params.row)}>
-              {params.value}
-            </Link>
-          )
-        }
+        renderCell: params => (
+          <Link component="button" onClick={() => handleDownload(params.row)}>
+            {params.value}
+          </Link>
+        )
       },
       {
         field: 'release_name',
@@ -128,123 +132,97 @@ export default function ProductGrid(props) {
         sortable: true,
         valueFormatter: params => {
           if (params.value == null) {
-            return ''
+            return '';
           }
-          const valueFormatted = moment(params.value).format('L LTS')
-          return `${valueFormatted}`
+          return moment(params.value).format('YYYY-MM-DD');
         }
       },
       {
         field: 'actions_download',
-        type: 'actions',
         headerName: 'Download',
-        width: 100,
+        width: 120,
         sortable: false,
-        getActions: data => [
-          <GridActionsCellItem
-            key={'product_download_' + data.id}
-            icon={<DownloadIcon />}
-            label="Download"
-            onClick={e => handleDownload(data.row)}
-          />
-        ]
+        renderCell: params => (
+          <GridActionsCellItem icon={<DownloadIcon />} onClick={() => handleDownload(params.row)} />
+        )
       },
       {
-        field: 'actions_delete',
-        type: 'actions',
-        headerName: 'Delete',
-        width: 100,
+        field: 'share',
+        headerName: 'Share',
+        width: 120,
         sortable: false,
-        getActions: data => [
-          <GridActionsCellItem
-            key={'product_delete_' + data.id}
-            icon={<DeleteIcon />}
-            label="Delete Product"
-            disabled={data.row.is_owner === false}
-            onClick={e => handleDelete(data.row)}
-          />
-        ]
+        renderCell: params => (
+          <GridActionsCellItem icon={<ShareIcon />} onClick={() => handleShare(params.row)} />
+        )
+      },
+      {
+        field: 'delete',
+        headerName: 'Delete',
+        width: 120,
+        sortable: false,
+        renderCell: params => (
+          <GridActionsCellItem icon={<DeleteIcon />} onClick={() => handleDelete(params.row)} />
+        )
       }
-    ]
-  }, [router])
-
-  const onDeleteOk = () => {
-    loadProducts()
-    setDelRecordId(null)
-  }
-  const onDeleteCancel = () => {
-    setDelRecordId(null)
-  }
-
-  const handleError = () => {
-    const handleClose = () => {
-      setError(null)
-    }
-    return (
-      <Dialog
-        open={true}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {error}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} autoFocus>
-            Ok
-          </Button>
-        </DialogActions>
-      </Dialog>
-    )
-  }
-
-  const handleDeleteProduct = () => {
-    return (
-      <ProductRemove
-        productId={delRecordId}
-        open={delRecordId !== null}
-        onOk={onDeleteOk}
-        onCancel={onDeleteCancel}
-        onError={e => setError(e)}
-      ></ProductRemove>
-    )
-  }
+    ];
+  }, []);
 
   return (
-    <>
-      {error !== null ? handleError() : null}
-      {delRecordId !== null ? handleDeleteProduct() : null}
+    <React.Fragment>
       <DataGrid
-        getRowId={row => row.id}
         rows={rows}
         columns={columns}
-        disableSelectionOnClick
-        autoHeight
-        sortingMode="server"
+        rowCount={rowCount}
+        pagination
+        paginationMode="server"
+        pageSize={pageSize}
+        onPageChange={newPage => setPage(newPage)}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
-        paginationMode="server"
-        rowCount={rowCountState}
-        pagination
-        page={page}
-        onPageChange={page => setPage(page)}
-        pageSize={pageSize}
-        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-        rowsPerPageOptions={[25, 50, 100]}
         loading={loading}
+        autoHeight
+        hideFooterSelectedRowCount
       />
-    </>
-  )
+
+      <Dialog open={shareDialogOpen} onClose={handleCloseShareDialog}>
+        <DialogContent>
+          <DialogContentText>Copy the download URL:</DialogContentText>
+          <TextField
+            fullWidth
+            variant="outlined"
+            value={selectedFileUrl}
+            InputProps={{
+              endAdornment: (
+                <Button variant="contained" onClick={handleCopyUrl}>Copy</Button>
+              )
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseShareDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {delRecordId && (
+        <ProductRemove
+          open={Boolean(delRecordId)}
+          onClose={() => setDelRecordId(null)}
+          recordId={delRecordId}
+          onRemoveSuccess={loadProducts}
+          onError={setError}
+        />
+      )}
+    </React.Fragment>
+  );
 }
 
 ProductGrid.propTypes = {
+  filters: PropTypes.object,
   query: PropTypes.string,
-  filters: PropTypes.shape({
-    release: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    product_type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    official_product: PropTypes.bool
-  })
-}
+};
+
+ProductGrid.defaultProps = {
+  filters: {},
+  query: '',
+};
