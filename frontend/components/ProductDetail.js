@@ -1,11 +1,17 @@
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
+import { Button } from '@mui/material'
+import DialogActions from '@mui/material/DialogActions'
+import InputAdornment from '@mui/material/InputAdornment'
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   List,
@@ -13,6 +19,7 @@ import {
   ListItemText,
   Paper,
   Stack,
+  TextField,
   Typography
 } from '@mui/material'
 import moment from 'moment'
@@ -38,6 +45,8 @@ export default function ProductDetail({ productId, internalName }) {
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
   const [isDownloading, setDownloading] = React.useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [shareUrl, setShareUrl] = React.useState('')
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -122,7 +131,6 @@ export default function ProductDetail({ productId, internalName }) {
         }
       })
   }, [product])
-
   React.useEffect(() => {
     if (product) {
       loadFiles()
@@ -160,11 +168,11 @@ export default function ProductDetail({ productId, internalName }) {
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-        // secondaryAction={
-        //   <IconButton component={Link} href={file.file} target="_blank">
-        //     <DownloadIcon />
-        //   </IconButton>
-        // }
+      // secondaryAction={
+      //   <IconButton component={Link} href={file.file} target="_blank">
+      //     <DownloadIcon />
+      //   </IconButton>
+      // }
       >
         {file.role === 0 && (
           <ListItemText
@@ -177,6 +185,19 @@ export default function ProductDetail({ productId, internalName }) {
         )}
       </ListItem>
     )
+  }
+
+  const handleShareDialogOpen = () => {
+    setShareDialogOpen(true)
+    setShareUrl(window.location.href)
+  }
+
+  const handleShareDialogClose = () => {
+    setShareDialogOpen(false)
+  }
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(shareUrl)
   }
 
   if (isLoading) return <Loading isLoading={isLoading} />
@@ -236,6 +257,31 @@ export default function ProductDetail({ productId, internalName }) {
               {product.description !== '' && (
                 <Typography variant="body">{product.description}</Typography>
               )}
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              </Box>
+
+              <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
+                <DialogTitle>Copy the download URL:</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    value={shareUrl}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Button onClick={handleCopyUrl}>Copy</Button>
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleShareDialogClose}>Close</Button>
+                </DialogActions>
+              </Dialog>
+
             </Paper>
           </Grid>
           <Grid item xs={4}>
@@ -250,6 +296,9 @@ export default function ProductDetail({ productId, internalName }) {
                     Download
                   </LoadingButton>
                 )}
+                <Button variant="contained" onClick={handleShareDialogOpen}>
+                  Share
+                </Button>
                 <List>
                   {files.map(pc => {
                     return createFileFields(pc)
@@ -276,3 +325,4 @@ ProductDetail.propTypes = {
   productId: PropTypes.number,
   internalName: PropTypes.string
 }
+
