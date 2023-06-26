@@ -3,6 +3,11 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { Button } from '@mui/material'
 import DialogActions from '@mui/material/DialogActions'
 import InputAdornment from '@mui/material/InputAdornment'
+import { IconButton } from '@mui/material'
+import ShareIcon from '@mui/icons-material/Share'
+import { Snackbar } from '@mui/material'
+import Alert from '@mui/material/Alert'
+
 import {
   Box,
   Card,
@@ -168,11 +173,6 @@ export default function ProductDetail({ productId, internalName }) {
       <ListItem
         key={`file_${file.id}`}
         disableGutters
-      // secondaryAction={
-      //   <IconButton component={Link} href={file.file} target="_blank">
-      //     <DownloadIcon />
-      //   </IconButton>
-      // }
       >
         {file.role === 0 && (
           <ListItemText
@@ -187,6 +187,12 @@ export default function ProductDetail({ productId, internalName }) {
     )
   }
 
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+
+  const showSnackbar = () => {
+    setSnackbarOpen(true);
+  };
+
   const handleShareDialogOpen = () => {
     setShareDialogOpen(true)
     setShareUrl(window.location.href)
@@ -197,8 +203,9 @@ export default function ProductDetail({ productId, internalName }) {
   }
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(shareUrl)
-  }
+    navigator.clipboard.writeText(shareUrl);
+    showSnackbar();
+  };
 
   if (isLoading) return <Loading isLoading={isLoading} />
   if (notFound) return <ProductNotFound />
@@ -207,6 +214,15 @@ export default function ProductDetail({ productId, internalName }) {
   return (
     <React.Fragment>
       <Box className={classes.pageHeader}>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+        >
+          <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+            Link copied successfully!
+          </Alert>
+        </Snackbar>
         <Typography variant="h6">Product</Typography>
       </Box>
       <Box component="form" noValidate autoComplete="off">
@@ -221,12 +237,14 @@ export default function ProductDetail({ productId, internalName }) {
             <Paper elevation={2} className={classes.paper}>
               <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="flex-start"
+                justifyContent="flex-start"
+                alignItems="center"
                 spacing={2}
               >
                 <Typography variant="h4">{product.display_name}</Typography>
-
+                <IconButton onClick={handleShareDialogOpen}>
+                  <ShareIcon />
+                </IconButton>
                 {product.official_product === true && (
                   <Chip
                     variant="outlined"
@@ -257,11 +275,10 @@ export default function ProductDetail({ productId, internalName }) {
               {product.description !== '' && (
                 <Typography variant="body">{product.description}</Typography>
               )}
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              </Box>
-
-              <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
+              <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}
+                PaperProps={{
+                  style: { width: '500px', minHeight: '150px', },
+                }}>
                 <DialogTitle>Copy the download URL:</DialogTitle>
                 <DialogContent>
                   <TextField
@@ -271,9 +288,11 @@ export default function ProductDetail({ productId, internalName }) {
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <Button onClick={handleCopyUrl}>Copy</Button>
+                          <Button onClick={handleCopyUrl}>
+                            Copy
+                          </Button>
                         </InputAdornment>
-                      )
+                      ),
                     }}
                   />
                 </DialogContent>
@@ -281,7 +300,6 @@ export default function ProductDetail({ productId, internalName }) {
                   <Button onClick={handleShareDialogClose}>Close</Button>
                 </DialogActions>
               </Dialog>
-
             </Paper>
           </Grid>
           <Grid item xs={4}>
@@ -296,9 +314,6 @@ export default function ProductDetail({ productId, internalName }) {
                     Download
                   </LoadingButton>
                 )}
-                <Button variant="contained" onClick={handleShareDialogOpen}>
-                  Share
-                </Button>
                 <List>
                   {files.map(pc => {
                     return createFileFields(pc)

@@ -1,11 +1,13 @@
 /* eslint-disable multiline-ternary */
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
-import Button from '@mui/material/Button'
+import { Button } from '@mui/material'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 import Link from '@mui/material/Link'
 import ShareIcon from '@mui/icons-material/Share'
 import TextField from '@mui/material/TextField'
@@ -24,35 +26,40 @@ export default function ProductGrid(props) {
   const [rowCount, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
-  const [sortModel, setSortModel] = React.useState([
-    { field: 'created_at', sort: 'desc' }
-  ]);
-  const [loading, setLoading] = React.useState(false)
-  const [delRecordId, setDelRecordId] = React.useState(null)
-  const [error, setError] = React.useState(null)
+  const [sortModel, setSortModel] = React.useState([{ field: 'created_at', sort: 'desc' }]);
+  const [loading, setLoading] = React.useState(false);
+  const [delRecordId, setDelRecordId] = React.useState(null);
+  const [error, setError] = React.useState(null);
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
   const [shareUrl, setShareUrl] = React.useState('');
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('');
+  const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false);
 
-  const handleSortModelChange = newModel => {
+  const handleSortModelChange = (newModel) => {
     setSortModel(newModel)
-  }
-
-  const getDownloadUrl = row => {
-    const currentUrl = window.location.href;
-    const downloadUrl = currentUrl + '/download/' + row.id;
+  };
+  
+  const getProductUrl = (internal_name) => {
+    return `/product/${encodeURIComponent(internal_name)}`;
+  };
+  
+  const getDownloadUrl = (row) => {
+    const id = row.id;
+    const display_name = row.display_name ? row.display_name : '';
+    const productUrl = getProductUrl(`${id}_${display_name}`);
+    const downloadUrl = window.location.origin + productUrl;
     return downloadUrl;
   };
-
-  const handleDownload = row => {
-    router.push(`/product/${encodeURIComponent(row.internal_name)}`);
+    
+  const handleDownload = (row) => {
+    router.push(getProductUrl(row.internal_name));
   };
 
-  const handleDelete = row => {
+  const handleDelete = (row) => {
     setDelRecordId(row.id);
   };
 
-  const handleShare = row => {
+  const handleShare = (row) => {
     const downloadUrl = getDownloadUrl(row);
     setSelectedFileUrl(downloadUrl);
     setShareDialogOpen(true);
@@ -60,12 +67,20 @@ export default function ProductGrid(props) {
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(selectedFileUrl)
-      .then(() => {})
-      .catch(error => {});
+      .then(() => {
+        setCopySnackbarOpen(true);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   const handleCloseShareDialog = () => {
     setShareDialogOpen(false);
+  };
+
+  const handleCloseCopySnackbar = () => {
+    setCopySnackbarOpen(false);
   };
 
   const loadProducts = React.useCallback(async () => {
@@ -76,7 +91,7 @@ export default function ProductGrid(props) {
         page,
         page_size: pageSize,
         sort: sortModel,
-        search: props.query
+        search: props.query,
       });
       setRows(response.results);
       setRowCount(response.count);
@@ -101,11 +116,11 @@ export default function ProductGrid(props) {
         headerName: 'Name',
         sortable: true,
         flex: 1,
-        renderCell: params => (
+        renderCell: (params) => (
           <Link component="button" onClick={() => handleDownload(params.row)}>
             {params.value}
           </Link>
-        )
+        ),
       },
       {
         field: 'release_name',
@@ -130,28 +145,28 @@ export default function ProductGrid(props) {
         headerName: 'Created at',
         width: 200,
         sortable: true,
-        valueFormatter: params => {
+        valueFormatter: (params) => {
           if (params.value == null) {
             return '';
           }
           return moment(params.value).format('YYYY-MM-DD');
-        }
+        },
       },
       {
         field: 'actions_download',
         headerName: 'Download',
         width: 120,
         sortable: false,
-        renderCell: params => (
+        renderCell: (params) => (
           <GridActionsCellItem icon={<DownloadIcon />} onClick={() => handleDownload(params.row)} />
-        )
+        ),
       },
       {
         field: 'share',
         headerName: 'Share',
         width: 120,
         sortable: false,
-        renderCell: params => (
+        renderCell: (params) => (
           <GridActionsCellItem icon={<ShareIcon />} onClick={() => handleShare(params.row)} />
         )
       },
@@ -160,7 +175,7 @@ export default function ProductGrid(props) {
         headerName: 'Delete',
         width: 120,
         sortable: false,
-        renderCell: params => (
+        renderCell: (params) => (
           <GridActionsCellItem icon={<DeleteIcon />} onClick={() => handleDelete(params.row)} />
         )
       }
@@ -176,8 +191,8 @@ export default function ProductGrid(props) {
         pagination
         paginationMode="server"
         pageSize={pageSize}
-        onPageChange={newPage => setPage(newPage)}
-        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
         loading={loading}
@@ -185,7 +200,13 @@ export default function ProductGrid(props) {
         hideFooterSelectedRowCount
       />
 
-      <Dialog open={shareDialogOpen} onClose={handleCloseShareDialog}>
+      <Dialog
+        open={shareDialogOpen}
+        onClose={handleCloseShareDialog}
+        PaperProps={{
+          style: { width: '500px', minHeight: '150px' },
+        }}
+      >
         <DialogContent>
           <DialogContentText>Copy the download URL:</DialogContentText>
           <TextField
@@ -213,6 +234,12 @@ export default function ProductGrid(props) {
           onError={setError}
         />
       )}
+
+      <Snackbar open={copySnackbarOpen} autoHideDuration={3000} onClose={handleCloseCopySnackbar}>
+        <Alert onClose={handleCloseCopySnackbar} severity="success" sx={{ width: '100%' }}>
+          Link copied successfully!
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 }
