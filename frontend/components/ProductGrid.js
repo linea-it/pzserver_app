@@ -215,7 +215,7 @@ export default function ProductGrid(props) {
             value={selectedFileUrl}
             InputProps={{
               endAdornment: (
-                <Button onClick={handleCopyUrl}>Copy</Button>
+                <Button variant='contained' onClick={handleCopyUrl}>Copy</Button>
               )
             }}
           />
