@@ -20,6 +20,7 @@ services:
         - "GROUPID=${GROUPID:-1000}"
         - "USERNAME=${USERNAME:-pzapp}"
     command: /start.sh
+    user: "1000:1000"
     env_file:
       - .env
     volumes:
@@ -31,6 +32,7 @@ services:
 
   frontend:
     image: node:lts
+    user: "1000:1000"
     working_dir: /app
     volumes:
       - ./frontend:/app

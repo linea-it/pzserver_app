@@ -1,14 +1,9 @@
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { Button } from '@mui/material'
-import DialogActions from '@mui/material/DialogActions'
-import InputAdornment from '@mui/material/InputAdornment'
-import { IconButton } from '@mui/material'
-import ShareIcon from '@mui/icons-material/Share'
-import { Snackbar } from '@mui/material'
-import Alert from '@mui/material/Alert'
-
 import {
+  Button,
+  IconButton,
+  Snackbar,
   Box,
   Card,
   CardContent,
@@ -27,6 +22,11 @@ import {
   TextField,
   Typography
 } from '@mui/material'
+import DialogActions from '@mui/material/DialogActions'
+import InputAdornment from '@mui/material/InputAdornment'
+import ShareIcon from '@mui/icons-material/Share'
+import Alert from '@mui/material/Alert'
+
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
@@ -170,10 +170,7 @@ export default function ProductDetail({ productId, internalName }) {
       name = file.name.substring(0, 23) + '...' + extension
     }
     return (
-      <ListItem
-        key={`file_${file.id}`}
-        disableGutters
-      >
+      <ListItem key={`file_${file.id}`} disableGutters>
         {file.role === 0 && (
           <ListItemText
             primary={name}
@@ -187,11 +184,11 @@ export default function ProductDetail({ productId, internalName }) {
     )
   }
 
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
 
   const showSnackbar = () => {
-    setSnackbarOpen(true);
-  };
+    setSnackbarOpen(true)
+  }
 
   const handleShareDialogOpen = () => {
     setShareDialogOpen(true)
@@ -203,9 +200,9 @@ export default function ProductDetail({ productId, internalName }) {
   }
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(shareUrl);
-    showSnackbar();
-  };
+    navigator.clipboard.writeText(shareUrl)
+    showSnackbar()
+  }
 
   if (isLoading) return <Loading isLoading={isLoading} />
   if (notFound) return <ProductNotFound />
@@ -219,7 +216,11 @@ export default function ProductDetail({ productId, internalName }) {
           autoHideDuration={3000}
           onClose={() => setSnackbarOpen(false)}
         >
-          <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity="success"
+            sx={{ width: '100%' }}
+          >
             Link copied successfully!
           </Alert>
         </Snackbar>
@@ -275,10 +276,13 @@ export default function ProductDetail({ productId, internalName }) {
               {product.description !== '' && (
                 <Typography variant="body">{product.description}</Typography>
               )}
-              <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}
+              <Dialog
+                open={shareDialogOpen}
+                onClose={handleShareDialogClose}
                 PaperProps={{
-                  style: { width: '500px', minHeight: '150px', },
-                }}>
+                  style: { width: '500px', minHeight: '150px' }
+                }}
+              >
                 <DialogTitle>Copy the download URL:</DialogTitle>
                 <DialogContent>
                   <TextField
@@ -288,11 +292,9 @@ export default function ProductDetail({ productId, internalName }) {
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <Button onClick={handleCopyUrl}>
-                            Copy
-                          </Button>
+                          <Button onClick={handleCopyUrl}>Copy</Button>
                         </InputAdornment>
-                      ),
+                      )
                     }}
                   />
                 </DialogContent>
@@ -340,4 +342,3 @@ ProductDetail.propTypes = {
   productId: PropTypes.number,
   internalName: PropTypes.string
 }
-

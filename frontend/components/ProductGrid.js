@@ -26,89 +26,94 @@ export default function ProductGrid(props) {
   const [rowCount, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
-  const [sortModel, setSortModel] = React.useState([{ field: 'created_at', sort: 'desc' }]);
-  const [loading, setLoading] = React.useState(false);
-  const [delRecordId, setDelRecordId] = React.useState(null);
-  const [error, setError] = React.useState(null);
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
-  const [shareUrl, setShareUrl] = React.useState('');
-  const [selectedFileUrl, setSelectedFileUrl] = React.useState('');
-  const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false);
+  const [sortModel, setSortModel] = React.useState([
+    { field: 'created_at', sort: 'desc' }
+  ])
+  const [loading, setLoading] = React.useState(false)
+  const [delRecordId, setDelRecordId] = React.useState(null)
+  const [error, setError] = React.useState(null)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [shareUrl, setShareUrl] = React.useState('')
+  const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
+  const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
 
-  const handleSortModelChange = (newModel) => {
+  const handleSortModelChange = newModel => {
     setSortModel(newModel)
-  };
-  
-  const getProductUrl = (internal_name) => {
-    return `/product/${encodeURIComponent(internal_name)}`;
-  };
-  
-  const getDownloadUrl = (row) => {
-    const id = row.id;
-    const display_name = row.display_name ? row.display_name : '';
-    
-    const formatted_display_name = display_name.replace(/[-\s]/g, '').toLowerCase();
-  
-    const productUrl = getProductUrl(`${id}_${formatted_display_name}`);
-    const downloadUrl = window.location.origin + productUrl;
-    return downloadUrl;
-  };
-    
-  const handleDownload = (row) => {
-    router.push(getProductUrl(row.internal_name));
-  };
+  }
 
-  const handleDelete = (row) => {
-    setDelRecordId(row.id);
-  };
+  const getProductUrl = internal_name => {
+    return `/product/${encodeURIComponent(internal_name)}`
+  }
 
-  const handleShare = (row) => {
-    const downloadUrl = getDownloadUrl(row);
-    setSelectedFileUrl(downloadUrl);
-    setShareDialogOpen(true);
-  };
+  const getDownloadUrl = row => {
+    const id = row.id
+    const display_name = row.display_name ? row.display_name : ''
+
+    const formatted_display_name = display_name
+      .replace(/[-\s]/g, '')
+      .toLowerCase()
+
+    const productUrl = getProductUrl(`${id}_${formatted_display_name}`)
+    const downloadUrl = window.location.origin + productUrl
+    return downloadUrl
+  }
+
+  const handleDownload = row => {
+    router.push(getProductUrl(row.internal_name))
+  }
+
+  const handleDelete = row => {
+    setDelRecordId(row.id)
+  }
+
+  const handleShare = row => {
+    const downloadUrl = getDownloadUrl(row)
+    setSelectedFileUrl(downloadUrl)
+    setShareDialogOpen(true)
+  }
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(selectedFileUrl)
+    navigator.clipboard
+      .writeText(selectedFileUrl)
       .then(() => {
-        setCopySnackbarOpen(true);
+        setCopySnackbarOpen(true)
       })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
+      .catch(error => {
+        console.error(error)
+      })
+  }
 
   const handleCloseShareDialog = () => {
-    setShareDialogOpen(false);
-  };
+    setShareDialogOpen(false)
+  }
 
   const handleCloseCopySnackbar = () => {
-    setCopySnackbarOpen(false);
-  };
+    setCopySnackbarOpen(false)
+  }
 
   const loadProducts = React.useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       const response = await getProducts({
         filters: props.filters,
         page,
         page_size: pageSize,
         sort: sortModel,
-        search: props.query,
-      });
-      setRows(response.results);
-      setRowCount(response.count);
+        search: props.query
+      })
+      setRows(response.results)
+      setRowCount(response.count)
     } catch (error) {
-      setError(error);
+      setError(error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [page, pageSize, sortModel, props.query, props.filters]);
+  }, [page, pageSize, sortModel, props.query, props.filters])
 
   React.useEffect(() => {
-    loadProducts();
+    loadProducts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadProducts]);
+  }, [loadProducts])
 
   const columns = React.useMemo(() => {
     return [
@@ -119,11 +124,11 @@ export default function ProductGrid(props) {
         headerName: 'Name',
         sortable: true,
         flex: 1,
-        renderCell: (params) => (
+        renderCell: params => (
           <Link component="button" onClick={() => handleDownload(params.row)}>
             {params.value}
           </Link>
-        ),
+        )
       },
       {
         field: 'release_name',
@@ -148,29 +153,35 @@ export default function ProductGrid(props) {
         headerName: 'Created at',
         width: 200,
         sortable: true,
-        valueFormatter: (params) => {
+        valueFormatter: params => {
           if (params.value == null) {
-            return '';
+            return ''
           }
-          return moment(params.value).format('YYYY-MM-DD');
-        },
+          return moment(params.value).format('YYYY-MM-DD')
+        }
       },
       {
         field: 'actions_download',
         headerName: 'Download',
         width: 120,
         sortable: false,
-        renderCell: (params) => (
-          <GridActionsCellItem icon={<DownloadIcon />} onClick={() => handleDownload(params.row)} />
-        ),
+        renderCell: params => (
+          <GridActionsCellItem
+            icon={<DownloadIcon />}
+            onClick={() => handleDownload(params.row)}
+          />
+        )
       },
       {
         field: 'share',
         headerName: 'Share',
         width: 120,
         sortable: false,
-        renderCell: (params) => (
-          <GridActionsCellItem icon={<ShareIcon />} onClick={() => handleShare(params.row)} />
+        renderCell: params => (
+          <GridActionsCellItem
+            icon={<ShareIcon />}
+            onClick={() => handleShare(params.row)}
+          />
         )
       },
       {
@@ -178,12 +189,15 @@ export default function ProductGrid(props) {
         headerName: 'Delete',
         width: 120,
         sortable: false,
-        renderCell: (params) => (
-          <GridActionsCellItem icon={<DeleteIcon />} onClick={() => handleDelete(params.row)} />
+        renderCell: params => (
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            onClick={() => handleDelete(params.row)}
+          />
         )
       }
-    ];
-  }, []);
+    ]
+  }, [])
 
   return (
     <React.Fragment>
@@ -194,8 +208,8 @@ export default function ProductGrid(props) {
         pagination
         paginationMode="server"
         pageSize={pageSize}
-        onPageChange={(newPage) => setPage(newPage)}
-        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+        onPageChange={newPage => setPage(newPage)}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
         loading={loading}
@@ -207,7 +221,7 @@ export default function ProductGrid(props) {
         open={shareDialogOpen}
         onClose={handleCloseShareDialog}
         PaperProps={{
-          style: { width: '500px', minHeight: '150px' },
+          style: { width: '500px', minHeight: '150px' }
         }}
       >
         <DialogContent>
@@ -218,7 +232,9 @@ export default function ProductGrid(props) {
             value={selectedFileUrl}
             InputProps={{
               endAdornment: (
-                <Button variant='contained' onClick={handleCopyUrl}>Copy</Button>
+                <Button variant="contained" onClick={handleCopyUrl}>
+                  Copy
+                </Button>
               )
             }}
           />
@@ -238,21 +254,29 @@ export default function ProductGrid(props) {
         />
       )}
 
-      <Snackbar open={copySnackbarOpen} autoHideDuration={3000} onClose={handleCloseCopySnackbar}>
-        <Alert onClose={handleCloseCopySnackbar} severity="success" sx={{ width: '100%' }}>
+      <Snackbar
+        open={copySnackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseCopySnackbar}
+      >
+        <Alert
+          onClose={handleCloseCopySnackbar}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
           Link copied successfully!
         </Alert>
       </Snackbar>
     </React.Fragment>
-  );
+  )
 }
 
 ProductGrid.propTypes = {
   filters: PropTypes.object,
-  query: PropTypes.string,
-};
+  query: PropTypes.string
+}
 
 ProductGrid.defaultProps = {
   filters: {},
-  query: '',
-};
+  query: ''
+}

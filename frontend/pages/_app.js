@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import Footer from '../components/Footer'
 import { AuthProvider } from '../contexts/AuthContext'
 import '../styles/global.css'
-import Header from '../components/Header' 
+import Header from '../components/Header'
 
 const queryClient = new QueryClient()
 
@@ -26,16 +26,16 @@ export default function MyApp(props) {
 
   const light = createTheme({
     palette: {
-    mode: 'light',
-    },
+      mode: 'light'
+    }
   })
 
   const dark = createTheme({
     palette: {
-    mode: 'dark',
-    },
+      mode: 'dark'
+    }
   })
-  
+
   return (
     <>
       <Head>

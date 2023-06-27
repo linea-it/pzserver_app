@@ -8,22 +8,29 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { deleteProduct } from '../services/product'
-export default function ProductRemove({ recordId, onRemoveSuccess, onClose, onError }) {
+export default function ProductRemove({
+  recordId,
+  onRemoveSuccess,
+  onClose,
+  onError
+}) {
   const [isLoading, setLoading] = React.useState(false)
 
   const handleDelete = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       await deleteProduct(recordId)
       onRemoveSuccess()
       onClose()
     } catch (error) {
-      onError('Failed to remove the product. Please try again later or contact the helpdesk.');
+      onError(
+        'Failed to remove the product. Please try again later or contact the helpdesk.'
+      )
       setLoading(false)
     }
-  };
+  }
 
-  if (recordId === null) return null;
+  if (recordId === null) return null
 
   return (
     <Dialog open={true}>
@@ -35,17 +42,21 @@ export default function ProductRemove({ recordId, onRemoveSuccess, onClose, onEr
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton loading={isLoading} variant="contained" onClick={handleDelete}>
+        <LoadingButton
+          loading={isLoading}
+          variant="contained"
+          onClick={handleDelete}
+        >
           Delete
         </LoadingButton>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
 ProductRemove.propTypes = {
   recordId: PropTypes.number,
   onRemoveSuccess: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
-  onError: PropTypes.func.isRequired,
-};
+  onError: PropTypes.func.isRequired
+}
