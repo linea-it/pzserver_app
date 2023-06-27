@@ -46,7 +46,10 @@ export default function ProductGrid(props) {
   const getDownloadUrl = (row) => {
     const id = row.id;
     const display_name = row.display_name ? row.display_name : '';
-    const productUrl = getProductUrl(`${id}_${display_name}`);
+    
+    const formatted_display_name = display_name.replace(/[-\s]/g, '').toLowerCase();
+  
+    const productUrl = getProductUrl(`${id}_${formatted_display_name}`);
     const downloadUrl = window.location.origin + productUrl;
     return downloadUrl;
   };
