@@ -31,45 +31,12 @@ export default function ProductGrid(props) {
   ])
   const [loading, setLoading] = React.useState(false)
   const [delRecordId, setDelRecordId] = React.useState(null)
-  const [error, setError] = React.useState(null)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-  const [shareUrl, setShareUrl] = React.useState('')
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
   const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
-  }
-
-  const getProductUrl = internal_name => {
-    return `/product/${encodeURIComponent(internal_name)}`
-  }
-
-  const getDownloadUrl = row => {
-    const id = row.id
-    const display_name = row.display_name ? row.display_name : ''
-
-    const formatted_display_name = display_name
-      .replace(/[-\s]/g, '')
-      .toLowerCase()
-
-    const productUrl = getProductUrl(`${id}_${formatted_display_name}`)
-    const downloadUrl = window.location.origin + productUrl
-    return downloadUrl
-  }
-
-  const handleDownload = row => {
-    router.push(getProductUrl(row.internal_name))
-  }
-
-  const handleDelete = row => {
-    setDelRecordId(row.id)
-  }
-
-  const handleShare = row => {
-    const downloadUrl = getDownloadUrl(row)
-    setSelectedFileUrl(downloadUrl)
-    setShareDialogOpen(true)
   }
 
   const handleCopyUrl = () => {
@@ -101,10 +68,11 @@ export default function ProductGrid(props) {
         sort: sortModel,
         search: props.query
       })
+
       setRows(response.results)
       setRowCount(response.count)
     } catch (error) {
-      setError(error)
+      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -115,7 +83,37 @@ export default function ProductGrid(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadProducts])
 
+  const getProductUrl = React.useCallback(internalName => {
+    return `/product/${encodeURIComponent(internalName)}`
+  }, [])
+
   const columns = React.useMemo(() => {
+    const getDownloadUrl = row => {
+      const { id, /* eslint-disable camelcase */ display_name } = row
+
+      const formattedDisplayName = display_name
+        .replace(/[-\s]/g, '')
+        .toLowerCase()
+
+      const productUrl = getProductUrl(`${id}_${formattedDisplayName}`)
+      const downloadUrl = `${window.location.origin}${productUrl}`
+      return downloadUrl
+    }
+
+    const handleDownload = row => {
+      router.push(getProductUrl(row.internal_name))
+    }
+
+    const handleDelete = row => {
+      setDelRecordId(row.id)
+    }
+
+    const handleShare = row => {
+      const downloadUrl = getDownloadUrl(row)
+      setSelectedFileUrl(downloadUrl)
+      setShareDialogOpen(true)
+    }
+
     return [
       // Hide Id Column ISSUE #123
       // { field: 'id', headerName: 'ID', width: 90, sortable: true },
@@ -154,7 +152,7 @@ export default function ProductGrid(props) {
         width: 200,
         sortable: true,
         valueFormatter: params => {
-          if (params.value == null) {
+          if (!params.value) {
             return ''
           }
           return moment(params.value).format('YYYY-MM-DD')
@@ -197,7 +195,7 @@ export default function ProductGrid(props) {
         )
       }
     ]
-  }, [])
+  }, [getProductUrl, router])
 
   return (
     <React.Fragment>
@@ -250,7 +248,6 @@ export default function ProductGrid(props) {
           onClose={() => setDelRecordId(null)}
           recordId={delRecordId}
           onRemoveSuccess={loadProducts}
-          onError={setError}
         />
       )}
 

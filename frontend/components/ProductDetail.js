@@ -283,7 +283,7 @@ export default function ProductDetail({ productId, internalName }) {
                   style: { width: '500px', minHeight: '150px' }
                 }}
               >
-                <DialogTitle>Copy the download URL:</DialogTitle>
+                <DialogTitle style={{ fontSize: '16px' }}>Copy the download URL:</DialogTitle>
                 <DialogContent>
                   <TextField
                     fullWidth
@@ -292,7 +292,7 @@ export default function ProductDetail({ productId, internalName }) {
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <Button onClick={handleCopyUrl}>Copy</Button>
+                          <Button variant='contained' onClick={handleCopyUrl}>Copy</Button>
                         </InputAdornment>
                       )
                     }}

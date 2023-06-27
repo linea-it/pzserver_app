@@ -9,12 +9,12 @@ import {
   MenuItem,
   Toolbar,
   Typography,
-  , ListItemIcon 
-}
+  ListItemIcon
 } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import React from 'react'
+import PropTypes from 'prop-types'
 import {
   GitHub,
   Twitter,
@@ -201,6 +201,11 @@ function Header({ darkMode, setDarkMode }) {
       <TokenDialog open={open} onClose={handleTokenClose}></TokenDialog>
     </div>
   )
+}
+
+Header.propTypes = {
+  darkMode: PropTypes.bool.isRequired,
+  setDarkMode: PropTypes.func.isRequired
 }
 
 export default Header
