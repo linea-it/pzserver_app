@@ -13,7 +13,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from core.api import viewsets as products_viewsets
 from core.views import (
     CsrfToOauth,
     GetToken,
@@ -33,7 +32,11 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from orchestration.views import PipelineViewSet, ProcessViewSet
 from rest_framework import routers
+
+# from core.api import viewsets as products_viewsets
+from rest_framework.authtoken import views
 
 route = routers.DefaultRouter()
 
@@ -43,9 +46,9 @@ route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 route.register(r"product-files", ProductFileViewSet, basename="product_files")
+route.register(r"processes", ProcessViewSet, basename="processes")
+route.register(r"pipelines", PipelineViewSet, basename="pipelines")
 
-
-from rest_framework.authtoken import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
