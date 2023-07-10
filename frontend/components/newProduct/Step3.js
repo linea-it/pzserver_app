@@ -9,6 +9,7 @@ import {
   Typography
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+import EditIcon from '@mui/icons-material/Edit'
 import InputAdornment from '@mui/material/InputAdornment'
 import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
@@ -110,11 +111,11 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const handleMouseDownPassword = event => {
     event.preventDefault()
   }
-  const createSelect = pc => {
+  const createSelect = (pc) => {
     // Check Available Ucds and Current UCD when pc.ucd is not null
     const avoptions = []
     let currentUcd = null
-    ucds.forEach(ucd => {
+    ucds.forEach((ucd) => {
       if (usedUcds.indexOf(ucd.value) === -1 || ucd.value === pc.ucd) {
         avoptions.push(ucd)
       }
@@ -122,44 +123,53 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         currentUcd = ucd
       }
     })
-
-    if (pc.ucd !== null ? pc.ucd : '') {
-      return (
-        <TextField
-          value={currentUcd.name}
-          readOnly
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => onChangeUcd(pc, null)}
-                  onMouseDown={handleMouseDownPassword}
-                  edge="end"
+  
+    const isOptionSelected = pc.ucd !== null;
+  
+    return (
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        {isOptionSelected ? (
+          <TextField
+            value={currentUcd.name}
+            readOnly
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => onChangeUcd(pc, null)}>
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        ) : (
+          <>
+            <TextField
+              select
+              value={pc.ucd || ""}
+              onChange={(e) => onChangeUcd(pc, e.target.value)}
+            >
+              {avoptions.map((ucd) => (
+                <MenuItem
+                  key={`${pc.column_name}_${ucd.name}`}
+                  value={ucd.value}
                 >
-                  <CloseIcon />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-        />
-      )
-    } else {
-      return (
-        <TextField
-          select
-          onChange={e => onChangeUcd(pc, e.target.value)}
-          defaultValue=""
-        >
-          {avoptions.map(ucd => (
-            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
-              {ucd.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      )
-    }
+                  {ucd.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <IconButton
+              onClick={() => onChangeUcd(pc, pc.ucd || "")}
+              onMouseDown={handleMouseDownPassword}
+            >
+              <EditIcon />
+            </IconButton>
+          </>
+        )}
+      </Box>
+    )
   }
-
+            
   const createFields = pc => {
     return (
       <Stack
