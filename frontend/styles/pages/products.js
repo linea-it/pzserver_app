@@ -30,9 +30,7 @@ const useStyles = makeStyles(theme => ({
   },
   gridContent: {
     display: 'flex',
-    flexFlow: 'row wrap',
-    margin: theme.spacing(2)
-    // height: 'calc(100% - 65px)'
+    flexFlow: 'row wrap'
   }
 }))
 
