@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close'
+import EditIcon from '@mui/icons-material/Edit'
 import {
   Alert,
   Box,
@@ -9,11 +10,10 @@ import {
   Typography
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import EditIcon from '@mui/icons-material/Edit'
 import InputAdornment from '@mui/material/InputAdornment'
 import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { contentAssociation, getProductContents } from '../../services/product'
 import Loading from '../Loading'
 
@@ -53,6 +53,8 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const [usedUcds, setUsedUcds] = React.useState([])
   const [isLoading, setLoading] = useState(false)
   const [formError, setFormError] = React.useState('')
+  const [editableFields, setEditableFields] = useState({})
+  const editFieldRefs = useRef({})
 
   const loadContents = React.useCallback(async () => {
     setLoading(true)
@@ -93,7 +95,6 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     if (pc.ucd === value) {
       return
     }
-
     // setLoading(true)
     contentAssociation(pc.id, value)
       .then(() => {
@@ -102,20 +103,34 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
       })
       .catch(res => {
         setLoading(false)
-
         if (res.response.status === 500) {
           catchFormError(res.response.data)
         }
       })
   }
+
   const handleMouseDownPassword = event => {
     event.preventDefault()
   }
-  const createSelect = (pc) => {
+
+  const handleEditField = (pc, value) => {
+    setEditableFields(prevState => ({
+      ...prevState,
+      [pc.column_name]: value
+    }))
+  }
+
+  const handleCancelEdit = pc => {
+    const updatedEditableFields = { ...editableFields }
+    delete updatedEditableFields[pc.column_name]
+    setEditableFields(updatedEditableFields)
+  }
+
+  const createSelect = pc => {
     // Check Available Ucds and Current UCD when pc.ucd is not null
     const avoptions = []
     let currentUcd = null
-    ucds.forEach((ucd) => {
+    ucds.forEach(ucd => {
       if (usedUcds.indexOf(ucd.value) === -1 || ucd.value === pc.ucd) {
         avoptions.push(ucd)
       }
@@ -123,9 +138,9 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         currentUcd = ucd
       }
     })
-  
+
     const isOptionSelected = pc.ucd !== null;
-  
+
     return (
       <Box sx={{ display: "flex", alignItems: "center" }}>
         {isOptionSelected ? (
@@ -144,32 +159,56 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           />
         ) : (
           <>
-            <TextField
-              select
-              value={pc.ucd || ""}
-              onChange={(e) => onChangeUcd(pc, e.target.value)}
-            >
-              {avoptions.map((ucd) => (
-                <MenuItem
-                  key={`${pc.column_name}_${ucd.name}`}
-                  value={ucd.value}
+            {pc.column_name in editableFields ? (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TextField
+                  value={editableFields[pc.column_name]}
+                  onChange={e => handleEditField(pc, e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => handleCancelEdit(pc)}>
+                          <CloseIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  inputRef={ref => {
+                    editFieldRefs.current[pc.column_name] = ref;
+                  }}
+                  autoFocus
+                />
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TextField
+                  select
+                  value={pc.ucd || ''}
+                  onChange={e => onChangeUcd(pc, e.target.value)}
                 >
-                  {ucd.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <IconButton
-              onClick={() => onChangeUcd(pc, pc.ucd || "")}
-              onMouseDown={handleMouseDownPassword}
-            >
-              <EditIcon />
-            </IconButton>
+                  {avoptions.map(ucd => (
+                    <MenuItem
+                      key={`${pc.column_name}_${ucd.name}`}
+                      value={ucd.value}
+                    >
+                      {ucd.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <IconButton
+                  onClick={() => handleEditField(pc, '')}
+                  onMouseDown={handleMouseDownPassword}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Box>
+            )}
           </>
         )}
       </Box>
     )
   }
-            
+
   const createFields = pc => {
     return (
       <Stack
