@@ -244,19 +244,17 @@ export default function ProductDetail({ productId, internalName }) {
               >
                 <Typography variant="h4">{product.display_name}</Typography>
                 {product.status === 1 && (
-                  <>
-                    <IconButton onClick={handleShareDialogOpen}>
-                      <ShareIcon />
-                    </IconButton>
-                    {product.official_product && (
-                      <Chip
-                        variant="outlined"
-                        color="success"
-                        label="Official Product"
-                        icon={<VerifiedIcon />}
-                      />
-                    )}
-                  </>
+                  <IconButton onClick={handleShareDialogOpen}>
+                    <ShareIcon />
+                  </IconButton>
+                )}
+                {product.official_product === true && (
+                  <Chip
+                    variant="outlined"
+                    color="success"
+                    label="Official Product"
+                    icon={<VerifiedIcon />}
+                  />
                 )}
               </Stack>
               <Stack
