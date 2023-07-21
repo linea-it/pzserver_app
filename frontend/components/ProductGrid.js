@@ -1,16 +1,10 @@
 /* eslint-disable multiline-ternary */
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
-import { Button } from '@mui/material'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import Snackbar from '@mui/material/Snackbar'
+import ShareIcon from '@mui/icons-material/Share'
 import Alert from '@mui/material/Alert'
 import Link from '@mui/material/Link'
-import ShareIcon from '@mui/icons-material/Share'
-import TextField from '@mui/material/TextField'
+import Snackbar from '@mui/material/Snackbar'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -19,6 +13,7 @@ import * as React from 'react'
 import { getProducts } from '../services/product'
 
 import ProductRemove from '../components/ProductRemove'
+import ProductShare from './ProductShare'
 
 export default function ProductGrid(props) {
   const router = useRouter()
@@ -31,27 +26,13 @@ export default function ProductGrid(props) {
   ])
   const [loading, setLoading] = React.useState(false)
   const [delRecordId, setDelRecordId] = React.useState(null)
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
   const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const productShareRef = React.useRef(null)
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
-  }
-
-  const handleCopyUrl = () => {
-    navigator.clipboard
-      .writeText(selectedFileUrl)
-      .then(() => {
-        setCopySnackbarOpen(true)
-      })
-      .catch(error => {
-        console.error(error)
-      })
-  }
-
-  const handleCloseShareDialog = () => {
-    setShareDialogOpen(false)
   }
 
   const handleCloseCopySnackbar = () => {
@@ -111,7 +92,7 @@ export default function ProductGrid(props) {
     const handleShare = row => {
       const downloadUrl = getDownloadUrl(row)
       setSelectedFileUrl(downloadUrl)
-      setShareDialogOpen(true)
+      setSnackbarOpen(true)
     }
 
     return [
@@ -215,33 +196,13 @@ export default function ProductGrid(props) {
         hideFooterSelectedRowCount
       />
 
-      <Dialog
-        open={shareDialogOpen}
-        onClose={handleCloseShareDialog}
-        PaperProps={{
-          style: { width: '500px', minHeight: '150px' }
-        }}
-      >
-        <DialogContent>
-          <DialogContentText>Copy the download URL:</DialogContentText>
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={selectedFileUrl}
-            InputProps={{
-              endAdornment: (
-                <Button variant="contained" onClick={handleCopyUrl}>
-                  Copy
-                </Button>
-              )
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseShareDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
+      <ProductShare
+        isOpen={snackbarOpen}
+        handleShareDialogOpen={() => setSnackbarOpen(!snackbarOpen)}
+        url={selectedFileUrl}
+        setParentSnackbarOpen={setCopySnackbarOpen}
+        productShareRef={productShareRef}
+      />
       {delRecordId && (
         <ProductRemove
           open={Boolean(delRecordId)}

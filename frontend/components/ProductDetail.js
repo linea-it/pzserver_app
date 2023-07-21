@@ -1,31 +1,25 @@
+import ShareIcon from '@mui/icons-material/Share'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
-  Button,
-  IconButton,
-  Snackbar,
   Box,
   Card,
   CardContent,
   CardHeader,
   Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Divider,
   Grid,
+  IconButton,
   List,
   ListItem,
   ListItemText,
   Paper,
+  Snackbar,
   Stack,
-  TextField,
   Typography
 } from '@mui/material'
-import DialogActions from '@mui/material/DialogActions'
-import InputAdornment from '@mui/material/InputAdornment'
-import ShareIcon from '@mui/icons-material/Share'
 import Alert from '@mui/material/Alert'
+import ProductShare from './ProductShare'
 
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -51,7 +45,8 @@ export default function ProductDetail({ productId, internalName }) {
   const [notFound, setNotFound] = React.useState(false)
   const [isDownloading, setDownloading] = React.useState(false)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-  const [shareUrl, setShareUrl] = React.useState('')
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const productShareRef = React.useRef(null)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -184,24 +179,8 @@ export default function ProductDetail({ productId, internalName }) {
     )
   }
 
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
-
-  const showSnackbar = () => {
-    setSnackbarOpen(true)
-  }
-
   const handleShareDialogOpen = () => {
-    setShareDialogOpen(true)
-    setShareUrl(window.location.href)
-  }
-
-  const handleShareDialogClose = () => {
-    setShareDialogOpen(false)
-  }
-
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(shareUrl)
-    showSnackbar()
+    setShareDialogOpen(!shareDialogOpen)
   }
 
   if (isLoading) return <Loading isLoading={isLoading} />
@@ -278,36 +257,13 @@ export default function ProductDetail({ productId, internalName }) {
               {product.description !== '' && (
                 <Typography variant="body1">{product.description}</Typography>
               )}
-              <Dialog
-                open={shareDialogOpen}
-                onClose={handleShareDialogClose}
-                PaperProps={{
-                  style: { width: '500px', minHeight: '150px' }
-                }}
-              >
-                <DialogTitle style={{ fontSize: '16px' }}>
-                  Copy the download URL:
-                </DialogTitle>
-                <DialogContent>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    value={shareUrl}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Button variant="contained" onClick={handleCopyUrl}>
-                            Copy
-                          </Button>
-                        </InputAdornment>
-                      )
-                    }}
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleShareDialogClose}>Close</Button>
-                </DialogActions>
-              </Dialog>
+              <ProductShare
+                isOpen={shareDialogOpen}
+                handleShareDialogOpen={handleShareDialogOpen}
+                url={window.location.href}
+                setParentSnackbarOpen={setSnackbarOpen}
+                productShareRef={productShareRef}
+              />
             </Paper>
           </Grid>
           <Grid item xs={4}>
