@@ -1,29 +1,40 @@
 import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider } from '@mui/styles'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import Footer from '../components/Footer'
-import Header from '../components/Header'
 import { AuthProvider } from '../contexts/AuthContext'
 import '../styles/global.css'
-import light from '../themes/light'
+import Header from '../components/Header'
 
 const queryClient = new QueryClient()
 
 export default function MyApp(props) {
   const { Component, pageProps } = props
   const route = useRouter()
+  const [darkMode, setDarkMode] = useState(false)
 
   useEffect(() => {
-    // Remove the server-side injected CSS.
     const jssStyles = document.querySelector('#jss-server-side')
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
   }, [])
+
+  const light = createTheme({
+    palette: {
+      mode: 'light'
+    }
+  })
+
+  const dark = createTheme({
+    palette: {
+      mode: 'dark'
+    }
+  })
 
   return (
     <>
@@ -35,10 +46,8 @@ export default function MyApp(props) {
         />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={light}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+        <ThemeProvider theme={darkMode ? dark : light}>
           <CssBaseline />
-          {/* Overwriting some global CSS. */}
           <div
             style={{
               display: 'flex',
@@ -48,7 +57,13 @@ export default function MyApp(props) {
             }}
           >
             <AuthProvider>
-              {route.pathname !== '/login' && <Header />}
+              {route.pathname !== '/login' && (
+                <Header
+                  darkMode={darkMode}
+                  setDarkMode={setDarkMode}
+                  route={route}
+                />
+              )}
               <Component {...pageProps} />
               {route.pathname !== '/login' && <Footer />}
             </AuthProvider>

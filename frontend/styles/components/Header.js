@@ -8,7 +8,7 @@ const useStyles = makeStyles(theme => ({
     marginRight: 10
   },
   appbar: {
-    background: theme.palette.primary.dark
+    background: theme.palette.grey[900]
   },
   separator: {
     flexGrow: 1

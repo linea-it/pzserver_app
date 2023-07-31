@@ -1,17 +1,16 @@
-import * as React from 'react'
-import { Paper, Box, Button } from '@mui/material'
-import Grid from '@mui/material/Grid'
-import Divider from '@mui/material/Divider'
-import Typography from '@mui/material/Typography'
-import useStyles from '../styles/pages/products'
+import { Box, Button, Card, CardContent, Paper } from '@mui/material'
 import FormControl from '@mui/material/FormControl'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import { useRouter } from 'next/router'
+import { parseCookies } from 'nookies'
+import * as React from 'react'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
-import { parseCookies } from 'nookies'
-import { useRouter } from 'next/router'
 import { useAuth } from '../contexts/AuthContext'
+import useStyles from '../styles/pages/products'
 
 export default function Products() {
   const classes = useStyles()
@@ -28,7 +27,7 @@ export default function Products() {
 
   return (
     // Baseado neste template: https://mira.bootlab.io/dashboard/analytics
-    <Paper className={classes.root}>
+    <Paper className={classes.root} elevation={3}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar o BREADCRUMB */}
@@ -52,45 +51,48 @@ export default function Products() {
           )}
         </Grid>
       </Grid>
-      <Divider className={classes.titleDivider} variant={'fullWidth'} />
-      <Grid container className={classes.gridContent}>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <ReleaseSelect
-                value={filters.release}
-                onChange={value => {
-                  setFilters({
-                    ...filters,
-                    release: value
-                  })
-                }}
-                disabled={search !== ''}
-                allowAll={true}
-                noRelease={true}
-              />
-            </FormControl>
-            <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <ProductTypeSelect
-                value={filters.product_type}
-                onChange={value => {
-                  setFilters({
-                    ...filters,
-                    product_type: value
-                  })
-                }}
-                disabled={search !== ''}
-                allowAll={true}
-              />
-            </FormControl>
-            {/* TODO: Empurrar o Search para a direita */}
-            <SearchField onChange={query => setSearch(query)} />
-          </Box>
-        </Grid>
-        <Grid item xs={12}>
-          <ProductGrid query={search} filters={filters} />
-        </Grid>
-      </Grid>
+      <Card>
+        <CardContent>
+          <Grid container className={classes.gridContent}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <FormControl sx={{ mt: 1, minWidth: '200px' }}>
+                  <ReleaseSelect
+                    value={filters.release}
+                    onChange={value => {
+                      setFilters({
+                        ...filters,
+                        release: value
+                      })
+                    }}
+                    disabled={search !== ''}
+                    allowAll={true}
+                    noRelease={true}
+                  />
+                </FormControl>
+                <FormControl sx={{ m: 1, minWidth: '200px' }}>
+                  <ProductTypeSelect
+                    value={filters.product_type}
+                    onChange={value => {
+                      setFilters({
+                        ...filters,
+                        product_type: value
+                      })
+                    }}
+                    disabled={search !== ''}
+                    allowAll={true}
+                  />
+                </FormControl>
+                {/* TODO: Empurrar o Search para a direita */}
+                <SearchField onChange={query => setSearch(query)} />
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <ProductGrid query={search} filters={filters} />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
     </Paper>
   )
 }

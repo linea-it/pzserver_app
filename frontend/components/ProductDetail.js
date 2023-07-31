@@ -1,3 +1,4 @@
+import ShareIcon from '@mui/icons-material/Share'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
@@ -8,13 +9,18 @@ import {
   Chip,
   Divider,
   Grid,
+  IconButton,
   List,
   ListItem,
   ListItemText,
   Paper,
+  Snackbar,
   Stack,
   Typography
 } from '@mui/material'
+import Alert from '@mui/material/Alert'
+import ProductShare from './ProductShare'
+
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
@@ -38,6 +44,9 @@ export default function ProductDetail({ productId, internalName }) {
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
   const [isDownloading, setDownloading] = React.useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const productShareRef = React.useRef(null)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -122,7 +131,6 @@ export default function ProductDetail({ productId, internalName }) {
         }
       })
   }, [product])
-
   React.useEffect(() => {
     if (product) {
       loadFiles()
@@ -157,15 +165,7 @@ export default function ProductDetail({ productId, internalName }) {
       name = file.name.substring(0, 23) + '...' + extension
     }
     return (
-      <ListItem
-        key={`file_${file.id}`}
-        disableGutters
-        // secondaryAction={
-        //   <IconButton component={Link} href={file.file} target="_blank">
-        //     <DownloadIcon />
-        //   </IconButton>
-        // }
-      >
+      <ListItem key={`file_${file.id}`} disableGutters>
         {file.role === 0 && (
           <ListItemText
             primary={name}
@@ -179,6 +179,10 @@ export default function ProductDetail({ productId, internalName }) {
     )
   }
 
+  const handleShareDialogOpen = () => {
+    setShareDialogOpen(!shareDialogOpen)
+  }
+
   if (isLoading) return <Loading isLoading={isLoading} />
   if (notFound) return <ProductNotFound />
   if (!product) return null
@@ -186,6 +190,19 @@ export default function ProductDetail({ productId, internalName }) {
   return (
     <React.Fragment>
       <Box className={classes.pageHeader}>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+        >
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity="success"
+            sx={{ width: '100%' }}
+          >
+            Link copied successfully!
+          </Alert>
+        </Snackbar>
         <Typography variant="h6">Product</Typography>
       </Box>
       <Box component="form" noValidate autoComplete="off">
@@ -200,12 +217,16 @@ export default function ProductDetail({ productId, internalName }) {
             <Paper elevation={2} className={classes.paper}>
               <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="flex-start"
+                justifyContent="flex-start"
+                alignItems="center"
                 spacing={2}
               >
                 <Typography variant="h4">{product.display_name}</Typography>
-
+                {product.status === 1 && (
+                  <IconButton onClick={handleShareDialogOpen}>
+                    <ShareIcon />
+                  </IconButton>
+                )}
                 {product.official_product === true && (
                   <Chip
                     variant="outlined"
@@ -234,8 +255,15 @@ export default function ProductDetail({ productId, internalName }) {
                 {product.release_name} - {product.product_type_name}
               </Typography>
               {product.description !== '' && (
-                <Typography variant="body">{product.description}</Typography>
+                <Typography variant="body1">{product.description}</Typography>
               )}
+              <ProductShare
+                isOpen={shareDialogOpen}
+                handleShareDialogOpen={handleShareDialogOpen}
+                url={window.location.href}
+                setParentSnackbarOpen={setSnackbarOpen}
+                productShareRef={productShareRef}
+              />
             </Paper>
           </Grid>
           <Grid item xs={4}>
