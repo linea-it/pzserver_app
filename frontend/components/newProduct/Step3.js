@@ -16,6 +16,7 @@ import PropTypes from 'prop-types'
 import React, { useEffect, useRef, useState } from 'react'
 import { contentAssociation, getProductContents } from '../../services/product'
 import Loading from '../Loading'
+import axios from 'axios'
 
 export default function NewProductStep3({ productId, onNext, onPrev }) {
   const ucds = [
@@ -118,7 +119,24 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
       ...prevState,
       [pc.column_name]: value
     }))
+    updateAliasOnServer(pc.id, value)
   }
+
+  const updateAliasOnServer = async (contentId, aliasValue) => {
+    try {
+      await axios.post('/api/update-aliases/', {
+        productId: productId,
+        updates: [
+          {
+            id: contentId,
+            alias: aliasValue
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Error updating alias:', error);
+    }
+  };
 
   const handleCancelEdit = pc => {
     const updatedEditableFields = { ...editableFields }
