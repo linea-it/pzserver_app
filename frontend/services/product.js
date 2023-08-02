@@ -143,7 +143,7 @@ export const fetchProductData = ({ queryKey }) => {
     return
   }
   page += 1
-  return api.get(`/api/products/${productId}/read_data/`, { params: { page, page_size } }).then(res => res.data)
+  return api.get(`/api/products/${productId}/read_data/`, { timeout: 120000, params: { page, page_size } }).then(res => res.data)
 }
 
 export const deleteProduct = product_id => {
