@@ -10,7 +10,7 @@ import { refreshToken } from './auth'
 export function getAPIClient(ctx) {
   const api = axios.create({
     // baseURL: '/api',
-    timeout: 5000,
+    timeout: 15000,
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'
@@ -83,6 +83,9 @@ export function getAPIClient(ctx) {
         //   // Do something
         //   return Promise.reject(error.response.data)
         // }
+      }
+      if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+        error.message = 'The connection has timed out.'
       }
       return Promise.reject(error)
     }
