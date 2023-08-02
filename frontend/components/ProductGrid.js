@@ -69,18 +69,6 @@ export default function ProductGrid(props) {
   }, [])
 
   const columns = React.useMemo(() => {
-    const getDownloadUrl = row => {
-      const { id, /* eslint-disable camelcase */ display_name } = row
-
-      const formattedDisplayName = display_name
-        .replace(/[-\s]/g, '')
-        .toLowerCase()
-
-      const productUrl = getProductUrl(`${id}_${formattedDisplayName}`)
-      const downloadUrl = `${window.location.origin}${productUrl}`
-      return downloadUrl
-    }
-
     const handleDownload = row => {
       router.push(getProductUrl(row.internal_name))
     }
@@ -90,8 +78,9 @@ export default function ProductGrid(props) {
     }
 
     const handleShare = row => {
-      const downloadUrl = getDownloadUrl(row)
-      setSelectedFileUrl(downloadUrl)
+      const productUrl = getProductUrl(row.internal_name)
+      const shareUrl = `${window.location.origin}${productUrl}`
+      setSelectedFileUrl(shareUrl)
       setSnackbarOpen(true)
     }
 
