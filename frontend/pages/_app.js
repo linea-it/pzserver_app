@@ -22,6 +22,11 @@ export default function MyApp(props) {
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
+
+    const darkModePreference = localStorage.getItem('darkMode')
+    if (darkModePreference) {
+      setDarkMode(darkModePreference === '1')
+    }
   }, [])
 
   const light = createTheme({

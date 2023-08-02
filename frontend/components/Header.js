@@ -73,7 +73,11 @@ function Header({ darkMode, setDarkMode }) {
   }
 
   const handleToggleDarkMode = () => {
-    setDarkMode(prevMode => !prevMode)
+    setDarkMode(prevMode => {
+      const newMode = !prevMode
+      localStorage.setItem('darkMode', newMode ? '1' : '0')
+      return newMode
+    })
   }
 
   return (
