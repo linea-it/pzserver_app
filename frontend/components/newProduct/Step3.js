@@ -59,17 +59,24 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
 
   const loadContents = React.useCallback(async () => {
     setLoading(true)
-    getProductContents(productId)
-      .then(res => {
-        setProductColumns(res.results)
-        setLoading(false)
-      })
-      .catch(res => {
-        setLoading(false)
-        if (res.response.status === 500) {
-          catchFormError(res.response.data)
+    try {
+      const response = await getProductContents(productId)
+      setProductColumns(response.results)
+
+      const aliases = {}
+      response.results.forEach(row => {
+        if (row.alias) {
+          aliases[row.column_name] = row.alias
         }
       })
+      setEditableFields(aliases)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      if (error.response && error.response.status === 500) {
+        catchFormError(error.response.data)
+      }
+    }
   }, [productId])
 
   useEffect(() => {
@@ -114,29 +121,18 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     event.preventDefault()
   }
 
-  const handleEditField = (pc, value) => {
+  const handleAlias = (pc, value) => {
     setEditableFields(prevState => ({
       ...prevState,
       [pc.column_name]: value
     }))
-    updateAliasOnServer(pc.id, value)
-  }
 
-  const updateAliasOnServer = async (contentId, aliasValue) => {
-    try {
-      await axios.post('/api/update-aliases/', {
-        productId: productId,
-        updates: [
-          {
-            id: contentId,
-            alias: aliasValue
-          }
-        ]
-      });
-    } catch (error) {
-      console.error('Error updating alias:', error);
-    }
-  };
+    axios.patch(`/api/product-contents/${pc.id}/`, { alias: value })
+      .then(response => {
+      })
+      .catch(error => {
+      })
+  }
 
   const handleCancelEdit = pc => {
     const updatedEditableFields = { ...editableFields }
@@ -157,7 +153,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
       }
     })
 
-    const isOptionSelected = pc.ucd !== null;
+    const isOptionSelected = pc.ucd !== null
 
     return (
       <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -181,7 +177,18 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <TextField
                   value={editableFields[pc.column_name]}
-                  onChange={e => handleEditField(pc, e.target.value)}
+                  onChange={e => handleAlias(pc, e.target.value)}
+                  onBlur={() => {
+                    // console.log(`${pc.column_name}: ${editableFields[pc.column_name]}`)
+                    handleAlias(pc, editableFields[pc.column_name])
+                  }}
+                  onKeyPress={event => {
+                    if (event.key === 'Enter' || event.key === 'Tab') {
+                      handleAlias(pc, editableFields[pc.column_name])
+                      // console.log(`${pc.column_name}: ${editableFields[pc.column_name]}`)
+                      editFieldRefs.current[pc.column_name].blur()
+                    }
+                  }}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
@@ -192,7 +199,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
                     )
                   }}
                   inputRef={ref => {
-                    editFieldRefs.current[pc.column_name] = ref;
+                    editFieldRefs.current[pc.column_name] = ref
                   }}
                   autoFocus
                 />
@@ -214,7 +221,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
                   ))}
                 </TextField>
                 <IconButton
-                  onClick={() => handleEditField(pc, '')}
+                  onClick={() => handleAlias(pc, '')}
                   onMouseDown={handleMouseDownPassword}
                 >
                   <EditIcon />

@@ -28,7 +28,6 @@ from core.views import (
 )
 from django.contrib import admin
 from django.urls import include, path
-from pzserver.views import update_aliases
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -44,6 +43,7 @@ route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 route.register(r"product-files", ProductFileViewSet, basename="product_files")
+route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 
 
 from rest_framework.authtoken import views
@@ -59,8 +59,6 @@ urlpatterns = [
     path("api/logged_user/", LoggedUserView.as_view(), name="logged_user"),
     path("api/logout/", Logout.as_view(), name="logout"),
     path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
-    # API ALIAS
-    path('api/update-aliases/', update_aliases, name='update_aliases'),
     # API DOCs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
