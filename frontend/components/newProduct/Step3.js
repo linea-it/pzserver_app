@@ -276,11 +276,11 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const createFields = pc => {
     const avoptions = getAvailableUcds()
 
-    if (pc.ucd !== null || pc.alias !== null) {
+    if (pc.ucd !== null) {
       return (
         <InputReadOnly
           name={pc.column_name}
-          value={pc.ucd !== null ? getAliasByUcd(pc.ucd) : pc.alias}
+          value={getAliasByUcd(pc.ucd)}
           onClear={() => onClear(pc)}
         />
       )
