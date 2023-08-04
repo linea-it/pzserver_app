@@ -5,71 +5,202 @@ import {
   Box,
   Button,
   FormControl,
+  MenuItem,
   Stack,
   TextField,
   Typography
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import MenuItem from '@mui/material/MenuItem'
+import debounce from 'lodash/debounce'
 import PropTypes from 'prop-types'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { contentAssociation, getProductContents } from '../../services/product'
 import Loading from '../Loading'
-import axios from 'axios'
+
+const ucds = [
+  {
+    name: 'ID',
+    value: 'meta.id;meta.main'
+  },
+  {
+    name: 'RA',
+    value: 'pos.eq.ra;meta.main'
+  },
+  {
+    name: 'Dec',
+    value: 'pos.eq.dec;meta.main'
+  },
+  {
+    name: 'z',
+    value: 'src.redshift'
+  },
+  {
+    name: 'z_err',
+    value: 'stat.error;src.redshift'
+  },
+  {
+    name: 'z_flag',
+    value: 'stat.rank'
+  },
+  {
+    name: 'survey',
+    value: 'meta.curation'
+  }
+]
+export function InputReadOnly({ name, value, onClear }) {
+
+  return (
+    <FormControl>
+      <TextField
+        name={name}
+        value={value}
+        readOnly
+        InputProps={onClear !== undefined ? {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={onClear}>
+                <CloseIcon />
+              </IconButton>
+            </InputAdornment>
+          )
+        } : null}
+      />
+    </FormControl>
+  )
+}
+InputReadOnly.propTypes = {
+  value: PropTypes.string.isRequired,
+  name: PropTypes.string,
+  onClear: PropTypes.func
+}
+
+export function InputUcd({ pc, options, onChange, onChangeInputType }) {
+  const [value, setValue] = useState('')
+
+  const handleChange = (e) => {
+    setValue(e.target.value)
+    onChange(pc, e.target.value)
+  }
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+  return (
+    <FormControl>
+      <Stack
+        direction="row"
+        spacing={2}
+      >
+        <TextField
+          select
+          // label="UCD"
+          value={value}
+          onChange={handleChange}
+        >
+          {options.map(ucd => (
+            <MenuItem
+              key={`${pc.column_name}_${ucd.name}`}
+              value={ucd.value}
+            >
+              {ucd.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <IconButton
+          onClick={handleChangeType}
+        >
+          <EditIcon />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputUcd.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired,
+  options: PropTypes.array.isRequired
+}
+
+export function InputAlias({ pc, onChange, onChangeInputType }) {
+
+  const [value, setValue] = useState('')
+
+  // Using lodash debounce to Delay search by 600ms
+  // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const delayedEdit = useCallback(
+    debounce((pc, alias) => onChange(pc, alias), 600),
+    []
+  )
+
+  const handleChange = (e) => {
+    setValue(e.target.value)
+    delayedEdit(pc, e.target.value)
+  }
+
+  const handleClear = () => {
+    setValue('')
+    onChange(pc, null)
+  }
+
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+
+  return (
+    <FormControl>
+      <Stack
+        direction="row"
+        spacing={2}
+      >
+        <TextField
+          // label="Alias"
+          value={value}
+          onChange={handleChange}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleClear}>
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        >
+        </TextField>
+        <IconButton
+          onClick={handleChangeType}
+        >
+          <EditIcon color="primary" />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputAlias.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired,
+}
+
 
 export default function NewProductStep3({ productId, onNext, onPrev }) {
-  const ucds = [
-    {
-      name: 'ID',
-      value: 'meta.id;meta.main'
-    },
-    {
-      name: 'RA',
-      value: 'pos.eq.ra;meta.main'
-    },
-    {
-      name: 'Dec',
-      value: 'pos.eq.dec;meta.main'
-    },
-    {
-      name: 'z',
-      value: 'src.redshift'
-    },
-    {
-      name: 'z_err',
-      value: 'stat.error;src.redshift'
-    },
-    {
-      name: 'z_flag',
-      value: 'stat.rank'
-    },
-    {
-      name: 'survey',
-      value: 'meta.curation'
-    }
-  ]
 
   const [productColumns, setProductColumns] = React.useState([])
   const [usedUcds, setUsedUcds] = React.useState([])
   const [isLoading, setLoading] = useState(false)
   const [formError, setFormError] = React.useState('')
-  const [editableFields, setEditableFields] = useState({})
-  const editFieldRefs = useRef({})
+  const [inputsType, setInputsType] = useState([])
+
 
   const loadContents = React.useCallback(async () => {
     setLoading(true)
     try {
       const response = await getProductContents(productId)
+
       setProductColumns(response.results)
 
-      const aliases = {}
-      response.results.forEach(row => {
-        if (row.alias) {
-          aliases[row.column_name] = row.alias
-        }
-      })
-      setEditableFields(aliases)
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -78,6 +209,24 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
       }
     }
   }, [productId])
+
+  const changeProductContent = (pc, ucd, alias) => {
+    if (pc.ucd === ucd && pc.alias === alias) {
+      return
+    }
+    // setLoading(true)
+    contentAssociation(pc.id, ucd, alias)
+      .then(() => {
+        // setLoading(false)
+        loadContents(productId)
+      })
+      .catch(res => {
+        setLoading(false)
+        if (res.response.status === 500) {
+          catchFormError(res.response.data)
+        }
+      })
+  }
 
   useEffect(() => {
     loadContents()
@@ -99,156 +248,88 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const handlePrev = () => {
     onPrev(productId)
   }
-  const onChangeUcd = (pc, value) => {
-    if (pc.ucd === value) {
-      return
-    }
-    // setLoading(true)
-    contentAssociation(pc.id, value)
-      .then(() => {
-        // setLoading(false)
-        loadContents(productId)
-      })
-      .catch(res => {
-        setLoading(false)
-        if (res.response.status === 500) {
-          catchFormError(res.response.data)
-        }
-      })
+
+  const onClear = (pc) => {
+    console.log("onClear: ", pc)
+    changeProductContent(pc, null, null)
   }
 
-  const handleMouseDownPassword = event => {
-    event.preventDefault()
+  const onSelectUcd = (pc, ucd) => {
+    console.log("onSelectUcd: ", pc, ucd)
+    changeProductContent(pc, ucd, getAliasByUcd(ucd))
   }
 
-  const handleAlias = (pc, value) => {
-    setEditableFields(prevState => ({
-      ...prevState,
-      [pc.column_name]: value
-    }))
-
-    axios.patch(`/api/product-contents/${pc.id}/`, { alias: value })
-      .then(response => {
-      })
-      .catch(error => {
-      })
+  const onChangeAlias = (pc, alias) => {
+    console.log("onChangeAlias: ", pc, alias)
+    changeProductContent(pc, null, alias)
   }
 
-  const handleCancelEdit = pc => {
-    const updatedEditableFields = { ...editableFields }
-    delete updatedEditableFields[pc.column_name]
-    setEditableFields(updatedEditableFields)
+  const getAliasByUcd = (ucd) => {
+    const result = ucds.find(o => o.value === ucd);
+    return result ? result.name : null
   }
 
-  const createSelect = pc => {
-    // Check Available Ucds and Current UCD when pc.ucd is not null
+  const getAvailableUcds = () => {
     const avoptions = []
-    let currentUcd = null
     ucds.forEach(ucd => {
-      if (usedUcds.indexOf(ucd.value) === -1 || ucd.value === pc.ucd) {
+      if (usedUcds.indexOf(ucd.value) === -1) {
         avoptions.push(ucd)
       }
-      if (ucd.value === pc.ucd) {
-        currentUcd = ucd
-      }
     })
+    return avoptions
+  }
 
-    const isOptionSelected = pc.ucd !== null
+  const isInputTypeAlias = name => {
+    // Se name estiver no array de input type
+    // Entao Input é do tipo Alias.
+    if (inputsType.indexOf(name) === -1) {
+      return false
+    }
+    return true
+  }
 
-    return (
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        {isOptionSelected ? (
-          <TextField
-            value={currentUcd.name}
-            readOnly
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => onChangeUcd(pc, null)}>
-                    <CloseIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        ) : (
-          <>
-            {pc.column_name in editableFields ? (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  value={editableFields[pc.column_name]}
-                  onChange={e => handleAlias(pc, e.target.value)}
-                  onBlur={() => {
-                    // console.log(`${pc.column_name}: ${editableFields[pc.column_name]}`)
-                    handleAlias(pc, editableFields[pc.column_name])
-                  }}
-                  onKeyPress={event => {
-                    if (event.key === 'Enter' || event.key === 'Tab') {
-                      handleAlias(pc, editableFields[pc.column_name])
-                      // console.log(`${pc.column_name}: ${editableFields[pc.column_name]}`)
-                      editFieldRefs.current[pc.column_name].blur()
-                    }
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => handleCancelEdit(pc)}>
-                          <CloseIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                  inputRef={ref => {
-                    editFieldRefs.current[pc.column_name] = ref
-                  }}
-                  autoFocus
-                />
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  select
-                  value={pc.ucd || ''}
-                  onChange={e => onChangeUcd(pc, e.target.value)}
-                >
-                  {avoptions.map(ucd => (
-                    <MenuItem
-                      key={`${pc.column_name}_${ucd.name}`}
-                      value={ucd.value}
-                    >
-                      {ucd.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <IconButton
-                  onClick={() => handleAlias(pc, '')}
-                  onMouseDown={handleMouseDownPassword}
-                >
-                  <EditIcon />
-                </IconButton>
-              </Box>
-            )}
-          </>
-        )}
-      </Box>
-    )
+  const handleChangeInputType = column_name => {
+    if (inputsType.indexOf(column_name) === -1) {
+      inputsType.push(column_name)
+    } else {
+      inputsType.splice(inputsType.indexOf(column_name), 1);
+    }
+    loadContents(productId)
   }
 
   const createFields = pc => {
+
+    const avoptions = getAvailableUcds()
+
+    if (pc.ucd !== null || pc.alias !== null) {
+      return (
+        <InputReadOnly
+          name={pc.column_name}
+          value={pc.ucd !== null ? getAliasByUcd(pc.ucd) : pc.alias} onClear={() => onClear(pc)} />
+      )
+    }
+
+    // Campo de Texto para Alias
+    if (isInputTypeAlias(pc.column_name) === true) {
+      return (
+        <InputAlias
+          pc={pc}
+          onChange={onChangeAlias}
+          onChangeInputType={handleChangeInputType}
+        />
+      )
+    }
+
+    // Select para UCD
     return (
-      <Stack
-        direction="row"
-        spacing={2}
-        key={`fields_${pc.column_name}`}
-        mb={2}
-      >
-        <FormControl>
-          <TextField value={pc.column_name} />
-        </FormControl>
-        <FormControl>{createSelect(pc)}</FormControl>
-      </Stack>
+      <InputUcd
+        pc={pc}
+        options={avoptions}
+        onChange={onSelectUcd}
+        onChangeInputType={handleChangeInputType} />
     )
   }
+
 
   const catchFormError = data => {
     let msg =
@@ -289,7 +370,18 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         autoComplete="off"
       >
         {productColumns.map(pc => {
-          return createFields(pc)
+
+          return (
+            <Stack
+              direction="row"
+              spacing={2}
+              key={`fields_${pc.column_name}`}
+              mb={2}
+            >
+              <InputReadOnly value={pc.column_name} />
+              {createFields(pc)}
+            </Stack>
+          )
         })}
       </Box>
       {formError !== '' && handleFormError()}
