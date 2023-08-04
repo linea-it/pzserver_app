@@ -49,22 +49,25 @@ const ucds = [
   }
 ]
 export function InputReadOnly({ name, value, onClear }) {
-
   return (
     <FormControl>
       <TextField
         name={name}
         value={value}
         readOnly
-        InputProps={onClear !== undefined ? {
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={onClear}>
-                <CloseIcon />
-              </IconButton>
-            </InputAdornment>
-          )
-        } : null}
+        InputProps={
+          onClear !== undefined
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={onClear}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }
+            : null
+        }
       />
     </FormControl>
   )
@@ -78,7 +81,7 @@ InputReadOnly.propTypes = {
 export function InputUcd({ pc, options, onChange, onChangeInputType }) {
   const [value, setValue] = useState('')
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     setValue(e.target.value)
     onChange(pc, e.target.value)
   }
@@ -87,28 +90,15 @@ export function InputUcd({ pc, options, onChange, onChangeInputType }) {
   }
   return (
     <FormControl>
-      <Stack
-        direction="row"
-        spacing={2}
-      >
-        <TextField
-          select
-          // label="UCD"
-          value={value}
-          onChange={handleChange}
-        >
+      <Stack direction="row" spacing={2}>
+        <TextField select value={value} onChange={handleChange}>
           {options.map(ucd => (
-            <MenuItem
-              key={`${pc.column_name}_${ucd.name}`}
-              value={ucd.value}
-            >
+            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
               {ucd.name}
             </MenuItem>
           ))}
         </TextField>
-        <IconButton
-          onClick={handleChangeType}
-        >
+        <IconButton onClick={handleChangeType}>
           <EditIcon />
         </IconButton>
       </Stack>
@@ -123,7 +113,6 @@ InputUcd.propTypes = {
 }
 
 export function InputAlias({ pc, onChange, onChangeInputType }) {
-
   const [value, setValue] = useState('')
 
   // Using lodash debounce to Delay search by 600ms
@@ -134,7 +123,7 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
     []
   )
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     setValue(e.target.value)
     delayedEdit(pc, e.target.value)
   }
@@ -150,12 +139,8 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
 
   return (
     <FormControl>
-      <Stack
-        direction="row"
-        spacing={2}
-      >
+      <Stack direction="row" spacing={2}>
         <TextField
-          // label="Alias"
           value={value}
           onChange={handleChange}
           InputProps={{
@@ -167,11 +152,8 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
               </InputAdornment>
             )
           }}
-        >
-        </TextField>
-        <IconButton
-          onClick={handleChangeType}
-        >
+        ></TextField>
+        <IconButton onClick={handleChangeType}>
           <EditIcon color="primary" />
         </IconButton>
       </Stack>
@@ -181,18 +163,15 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
 InputAlias.propTypes = {
   pc: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
-  onChangeInputType: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired
 }
 
-
 export default function NewProductStep3({ productId, onNext, onPrev }) {
-
   const [productColumns, setProductColumns] = React.useState([])
   const [usedUcds, setUsedUcds] = React.useState([])
   const [isLoading, setLoading] = useState(false)
   const [formError, setFormError] = React.useState('')
-  const [inputsType, setInputsType] = useState([])
-
+  const [inputsType] = useState([])
 
   const loadContents = React.useCallback(async () => {
     setLoading(true)
@@ -249,23 +228,20 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     onPrev(productId)
   }
 
-  const onClear = (pc) => {
-    console.log("onClear: ", pc)
+  const onClear = pc => {
     changeProductContent(pc, null, null)
   }
 
   const onSelectUcd = (pc, ucd) => {
-    console.log("onSelectUcd: ", pc, ucd)
     changeProductContent(pc, ucd, getAliasByUcd(ucd))
   }
 
   const onChangeAlias = (pc, alias) => {
-    console.log("onChangeAlias: ", pc, alias)
     changeProductContent(pc, null, alias)
   }
 
-  const getAliasByUcd = (ucd) => {
-    const result = ucds.find(o => o.value === ucd);
+  const getAliasByUcd = ucd => {
+    const result = ucds.find(o => o.value === ucd)
     return result ? result.name : null
   }
 
@@ -288,24 +264,25 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     return true
   }
 
-  const handleChangeInputType = column_name => {
-    if (inputsType.indexOf(column_name) === -1) {
-      inputsType.push(column_name)
+  function handleChangeInputType(columnName) {
+    if (inputsType.indexOf(columnName) === -1) {
+      inputsType.push(columnName)
     } else {
-      inputsType.splice(inputsType.indexOf(column_name), 1);
+      inputsType.splice(inputsType.indexOf(columnName), 1)
     }
     loadContents(productId)
   }
 
   const createFields = pc => {
-
     const avoptions = getAvailableUcds()
 
     if (pc.ucd !== null || pc.alias !== null) {
       return (
         <InputReadOnly
           name={pc.column_name}
-          value={pc.ucd !== null ? getAliasByUcd(pc.ucd) : pc.alias} onClear={() => onClear(pc)} />
+          value={pc.ucd !== null ? getAliasByUcd(pc.ucd) : pc.alias}
+          onClear={() => onClear(pc)}
+        />
       )
     }
 
@@ -326,10 +303,10 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         pc={pc}
         options={avoptions}
         onChange={onSelectUcd}
-        onChangeInputType={handleChangeInputType} />
+        onChangeInputType={handleChangeInputType}
+      />
     )
   }
-
 
   const catchFormError = data => {
     let msg =
@@ -370,7 +347,6 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         autoComplete="off"
       >
         {productColumns.map(pc => {
-
           return (
             <Stack
               direction="row"

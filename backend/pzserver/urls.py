@@ -43,7 +43,6 @@ route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 route.register(r"product-files", ProductFileViewSet, basename="product_files")
-route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 
 
 from rest_framework.authtoken import views
