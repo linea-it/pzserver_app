@@ -27,6 +27,13 @@ export default function Index() {
       background: '/interfaces/user-dp.jpg',
       description:
         'User-generated data products shared by members of the LSST community.'
+    },
+    {
+      title: 'PZ Server Pipelines',
+      path: '/pz_pipelines',
+      background: '/interfaces/gamma-ray-burst.jpg',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.'
     }
   ]
 
