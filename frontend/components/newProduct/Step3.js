@@ -113,7 +113,7 @@ InputUcd.propTypes = {
 }
 
 export function InputAlias({ pc, onChange, onChangeInputType }) {
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(pc.alias !== null ? pc.alias : '')
 
   // Using lodash debounce to Delay search by 600ms
   // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
@@ -180,6 +180,14 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
 
       setProductColumns(response.results)
 
+      // Ao carregar as colunas identifica os campos que
+      // sao do tipo alias e que ja tenham valor.
+      response.results.forEach(pc => {
+        if (pc.ucd === null && pc.alias !== null) {
+          inputsType.push(pc.column_name)
+        }
+      })
+
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -187,7 +195,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         catchFormError(error.response.data)
       }
     }
-  }, [productId])
+  }, [productId, inputsType])
 
   const changeProductContent = (pc, ucd, alias) => {
     if (pc.ucd === ucd && pc.alias === alias) {
@@ -276,7 +284,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const createFields = pc => {
     const avoptions = getAvailableUcds()
 
-    if (pc.alias !== null) {
+    if (pc.ucd !== null) {
       return (
         <InputReadOnly
           name={pc.column_name}
