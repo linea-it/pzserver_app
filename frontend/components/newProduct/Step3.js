@@ -58,14 +58,14 @@ export function InputReadOnly({ name, value, onClear }) {
         InputProps={
           onClear !== undefined
             ? {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={onClear}>
-                    <CloseIcon />
-                  </IconButton>
-                </InputAdornment>
-              )
-            }
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={onClear}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }
             : null
         }
       />
