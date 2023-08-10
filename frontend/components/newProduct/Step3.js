@@ -58,14 +58,14 @@ export function InputReadOnly({ name, value, onClear }) {
         InputProps={
           onClear !== undefined
             ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={onClear}>
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={onClear}>
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
             : null
         }
       />
@@ -276,11 +276,11 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const createFields = pc => {
     const avoptions = getAvailableUcds()
 
-    if (pc.ucd !== null) {
+    if (pc.alias !== null) {
       return (
         <InputReadOnly
           name={pc.column_name}
-          value={getAliasByUcd(pc.ucd)}
+          value={pc.alias}
           onClear={() => onClear(pc)}
         />
       )

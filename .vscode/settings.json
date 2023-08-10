@@ -5,4 +5,8 @@
     },
     "python.analysis.typeCheckingMode": "basic",
     "files.eol": "\n",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
 }
