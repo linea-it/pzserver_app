@@ -1,64 +1,203 @@
 import CloseIcon from '@mui/icons-material/Close'
+import EditIcon from '@mui/icons-material/Edit'
 import {
   Alert,
   Box,
   Button,
   FormControl,
+  MenuItem,
   Stack,
   TextField,
   Typography
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import MenuItem from '@mui/material/MenuItem'
+import debounce from 'lodash/debounce'
 import PropTypes from 'prop-types'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { contentAssociation, getProductContents } from '../../services/product'
 import Loading from '../Loading'
 
-export default function NewProductStep3({ productId, onNext, onPrev }) {
-  const ucds = [
-    {
-      name: 'ID',
-      value: 'meta.id;meta.main'
-    },
-    {
-      name: 'RA',
-      value: 'pos.eq.ra;meta.main'
-    },
-    {
-      name: 'Dec',
-      value: 'pos.eq.dec;meta.main'
-    },
-    {
-      name: 'z',
-      value: 'src.redshift'
-    },
-    {
-      name: 'z_err',
-      value: 'stat.error;src.redshift'
-    },
-    {
-      name: 'z_flag',
-      value: 'stat.rank'
-    },
-    {
-      name: 'survey',
-      value: 'meta.curation'
-    }
-  ]
+const ucds = [
+  {
+    name: 'ID',
+    value: 'meta.id;meta.main'
+  },
+  {
+    name: 'RA',
+    value: 'pos.eq.ra;meta.main'
+  },
+  {
+    name: 'Dec',
+    value: 'pos.eq.dec;meta.main'
+  },
+  {
+    name: 'z',
+    value: 'src.redshift'
+  },
+  {
+    name: 'z_err',
+    value: 'stat.error;src.redshift'
+  },
+  {
+    name: 'z_flag',
+    value: 'stat.rank'
+  },
+  {
+    name: 'survey',
+    value: 'meta.curation'
+  }
+]
+export function InputReadOnly({ name, value, onClear }) {
+  return (
+    <FormControl>
+      <TextField
+        name={name}
+        value={value}
+        readOnly
+        InputProps={
+          onClear !== undefined
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={onClear}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }
+            : null
+        }
+      />
+    </FormControl>
+  )
+}
+InputReadOnly.propTypes = {
+  value: PropTypes.string.isRequired,
+  name: PropTypes.string,
+  onClear: PropTypes.func
+}
 
+export function InputUcd({ pc, options, onChange, onChangeInputType }) {
+  const [value, setValue] = useState('')
+
+  const handleChange = e => {
+    setValue(e.target.value)
+    onChange(pc, e.target.value)
+  }
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+  return (
+    <FormControl>
+      <Stack direction="row" spacing={2}>
+        <TextField select value={value} onChange={handleChange}>
+          {options.map(ucd => (
+            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
+              {ucd.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <IconButton onClick={handleChangeType}>
+          <EditIcon />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputUcd.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired,
+  options: PropTypes.array.isRequired
+}
+
+export function InputAlias({ pc, onChange, onChangeInputType }) {
+  const [value, setValue] = useState('')
+
+  // Using lodash debounce to Delay search by 600ms
+  // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const delayedEdit = useCallback(
+    debounce((pc, alias) => onChange(pc, alias), 600),
+    []
+  )
+
+  const handleChange = e => {
+    setValue(e.target.value)
+    delayedEdit(pc, e.target.value)
+  }
+
+  const handleClear = () => {
+    setValue('')
+    onChange(pc, null)
+  }
+
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+
+  return (
+    <FormControl>
+      <Stack direction="row" spacing={2}>
+        <TextField
+          value={value}
+          onChange={handleChange}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleClear}>
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        ></TextField>
+        <IconButton onClick={handleChangeType}>
+          <EditIcon color="primary" />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputAlias.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired
+}
+
+export default function NewProductStep3({ productId, onNext, onPrev }) {
   const [productColumns, setProductColumns] = React.useState([])
   const [usedUcds, setUsedUcds] = React.useState([])
   const [isLoading, setLoading] = useState(false)
   const [formError, setFormError] = React.useState('')
+  const [inputsType] = useState([])
 
   const loadContents = React.useCallback(async () => {
     setLoading(true)
-    getProductContents(productId)
-      .then(res => {
-        setProductColumns(res.results)
-        setLoading(false)
+    try {
+      const response = await getProductContents(productId)
+
+      setProductColumns(response.results)
+
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      if (error.response && error.response.status === 500) {
+        catchFormError(error.response.data)
+      }
+    }
+  }, [productId])
+
+  const changeProductContent = (pc, ucd, alias) => {
+    if (pc.ucd === ucd && pc.alias === alias) {
+      return
+    }
+    // setLoading(true)
+    contentAssociation(pc.id, ucd, alias)
+      .then(() => {
+        // setLoading(false)
+        loadContents(productId)
       })
       .catch(res => {
         setLoading(false)
@@ -66,7 +205,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           catchFormError(res.response.data)
         }
       })
-  }, [productId])
+  }
 
   useEffect(() => {
     loadContents()
@@ -88,91 +227,84 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const handlePrev = () => {
     onPrev(productId)
   }
-  const onChangeUcd = (pc, value) => {
-    if (pc.ucd === value) {
-      return
-    }
 
-    // setLoading(true)
-    contentAssociation(pc.id, value)
-      .then(() => {
-        // setLoading(false)
-        loadContents(productId)
-      })
-      .catch(res => {
-        setLoading(false)
+  const onClear = pc => {
+    changeProductContent(pc, null, null)
+  }
 
-        if (res.response.status === 500) {
-          catchFormError(res.response.data)
-        }
-      })
+  const onSelectUcd = (pc, ucd) => {
+    changeProductContent(pc, ucd, getAliasByUcd(ucd))
   }
-  const handleMouseDownPassword = event => {
-    event.preventDefault()
+
+  const onChangeAlias = (pc, alias) => {
+    changeProductContent(pc, null, alias)
   }
-  const createSelect = pc => {
-    // Check Available Ucds and Current UCD when pc.ucd is not null
+
+  const getAliasByUcd = ucd => {
+    const result = ucds.find(o => o.value === ucd)
+    return result ? result.name : null
+  }
+
+  const getAvailableUcds = () => {
     const avoptions = []
-    let currentUcd = null
     ucds.forEach(ucd => {
-      if (usedUcds.indexOf(ucd.value) === -1 || ucd.value === pc.ucd) {
+      if (usedUcds.indexOf(ucd.value) === -1) {
         avoptions.push(ucd)
       }
-      if (ucd.value === pc.ucd) {
-        currentUcd = ucd
-      }
     })
+    return avoptions
+  }
 
-    if (pc.ucd !== null ? pc.ucd : '') {
-      return (
-        <TextField
-          value={currentUcd.name}
-          readOnly
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => onChangeUcd(pc, null)}
-                  onMouseDown={handleMouseDownPassword}
-                  edge="end"
-                >
-                  <CloseIcon />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-        />
-      )
-    } else {
-      return (
-        <TextField
-          select
-          onChange={e => onChangeUcd(pc, e.target.value)}
-          defaultValue=""
-        >
-          {avoptions.map(ucd => (
-            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
-              {ucd.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      )
+  const isInputTypeAlias = name => {
+    // Se name estiver no array de input type
+    // Entao Input é do tipo Alias.
+    if (inputsType.indexOf(name) === -1) {
+      return false
     }
+    return true
+  }
+
+  function handleChangeInputType(columnName) {
+    if (inputsType.indexOf(columnName) === -1) {
+      inputsType.push(columnName)
+    } else {
+      inputsType.splice(inputsType.indexOf(columnName), 1)
+    }
+    loadContents(productId)
   }
 
   const createFields = pc => {
+    const avoptions = getAvailableUcds()
+
+    if (pc.alias !== null) {
+      return (
+        <InputReadOnly
+          name={pc.column_name}
+          value={pc.alias}
+          onClear={() => onClear(pc)}
+        />
+      )
+    }
+
+    // Campo de Texto para Alias
+    if (isInputTypeAlias(pc.column_name) === true) {
+      return (
+        <InputAlias
+          pc={pc}
+          onChange={onChangeAlias}
+          onChangeInputType={handleChangeInputType}
+        />
+      )
+    }
+
+    // Select para UCD
     return (
-      <Stack
-        direction="row"
-        spacing={2}
-        key={`fields_${pc.column_name}`}
-        mb={2}
-      >
-        <FormControl>
-          <TextField value={pc.column_name} />
-        </FormControl>
-        <FormControl>{createSelect(pc)}</FormControl>
-      </Stack>
+      <InputUcd
+        pc={pc}
+        options={avoptions}
+        onChange={onSelectUcd}
+        onChangeInputType={handleChangeInputType}
+      />
     )
   }
 
@@ -215,7 +347,17 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         autoComplete="off"
       >
         {productColumns.map(pc => {
-          return createFields(pc)
+          return (
+            <Stack
+              direction="row"
+              spacing={2}
+              key={`fields_${pc.column_name}`}
+              mb={2}
+            >
+              <InputReadOnly value={pc.column_name} />
+              {createFields(pc)}
+            </Stack>
+          )
         })}
       </Box>
       {formError !== '' && handleFormError()}

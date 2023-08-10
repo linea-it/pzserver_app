@@ -162,10 +162,11 @@ export const getProductContents = product_id => {
     .then(res => res.data)
 }
 
-export const contentAssociation = (pc_id, ucd) => {
+export const contentAssociation = (pc_id, ucd, alias) => {
   return api
     .patch(`/api/product-contents/${pc_id}/`, {
-      ucd: ucd === '' ? null : ucd
+      ucd: ucd === '' ? null : ucd,
+      alias: alias === '' ? null : alias
     })
     .then(res => res.data)
 }

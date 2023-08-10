@@ -54,7 +54,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductContent)
 class ProductContentAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "column_name", "ucd", "order")
+    list_display = ("id", "product", "column_name", "ucd", "alias", "order")
 
     def has_add_permission(self, request):
         return False

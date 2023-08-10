@@ -3,11 +3,10 @@ import shutil
 from pathlib import Path
 
 from core.models import Product, ProductContent
-from core.product_handle import ProductHandle, NotTableError
+from core.product_handle import NotTableError, ProductHandle
 
 
 class RegistryProduct:
-
     log = None
     product = None
     main_file = None
@@ -84,26 +83,27 @@ class RegistryProduct:
             columns (_type_): _description_
         """
         try:
-
             cached_ucds = dict()
 
             # Remove todas as colunas caso exista
             for col in self.product.contents.all():
                 # Caso a coluna tenha valor de UCD esse sera mantido ao recriar a coluna com mesmo nome
-                cached_ucds[col.column_name] = col.ucd
+                cached_ucds[col.column_name] = {"ucd": col.ucd, "alias": col.alias}
                 col.delete()
 
             for idx, column_name in enumerate(columns):
-
                 ucd = None
+                alias = None
                 if column_name in cached_ucds:
-                    ucd = cached_ucds[column_name]
+                    ucd = cached_ucds[column_name]["ucd"]
+                    alias = cached_ucds[column_name]["alias"]
 
                 ProductContent.objects.create(
                     product=self.product,
                     column_name=column_name,
                     order=idx,
                     ucd=ucd,
+                    alias=alias,
                 )
 
             self.log.info(f"{len(columns)} product contents have been registered")
@@ -112,13 +112,3 @@ class RegistryProduct:
             message = f"Failed to register product content. {e}"
             self.log.error(message)
             raise Exception(message)
-
-    # def remove_dir(self, path):
-    # ! Removida por não estar sendo utilizada.
-    #     try:
-    #         shutil.rmtree(path)
-    #         self.log.info(f"Directory removed: [{path}]")
-    #     except Exception as e:
-    #         message = f"Failed to register the product. {e}"
-    #         self.log.error(message)
-    #         raise Exception(message)
