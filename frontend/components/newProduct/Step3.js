@@ -58,14 +58,14 @@ export function InputReadOnly({ name, value, onClear }) {
         InputProps={
           onClear !== undefined
             ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={onClear}>
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={onClear}>
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
             : null
         }
       />
@@ -124,8 +124,11 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
   )
 
   const handleChange = e => {
-    setValue(e.target.value)
-    delayedEdit(pc, e.target.value)
+    const inputValue = e.target.value
+    if (inputValue.trim() !== '') {
+      setValue(inputValue)
+      delayedEdit(pc, inputValue)
+    }
   }
 
   const handleClear = () => {
