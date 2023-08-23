@@ -115,26 +115,31 @@ InputUcd.propTypes = {
 export function InputAlias({ pc, onChange, onChangeInputType }) {
   const [value, setValue] = useState(pc.alias !== null ? pc.alias : '')
 
-  // Using lodash debounce to Delay search by 600ms
-  // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const delayedEdit = useCallback(
-    debounce((pc, alias) => onChange(pc, alias), 600),
-    []
-  )
-
   const handleChange = e => {
     const inputValue = e.target.value
-    if (inputValue.trim() !== '') {
-      setValue(inputValue)
-      delayedEdit(pc, inputValue)
-    }
+    setValue(inputValue)
   }
 
   const handleClear = () => {
     setValue('')
     onChange(pc, null)
   }
+
+  // Using lodash debounce to Delay search by 800ms
+  // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedEdit = useCallback(
+    debounce(updatedValue => {
+      if (updatedValue.trim() !== '') {
+        onChange(pc, updatedValue)
+      }
+    }, 800),
+    []
+  )
+
+  useEffect(() => {
+    debouncedEdit(value)
+  }, [value, debouncedEdit])
 
   const handleChangeType = () => {
     onChangeInputType(pc.column_name)
@@ -155,7 +160,7 @@ export function InputAlias({ pc, onChange, onChangeInputType }) {
               </InputAdornment>
             )
           }}
-        ></TextField>
+        />
         <IconButton onClick={handleChangeType}>
           <EditIcon color="primary" />
         </IconButton>
@@ -298,7 +303,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     }
 
     // Campo de Texto para Alias
-    if (isInputTypeAlias(pc.column_name) === true) {
+    if (isInputTypeAlias(pc.column_name)) {
       return (
         <InputAlias
           pc={pc}
