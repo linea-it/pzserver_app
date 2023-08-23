@@ -47,10 +47,9 @@ class RegistryProduct:
 
             product_columns = list()
             try:
-                # Le o arquivo principal e converte para pandas.Dataframe
-                df_product = ProductHandle().df_from_file(self.main_file, nrows=5)
+                ph = ProductHandle().from_file(self.main_file)
                 # Lista de Colunas no arquivo.
-                product_columns = df_product.columns.tolist()
+                product_columns = ph.get_fields()
             except NotTableError:
                 # Acontece com arquivos comprimidos .zip etc.
                 pass
@@ -83,24 +82,24 @@ class RegistryProduct:
             columns (_type_): _description_
         """
         try:
-            cached_ucds = dict()
-
             # Remove todas as colunas caso exista
+            cached_ucds = dict()
             for col in self.product.contents.all():
                 # Caso a coluna tenha valor de UCD esse sera mantido ao recriar a coluna com mesmo nome
                 cached_ucds[col.column_name] = {"ucd": col.ucd, "alias": col.alias}
                 col.delete()
 
-            for idx, column_name in enumerate(columns):
-                ucd = None
-                alias = None
-                if column_name in cached_ucds:
-                    ucd = cached_ucds[column_name]["ucd"]
-                    alias = cached_ucds[column_name]["alias"]
+            for idx, column in enumerate(columns):
+                ucd = column.ucd
+                alias = column.alias
+
+                if column.column_name in cached_ucds:
+                    ucd = cached_ucds[column.column_name]["ucd"]
+                    alias = cached_ucds[column.column_name]["alias"]
 
                 ProductContent.objects.create(
                     product=self.product,
-                    column_name=column_name,
+                    column_name=column.column_name,
                     order=idx,
                     ucd=ucd,
                     alias=alias,

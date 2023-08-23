@@ -1,11 +1,14 @@
 import abc
 import csv
+import json
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import List
 
 import numpy as np
 import pandas as pd
 import tables_io
+from astropy.io.votable import parse_single_table
 from core._typing import Column, PathLike
 
 
@@ -13,19 +16,34 @@ class NotTableError(TypeError):
     pass
 
 
-class ProductHandle:
-    def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
-        """TODO: Descrever essa função
-        OBS: é possivel utilizar todos os argumentos da função pandas.read_csv()
-        descritos aqui: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+@dataclass
+class ProductField:
+    column_name: str
+    alias: str = field(default=None)
+    ucd: str = field(default=None)
+    unit: str = field(default=None)
+    order: int = field(default=0)
 
-        Args:
-            filepath (PathLike): _description_
+    def __init__(self, column_name, alias=None, ucd=None, unit=None, order=0):
+        self.column_name = column_name
+        if alias == None and ucd != None:
+            self.alias = self.get_alias_by_ucd(ucd)
+        self.ucd = ucd
+        self.unit = unit
+        self.order = order
 
-        Returns:
-            pd.DataFrame: _description_
-        """
-        return FileHandle(filepath).to_df(**kwargs)
+    def __dict__(self) -> dict:
+        return asdict(self)
+
+    def get_alias_by_ucd(self, ucd):
+        default_alias = {
+            "meta.id;meta.main;meta.ref": "ID",
+            "pos.eq.ra;meta.main": "RA",
+            "pos.eq.dec;meta.main": "Dec",
+        }
+        if ucd in default_alias:
+            return default_alias[ucd]
+        return None
 
 
 class FileHandle(object):
@@ -46,15 +64,37 @@ class FileHandle(object):
                 self.handle = TableIOHandle(fp)
             case ".zip" | ".tar" | ".gz":
                 self.handle = CompressedHandle(fp)
-            # TODO: .zip, .tar, .tar.gz
+            case ".xml":
+                self.handle = VOTableHandle(fp)
             case _:
                 # Try TxtHandle
                 self.handle = TxtHandle(fp)
                 # message = f"The {self.extension} extension has not yet been implemented"
                 # raise NotImplementedError(message)
 
-    def to_df(self, **kwargs):
+    def to_df(self, **kwargs) -> pd.DataFrame:
         return self.handle.to_df(**kwargs)
+
+    def get_fields(self):
+        return self.handle.get_fields()
+
+
+class ProductHandle:
+    def df_from_file(self, filepath: PathLike, **kwargs) -> pd.DataFrame:
+        """TODO: Descrever essa função
+        OBS: é possivel utilizar todos os argumentos da função pandas.read_csv()
+        descritos aqui: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+
+        Args:
+            filepath (PathLike): _description_
+
+        Returns:
+            pd.DataFrame: _description_
+        """
+        return FileHandle(filepath).to_df(**kwargs)
+
+    def from_file(self, filepath: PathLike) -> FileHandle:
+        return FileHandle(filepath)
 
 
 class BaseHandle(object):
@@ -66,6 +106,15 @@ class BaseHandle(object):
     @abc.abstractmethod
     def to_df(self, **kwargs) -> pd.DataFrame:
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_fields(self) -> List[ProductField]:
+        df = self.to_df(nrows=5)
+        columns = df.columns.tolist()
+        fields = list()
+        for idx, column in enumerate(columns):
+            fields.append(ProductField(column_name=column, alias=column, order=idx))
+        return fields
 
 
 class CsvHandle(BaseHandle):
@@ -191,6 +240,9 @@ class CompressedHandle(BaseHandle):
             "It is not possible to return a dataframe from this file type."
         )
 
+    def get_fields(self) -> List:
+        raise NotTableError("It is not possible to return fields from this file type.")
+
 
 class TxtHandle(BaseHandle):
     delimiter = str
@@ -292,3 +344,31 @@ class TxtHandle(BaseHandle):
                 for el in line.split(self.delimiter)
             )
         )
+
+
+class VOTableHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        # Convert votable file to Astropy table
+        votable = parse_single_table(self.filepath)
+        # print(votable.fields)
+        table = votable.to_table(use_names_over_ids=True)
+        # Convert astropy table to pandas.Dataframe
+        df = tables_io.convert(table, tables_io.types.PD_DATAFRAME)
+        return df  # type: ignore
+
+    def get_fields(self) -> List[ProductField]:
+        votable = parse_single_table(self.filepath)
+        fields = list()
+        for idx, column in enumerate(votable.fields):
+            fields.append(
+                ProductField(
+                    column_name=str(column.name),
+                    ucd=str(column.ucd),
+                    unit=str(column.unit),
+                    order=int(idx),
+                )
+            )
+        return fields
