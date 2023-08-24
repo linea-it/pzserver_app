@@ -130,7 +130,7 @@ export default function NewProduct() {
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     },
     {
-      label: 'Association Columns',
+      label: 'Columns Association',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     },
@@ -199,11 +199,6 @@ export default function NewProduct() {
               )
             })}
           </Stepper>
-          {/* <Box className={classes.stepDescription}>
-            <Typography variant="body">
-              {steps[activeStep].description}
-            </Typography>
-          </Box> */}
           <Box
             sx={{
               mt: 2,
@@ -213,12 +208,7 @@ export default function NewProduct() {
             // height="400px"
             alignItems="center"
             justifyContent="center"
-            // style={{
-            //   overflow: 'hidden',
-            //   overflowY: 'scroll'
-            // }}
           >
-            {/* {product && steps[activeStep].component(product.id)} */}
             {activeStep === 0 && step1(productId)}
             {activeStep === 1 && step2(productId)}
             {activeStep === 2 && step3(productId)}
