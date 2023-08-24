@@ -170,10 +170,19 @@ export default function ProductDetail({ productId, internalName }) {
           <ListItemText
             primary={name}
             secondary={`Main file ${prettyBytes(file.size)}`}
+            primaryTypographyProps={{
+              noWrap: true
+            }}
           />
         )}
         {file.role !== 0 && (
-          <ListItemText primary={name} secondary={prettyBytes(file.size)} />
+          <ListItemText
+            primary={name}
+            secondary={prettyBytes(file.size)}
+            primaryTypographyProps={{
+              noWrap: true
+            }}
+          />
         )}
       </ListItem>
     )
