@@ -10,8 +10,9 @@ The Photo-z Server is an online service based on software developed and delivere
 Clone the repository and access the directory:
 
 ```bash
-git clone https://github.com/linea-it/pzserver_app.git  
+git clone https://github.com/linea-it/pzserver_app.git
 cd pzserver_app
+mkdir archive archive/data archive/log /archive/log/backend
 ```
 
 Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
