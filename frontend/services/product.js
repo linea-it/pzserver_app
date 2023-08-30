@@ -13,7 +13,8 @@ export const getProductTypes = ({ }) => {
 
 export const downloadProduct = (id, internalName) => {
   return api.get('/api/products/' + id + '/download/', {
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 60000
   })
 }
 
