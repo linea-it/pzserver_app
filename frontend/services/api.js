@@ -10,7 +10,7 @@ import { refreshToken } from './auth'
 export function getAPIClient(ctx) {
   const api = axios.create({
     // baseURL: '/api',
-    timeout: 15000,
+    timeout: 60000,
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'
