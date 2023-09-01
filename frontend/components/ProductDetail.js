@@ -2,10 +2,11 @@ import ShareIcon from '@mui/icons-material/Share'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
+  Tabs,
+  Tab,
   Box,
   Card,
   CardContent,
-  CardHeader,
   Chip,
   Divider,
   Grid,
@@ -16,7 +17,8 @@ import {
   Paper,
   Snackbar,
   Stack,
-  Typography
+  Typography,
+  CardMedia
 } from '@mui/material'
 import Alert from '@mui/material/Alert'
 import ProductShare from './ProductShare'
@@ -47,6 +49,9 @@ export default function ProductDetail({ productId, internalName }) {
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [snackbarOpen, setSnackbarOpen] = React.useState(false)
   const productShareRef = React.useRef(null)
+
+  const [activeTab, setActiveTab] = React.useState(0)
+  const [hasHtmlFile, setHasHtmlFile] = React.useState(false)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -122,7 +127,16 @@ export default function ProductDetail({ productId, internalName }) {
       .then(res => {
         setFiles(res.results)
 
+        const hasHtmlFile = res.results.some(file =>
+          file.name.toLowerCase().endsWith('.html')
+        )
+        setHasHtmlFile(hasHtmlFile)
+
+        setActiveTab(hasHtmlFile ? 1 : 0)
+
         setLoading(false)
+
+        return res.results
       })
       .catch(res => {
         setLoading(false)
@@ -297,9 +311,33 @@ export default function ProductDetail({ productId, internalName }) {
           </Grid>
           <Grid item xs={12}>
             <Card elevation={2}>
-              <CardHeader title="Table preview" />
               <CardContent>
-                <ProductDataGrid productId={product.id}></ProductDataGrid>
+                <Tabs
+                  value={activeTab}
+                  onChange={(event, newValue) => setActiveTab(newValue)}
+                >
+                  {hasHtmlFile && <Tab label="Description File" value={1} />}
+                  <Tab label="Table Preview" value={0} />
+                </Tabs>
+                {activeTab === 0 && <ProductDataGrid productId={product.id} />}
+                {activeTab === 1 && hasHtmlFile && (
+                  <div>
+                    {files.map(file => {
+                      if (file.name.toLowerCase().endsWith('.html')) {
+                        return (
+                          <CardMedia
+                            component="iframe"
+                            src={file.file}
+                            title="Description File"
+                            height="800"
+                            key={file.id}
+                          />
+                        )
+                      }
+                      return null
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </Grid>
