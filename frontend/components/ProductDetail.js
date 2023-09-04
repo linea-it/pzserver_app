@@ -328,9 +328,9 @@ export default function ProductDetail({ productId, internalName }) {
                           <CardMedia
                             component="iframe"
                             src={file.file}
-                            title="Description File"
                             height="800"
                             key={file.id}
+                            sx={{ border: 'none' }}
                           />
                         )
                       }
