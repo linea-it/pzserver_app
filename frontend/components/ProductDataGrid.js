@@ -93,6 +93,9 @@ export default function ProductDataGrid(props) {
           loading={isLoading}
           disableColumnMenu
           disableColumnSelector
+          localeText={{
+            noRowsLabel: isLoading ? 'No rows' : 'Loading...',
+          }}
         />
       )}
     </>
