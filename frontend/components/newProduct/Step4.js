@@ -20,14 +20,16 @@ export default function NewProductStep4({ productId, onNext, onPrev }) {
           onNext(data.internal_name)
         }
       })
-      .catch(res => {
+      .catch(error => {
         setLoading(false)
-        if (res.response.status === 400) {
+        if (error.response && error.response.status === 400) {
           // Tratamento para erro nos campos
-          catchFormError(res.response.data)
-        }
-        if (res.response.status === 500) {
-          catchFormError(res.response.data)
+          catchFormError(error.response.data)
+        } else if (error.response && error.response.status === 500) {
+          catchFormError(error.response.data)
+        } else {
+          // Tratamento de erro genérico caso a propriedade 'response' não esteja presente
+          console.error('Ocorreu um erro:', error)
         }
       })
   }

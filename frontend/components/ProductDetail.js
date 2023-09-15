@@ -138,9 +138,9 @@ export default function ProductDetail({ productId, internalName }) {
 
         return res.results
       })
-      .catch(res => {
+      .catch(error => {
         setLoading(false)
-        if (res.response.status === 500) {
+        if (error.response && error.response.status === 500) {
           // TODO: Tratar erro
         }
       })
