@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "shibboleth",
     # Apps
     "core",
+    "orchestration",
 ]
 
 MIDDLEWARE = [
@@ -135,6 +136,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = "/archive/data/"
 
+# pipelines processing
+PROCESSING_DIR = os.getenv("PROCESSING_DIR", "/archive/processing")
+PIPELINES_DIR = os.getenv("PIPELINES_DIR", "/archive/pipelines")
+PIPELINES_FILE = os.getenv("PIPELINES_FILE", "pipelines.yml")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -213,8 +218,7 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
     # Including Shibboleth authentication:
-    AUTHENTICATION_BACKENDS += (
-        "shibboleth.backends.ShibbolethRemoteUserBackend",)
+    AUTHENTICATION_BACKENDS += ("shibboleth.backends.ShibbolethRemoteUserBackend",)
 
     SHIBBOLETH_ENABLED = True
 

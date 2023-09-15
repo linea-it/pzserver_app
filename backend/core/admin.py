@@ -4,19 +4,30 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from orchestration.models import Pipeline, Process
+
+
+@admin.register(Pipeline)
+class PipelineAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "display_name", "created_at")
+    search_fields = ("name", "display_name")
+
+
+@admin.register(Process)
+class ProcessAdmin(admin.ModelAdmin):
+    list_display = ("id", "task_id", "status", "started_at", "ended_at", "created_at")
+    search_fields = ("task_id", "status", "id")
 
 
 @admin.register(ProductType)
 class ProductTypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "display_name", "created_at")
-
     search_fields = ("name", "display_name")
 
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "display_name", "created_at")
-
     search_fields = ("name", "display_name")
 
 
@@ -44,7 +55,6 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     search_fields = ("name", "display_name")
-
     form = ProductAdminForm
 
     # This will help you to disbale add functionality
@@ -68,8 +78,7 @@ class ProductContentAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "file", "role",
-                    "type", "size", "extension")
+    list_display = ("id", "product", "file", "role", "type", "size", "extension")
 
     def has_add_permission(self, request):
         return False

@@ -1,6 +1,6 @@
+from core.models import Product, ProductType, Release
 from pkg_resources import require
 from rest_framework import serializers
-from core.models import Release, ProductType, Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -43,3 +43,11 @@ class ProductSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
+        
+
+class ProductSimpleSerializer(ProductSerializer):
+    
+    class Meta:
+        model = Product
+        fields = ("id", "display_name", "internal_name")
+
