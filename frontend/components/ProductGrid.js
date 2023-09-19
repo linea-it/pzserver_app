@@ -167,6 +167,10 @@ export default function ProductGrid(props) {
     ]
   }, [getProductUrl, router])
 
+  function handleError(errorMessage) {
+    console.error(errorMessage)
+  }
+
   return (
     <React.Fragment>
       <DataGrid
@@ -198,6 +202,7 @@ export default function ProductGrid(props) {
           onClose={() => setDelRecordId(null)}
           recordId={delRecordId}
           onRemoveSuccess={loadProducts}
+          onError={handleError}
         />
       )}
 
