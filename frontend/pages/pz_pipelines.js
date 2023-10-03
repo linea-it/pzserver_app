@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import Head from 'next/head'
 import Link from '../components/Link'
+import Banner from '../components/Banner'
 import useStyles from '../styles/pages/pz_pipelines'
 
 export default function PZPipelines() {
@@ -17,7 +18,7 @@ export default function PZPipelines() {
     {
       title: 'Combine Spec-z Catalogs',
       path: '/specz_catalogs',
-      background: '/interfaces/lsst_summit.jpg',
+      background: '/interfaces/milkyway.jpg',
       description:
         'Creats a single spec-z from the multiple spatial cross-matching (all-to-all) of a list of pre-registered individual spec-z catalogs.'
     },
@@ -35,6 +36,7 @@ export default function PZPipelines() {
       <Head>
         <title>Photo-z Server | Pipelines</title>
       </Head>
+      <Banner />
       <Grid className={classes.main}>
         <Grid
           container
@@ -53,7 +55,7 @@ export default function PZPipelines() {
               className={classes.gridApplicationLg}
             >
               <Link href={item.path}>
-                <Card>
+                <Card key={item.title}>
                   <CardActionArea>
                     <CardMedia
                       alt={item.title}
@@ -72,7 +74,7 @@ export default function PZPipelines() {
                       <Typography
                         gutterBottom
                         className={classes.ItemDescription}
-                        variant="body"
+                        variant="body1"
                         component="span"
                       >
                         {item.description}

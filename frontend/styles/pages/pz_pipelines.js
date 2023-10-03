@@ -13,7 +13,6 @@ const useStyles = makeStyles(theme => ({
             margin: 16
         }
     },
-
     main: {
         position: 'relative',
         zIndex: 2,
