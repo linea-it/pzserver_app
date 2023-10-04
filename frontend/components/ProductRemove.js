@@ -8,6 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { deleteProduct } from '../services/product'
+
 export default function ProductRemove({
   recordId,
   onRemoveSuccess,
@@ -15,6 +16,7 @@ export default function ProductRemove({
   onError
 }) {
   const [isLoading, setLoading] = React.useState(false)
+  const [isAuthorized, setAuthorized] = React.useState(true)
 
   const handleDelete = async () => {
     setLoading(true)
@@ -23,9 +25,13 @@ export default function ProductRemove({
       onRemoveSuccess()
       onClose()
     } catch (error) {
-      onError(
-        'Failed to remove the product. Please try again later or contact the helpdesk.'
-      )
+      if (error.response && error.response.status === 403) {
+        setAuthorized(false)
+      } else {
+        onError(
+          'Failed to remove the product. Please try again later or contact the helpdesk.'
+        )
+      }
       setLoading(false)
     }
   }
@@ -42,14 +48,30 @@ export default function ProductRemove({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton
-          loading={isLoading}
-          variant="contained"
-          onClick={handleDelete}
-        >
-          Delete
-        </LoadingButton>
+        {isAuthorized ? (
+          <LoadingButton
+            loading={isLoading}
+            variant="contained"
+            onClick={handleDelete}
+          >
+            Delete
+          </LoadingButton>
+        ) : (
+          <Button onClick={onClose}>Close</Button>
+        )}
       </DialogActions>
+      {!isAuthorized && (
+        <Dialog open={true}>
+          <DialogContent>
+            <DialogContentText>
+              {'You cannot delete this data product because it belongs to another user.'}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Dialog>
   )
 }
