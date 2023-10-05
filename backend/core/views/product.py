@@ -379,9 +379,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
-        # TODO: Duvida, Admin pode remover produto que não seja dele?
+        """Produto só pode ser excluido pelo DONO ou se o usuario tiver profile de admin.
+        """
+        # Regra do admin atualizada na issue: #192 - https://github.com/linea-it/pzserver_app/issues/192
         instance = self.get_object()
-        if self.request.user.id == instance.user.pk:
+        if instance.can_delete(self.request.user):
             return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)
         else:
             raise exceptions.PermissionDenied()

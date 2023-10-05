@@ -1,6 +1,6 @@
+from core.models import Product, ProductType, Release
 from pkg_resources import require
 from rest_framework import serializers
-from core.models import Release, ProductType, Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -19,6 +19,8 @@ class ProductSerializer(serializers.ModelSerializer):
     uploaded_by = serializers.SerializerMethodField()
 
     is_owner = serializers.SerializerMethodField()
+
+    can_delete = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -43,3 +45,7 @@ class ProductSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
+
+    def get_can_delete(self, obj):
+        current_user = self.context["request"].user
+        return obj.can_delete(current_user)

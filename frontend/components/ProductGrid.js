@@ -161,6 +161,7 @@ export default function ProductGrid(props) {
           <GridActionsCellItem
             icon={<DeleteIcon />}
             onClick={() => handleDelete(params.row)}
+            disabled={!params.row.can_delete}
           />
         )
       }

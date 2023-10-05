@@ -65,3 +65,8 @@ class Product(models.Model):
             # raise OSError("Failed to remove directory: [ %s ] %s" % (product_path, e))
 
         super().delete(*args, **kwargs)
+
+    def can_delete(self, user) -> bool:
+        if self.user.id == user.id or user.profile.is_admin():
+            return True
+        return False
