@@ -6,8 +6,8 @@ import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 
-export default function SearchField({ onChange }) {
-  const [inputValue, setInputValue] = useState('')
+export default function SearchField({ onChange, value }) {
+  // const [inputValue, setInputValue] = useState('')
 
   const sendQuery = query => {
     onChange(query)
@@ -23,7 +23,7 @@ export default function SearchField({ onChange }) {
 
   const handleChange = event => {
     // Input will be changed immidiately
-    setInputValue(event.target.value)
+    // setInputValue(event.target.value)
 
     // Search will only be called when user stops typing
     delayedSearch(event.target.value)
@@ -34,7 +34,7 @@ export default function SearchField({ onChange }) {
       <FormControl sx={{ m: 1, minWidth: 400 }}>
         <TextField
           label="Search"
-          value={inputValue}
+          value={value}
           onChange={handleChange}
           type="search"
           InputProps={{
@@ -51,5 +51,6 @@ export default function SearchField({ onChange }) {
 }
 
 SearchField.propTypes = {
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.string
 }
