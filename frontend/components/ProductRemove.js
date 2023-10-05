@@ -1,12 +1,12 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton'
+import PropTypes from 'prop-types'
+import React from 'react'
 import { deleteProduct } from '../services/product'
 
 export default function ProductRemove({
@@ -48,7 +48,7 @@ export default function ProductRemove({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        {isAuthorized ? (
+        {isAuthorized && (
           <LoadingButton
             loading={isLoading}
             variant="contained"
@@ -56,15 +56,15 @@ export default function ProductRemove({
           >
             Delete
           </LoadingButton>
-        ) : (
-          <Button onClick={onClose}>Close</Button>
         )}
       </DialogActions>
       {!isAuthorized && (
         <Dialog open={true}>
           <DialogContent>
             <DialogContentText>
-              {'You cannot delete this data product because it belongs to another user.'}
+              {
+                'You cannot delete this data product because it belongs to another user.'
+              }
             </DialogContentText>
           </DialogContent>
           <DialogActions>
