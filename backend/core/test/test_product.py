@@ -288,6 +288,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "product_type_name": self.product_type.display_name,
             "uploaded_by": self.user.username,
             "is_owner": True,
+            "can_delete": True,
             "internal_name": self.product.internal_name,
             "display_name": self.product.display_name,
             "official_product": self.product.official_product,
@@ -330,6 +331,27 @@ class ProductDetailAPIViewTestCase(APITestCase):
         request = factory.delete(self.url, format="json")
         force_authenticate(request, user=self.user, token=self.user.auth_token)
         request.user = self.user
+
+        raw_response = view(request, pk=self.product.pk)
+        response = raw_response.render()
+
+        self.assertEqual(204, response.status_code)
+
+    def test_product_object_delete_by_admin(self):
+        """Tests if the product admin can remove it"""
+        view = ProductViewSet.as_view({"delete": "destroy"})
+
+        # Cria um usuario que faz parte do grupo admin
+        adm_group = Group.objects.create(name="Admin")
+        user = User.objects.create_user("john2", "john2@snow.com", "you_know_nothing")
+        user.groups.add(adm_group)
+        token = Token.objects.create(user=user)
+        # Cria uma requisicao utilizando Factory
+        # para que o metodo destroy da view tenha acesso ao request.user
+        factory = APIRequestFactory()
+        request = factory.delete(self.url, format="json")
+        force_authenticate(request, user=user, token=user.auth_token)
+        request.user = user
 
         raw_response = view(request, pk=self.product.pk)
         response = raw_response.render()
