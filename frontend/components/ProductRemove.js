@@ -1,14 +1,13 @@
-import LoadingButton from '@mui/lab/LoadingButton'
-import Button from '@mui/material/Button'
+import React from 'react'
+import PropTypes from 'prop-types'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import PropTypes from 'prop-types'
-import React from 'react'
+import Button from '@mui/material/Button'
+import LoadingButton from '@mui/lab/LoadingButton'
 import { deleteProduct } from '../services/product'
-
 export default function ProductRemove({
   recordId,
   onRemoveSuccess,
@@ -16,7 +15,6 @@ export default function ProductRemove({
   onError
 }) {
   const [isLoading, setLoading] = React.useState(false)
-  const [isAuthorized, setAuthorized] = React.useState(true)
 
   const handleDelete = async () => {
     setLoading(true)
@@ -25,13 +23,9 @@ export default function ProductRemove({
       onRemoveSuccess()
       onClose()
     } catch (error) {
-      if (error.response && error.response.status === 403) {
-        setAuthorized(false)
-      } else {
-        onError(
-          'Failed to remove the product. Please try again later or contact the helpdesk.'
-        )
-      }
+      onError(
+        'Failed to remove the product. Please try again later or contact the helpdesk.'
+      )
       setLoading(false)
     }
   }
@@ -48,30 +42,14 @@ export default function ProductRemove({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        {isAuthorized && (
-          <LoadingButton
-            loading={isLoading}
-            variant="contained"
-            onClick={handleDelete}
-          >
-            Delete
-          </LoadingButton>
-        )}
+        <LoadingButton
+          loading={isLoading}
+          variant="contained"
+          onClick={handleDelete}
+        >
+          Delete
+        </LoadingButton>
       </DialogActions>
-      {!isAuthorized && (
-        <Dialog open={true}>
-          <DialogContent>
-            <DialogContentText>
-              {
-                'You cannot delete this data product because it belongs to another user.'
-              }
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={onClose}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      )}
     </Dialog>
   )
 }

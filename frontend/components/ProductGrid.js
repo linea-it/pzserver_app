@@ -3,6 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
 import ShareIcon from '@mui/icons-material/Share'
 import Alert from '@mui/material/Alert'
+import Tooltip from '@mui/material/Tooltip'
 import Link from '@mui/material/Link'
 import Snackbar from '@mui/material/Snackbar'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
@@ -158,11 +159,21 @@ export default function ProductGrid(props) {
         width: 120,
         sortable: false,
         renderCell: params => (
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            onClick={() => handleDelete(params.row)}
-            disabled={!params.row.can_delete}
-          />
+          <Tooltip
+            title={
+              !params.row.can_delete
+                ? 'You cannot delete this data product because it belongs to another user.'
+                : 'Delete this data product.'
+            }
+          >
+            <div>
+              <GridActionsCellItem
+                icon={<DeleteIcon />}
+                onClick={() => handleDelete(params.row)}
+                disabled={!params.row.can_delete}
+              />
+            </div>
+          </Tooltip>
         )
       }
     ]
