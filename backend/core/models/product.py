@@ -40,6 +40,7 @@ class Product(models.Model):
     pz_code = models.CharField(max_length=55, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     status = models.IntegerField(
         verbose_name="Status",
         default=ProductStatus.REGISTERING,
@@ -67,6 +68,11 @@ class Product(models.Model):
         super().delete(*args, **kwargs)
 
     def can_delete(self, user) -> bool:
+        if self.user.id == user.id or user.profile.is_admin():
+            return True
+        return False
+
+    def can_update(self, user) -> bool:
         if self.user.id == user.id or user.profile.is_admin():
             return True
         return False

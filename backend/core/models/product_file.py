@@ -1,6 +1,7 @@
+import os
+
 from core.models import Product
 from django.db import models
-import os
 
 
 def upload_product_files(instance, filename):
@@ -34,6 +35,8 @@ class ProductFile(models.Model):
     extension = models.CharField(
         verbose_name="Extension", max_length=10, null=True, blank=True
     )
+    created = models.DateTimeField(auto_now_add=True, blank=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.product.display_name} - {os.path.basename(self.file.name)}"

@@ -1,22 +1,24 @@
 /* eslint-disable multiline-ternary */
-import DeleteIcon from '@mui/icons-material/Delete'
-import DownloadIcon from '@mui/icons-material/Download'
-import ShareIcon from '@mui/icons-material/Share'
-import Alert from '@mui/material/Alert'
-import Tooltip from '@mui/material/Tooltip'
-import Link from '@mui/material/Link'
-import Snackbar from '@mui/material/Snackbar'
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
-import moment from 'moment'
-import { useRouter } from 'next/router'
-import PropTypes from 'prop-types'
-import * as React from 'react'
-import { getProducts } from '../services/product'
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
+import ShareIcon from '@mui/icons-material/Share';
+import Alert from '@mui/material/Alert';
+import Link from '@mui/material/Link';
+import Snackbar from '@mui/material/Snackbar';
+import Tooltip from '@mui/material/Tooltip';
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import PropTypes from 'prop-types';
+import * as React from 'react';
+import { getProducts } from '../services/product';
 
-import ProductRemove from '../components/ProductRemove'
-import ProductShare from './ProductShare'
+import ProductRemove from '../components/ProductRemove';
+import ProductShare from './ProductShare';
 
 export default function ProductGrid(props) {
+
   const router = useRouter()
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(0)
@@ -84,6 +86,11 @@ export default function ProductGrid(props) {
       setSelectedFileUrl(shareUrl)
       setSnackbarOpen(true)
     }
+
+    const handleEdit = row => {
+      router.push(`/product/edit/${row.internal_name}`)
+    }
+
 
     return [
       // Hide Id Column ISSUE #123
@@ -171,6 +178,29 @@ export default function ProductGrid(props) {
                 icon={<DeleteIcon />}
                 onClick={() => handleDelete(params.row)}
                 disabled={!params.row.can_delete}
+              />
+            </div>
+          </Tooltip>
+        )
+      },
+      {
+        field: 'can_update',
+        headerName: 'Edit',
+        width: 120,
+        sortable: false,
+        renderCell: params => (
+          <Tooltip
+            title={
+              !params.row.can_update
+                ? 'You cannot update this data product because it belongs to another user.'
+                : 'Edit this data product.'
+            }
+          >
+            <div>
+              <GridActionsCellItem
+                icon={<EditIcon />}
+                onClick={() => handleEdit(params.row)}
+                disabled={!params.row.can_update}
               />
             </div>
           </Tooltip>

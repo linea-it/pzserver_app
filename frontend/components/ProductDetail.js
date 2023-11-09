@@ -2,11 +2,10 @@ import ShareIcon from '@mui/icons-material/Share'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import LoadingButton from '@mui/lab/LoadingButton'
 import {
-  Tabs,
-  Tab,
   Box,
   Card,
   CardContent,
+  CardMedia,
   Chip,
   Divider,
   Grid,
@@ -17,13 +16,16 @@ import {
   Paper,
   Snackbar,
   Stack,
-  Typography,
-  CardMedia
+  Tab,
+  Tabs,
+  Typography
 } from '@mui/material'
 import Alert from '@mui/material/Alert'
 import ProductShare from './ProductShare'
 
+import EditIcon from '@mui/icons-material/Edit'
 import moment from 'moment'
+import { useRouter } from 'next/router'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -37,8 +39,8 @@ import {
   getProducts
 } from '../services/product'
 import useStyles from '../styles/pages/product'
-
 export default function ProductDetail({ productId, internalName }) {
+  const router = useRouter()
   const classes = useStyles()
 
   const [product, setProduct] = React.useState(null)
@@ -170,6 +172,10 @@ export default function ProductDetail({ productId, internalName }) {
       })
   }
 
+  const handleEdit = row => {
+    router.push(`/product/edit/${product.internal_name}`)
+  }
+
   const createFileFields = file => {
     // Se o nome do arquivo for grande,
     // exibe só os primeiros caracteres + extensao.
@@ -248,6 +254,11 @@ export default function ProductDetail({ productId, internalName }) {
                 {product.status === 1 && (
                   <IconButton onClick={handleShareDialogOpen}>
                     <ShareIcon />
+                  </IconButton>
+                )}
+                {product.can_update === true && (
+                  <IconButton onClick={handleEdit}>
+                    <EditIcon />
                   </IconButton>
                 )}
                 {product.official_product === true && (
