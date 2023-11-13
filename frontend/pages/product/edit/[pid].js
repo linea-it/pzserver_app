@@ -263,9 +263,6 @@ export default function EditProduct() {
                               }
                             })
                           }
-                          // onBlur={handleInputValue}
-                          // error={!!fieldErrors.description}
-                          // helperText={fieldErrors.description}
                         />
                       </FormControl>
                     </Box>
