@@ -18,6 +18,8 @@ export const downloadProduct = (id, internalName) => {
   })
 }
 
+export const MAX_UPLOAD_SIZE = 200
+
 // Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
 export const createProduct = data => {
   const formData = new FormData()

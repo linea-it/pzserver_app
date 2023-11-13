@@ -1,7 +1,7 @@
-import React from 'react'
-import { Input, Button } from '@mui/material'
+import { Button, Input } from '@mui/material'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
+import React from 'react'
 
 export default function FileUploader(props) {
   const {

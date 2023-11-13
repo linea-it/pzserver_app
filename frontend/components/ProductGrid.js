@@ -1,24 +1,23 @@
 /* eslint-disable multiline-ternary */
-import DeleteIcon from '@mui/icons-material/Delete';
-import DownloadIcon from '@mui/icons-material/Download';
-import EditIcon from '@mui/icons-material/Edit';
-import ShareIcon from '@mui/icons-material/Share';
-import Alert from '@mui/material/Alert';
-import Link from '@mui/material/Link';
-import Snackbar from '@mui/material/Snackbar';
-import Tooltip from '@mui/material/Tooltip';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
-import moment from 'moment';
-import { useRouter } from 'next/router';
-import PropTypes from 'prop-types';
-import * as React from 'react';
-import { getProducts } from '../services/product';
+import DeleteIcon from '@mui/icons-material/Delete'
+import DownloadIcon from '@mui/icons-material/Download'
+import EditIcon from '@mui/icons-material/Edit'
+import ShareIcon from '@mui/icons-material/Share'
+import Alert from '@mui/material/Alert'
+import Link from '@mui/material/Link'
+import Snackbar from '@mui/material/Snackbar'
+import Tooltip from '@mui/material/Tooltip'
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
+import moment from 'moment'
+import { useRouter } from 'next/router'
+import PropTypes from 'prop-types'
+import * as React from 'react'
+import { getProducts } from '../services/product'
 
-import ProductRemove from '../components/ProductRemove';
-import ProductShare from './ProductShare';
+import ProductRemove from '../components/ProductRemove'
+import ProductShare from './ProductShare'
 
 export default function ProductGrid(props) {
-
   const router = useRouter()
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(0)
@@ -90,7 +89,6 @@ export default function ProductGrid(props) {
     const handleEdit = row => {
       router.push(`/product/edit/${row.internal_name}`)
     }
-
 
     return [
       // Hide Id Column ISSUE #123
