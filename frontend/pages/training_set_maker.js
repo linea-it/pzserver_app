@@ -1,6 +1,7 @@
 import { Typography, IconButton } from '@mui/material'
 import useStyles from '../styles/pages/training_set_maker'
 import InfoIcon from '@mui/icons-material/Info'
+import ProductGrid from '../components/ProductGrid'
 
 export default function TrainingSetMaker() {
   const classes = useStyles()
@@ -20,6 +21,7 @@ export default function TrainingSetMaker() {
           <InfoIcon />
         </IconButton>
       </Typography>
+      <ProductGrid />
     </div>
   )
 }

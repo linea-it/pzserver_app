@@ -19,9 +19,8 @@ const Banner = () => {
           </Typography>
           <Typography variant="body1" display="block">
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit
-              amet Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor
-              sit amet..
+              Pipelines to create customized science-driven PZ-related data
+              products.
             </p>
           </Typography>
         </Grid>

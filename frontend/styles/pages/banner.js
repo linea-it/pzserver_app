@@ -6,7 +6,7 @@ const useStyles = makeStyles(theme => ({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        background: `url('/interfaces/banner_lsst_summit.jpg')`,
+        background: `url('/./header.jpg')`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
     },
