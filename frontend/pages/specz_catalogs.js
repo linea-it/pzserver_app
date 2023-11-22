@@ -4,7 +4,10 @@ import {
   IconButton,
   Select,
   MenuItem,
-  TextField
+  TextField,
+  Card,
+  CardContent,
+  Grid
 } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import SpeczData from '../components/SpeczData'
@@ -27,54 +30,72 @@ export default function SpeczCatalogs() {
   }
 
   return (
-    <div>
-      <Typography variant="h4" style={{ textAlign: 'center' }}>
-        Combine Spec-z Catalogs
-        <IconButton aria-label="info" title="Combine Spec-z Catalogs">
-          <InfoIcon />
-        </IconButton>
-      </Typography>
+    <Card>
+      <CardContent>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="h4" style={{ textAlign: 'center' }}>
+              Combine Spec-z Catalogs
+              <IconButton aria-label="info" title="Combine Spec-z Catalogs">
+                <InfoIcon />
+              </IconButton>
+            </Typography>
+          </Grid>
 
-      <div>
-        <p>1. Combined catalog name:</p>
-        <TextField
-          id="combinedCatalogName"
-          label="Combined catalog name"
-          variant="outlined"
-          value={combinedCatalogName}
-          onChange={handleCatalogNameChange}
-        />
-      </div>
+          <Grid item xs={12}>
+            <div>
+              <p>1. Combined catalog name:</p>
+              <TextField
+                id="combinedCatalogName"
+                label="Combined catalog name"
+                variant="outlined"
+                value={combinedCatalogName}
+                onChange={handleCatalogNameChange}
+              />
+            </div>
+          </Grid>
 
-      <div>
-        <p>2. Select the Spec-z Catalogs to include in your sample:</p>
-        <Select
-          multiple
-          value={selectedSpeczCatalogs}
-          onChange={handleSpeczCatalogsChange}
-        >
-          <MenuItem value="catalog1">teste 1</MenuItem>
-          <MenuItem value="catalog2">teste 2</MenuItem>
-        </Select>
-        <TextField
-          id="searchSpeczCatalogs"
-          label="Search Spec-z Catalogs"
-          variant="outlined"
-        />
-      </div>
+          <Grid item xs={12}>
+            <div>
+              <p>2. Select the Spec-z Catalogs to include in your sample:</p>
+              <Select
+                multiple
+                value={selectedSpeczCatalogs}
+                onChange={handleSpeczCatalogsChange}
+              >
+                <MenuItem value="catalog1">teste 1</MenuItem>
+                <MenuItem value="catalog2">teste 2</MenuItem>
+              </Select>
+              <TextField
+                id="searchSpeczCatalogs"
+                label="Search Spec-z Catalogs"
+                variant="outlined"
+              />
+            </div>
+          </Grid>
 
-      <SpeczData />
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <SpeczData />
+              </CardContent>
+            </Card>
+          </Grid>
 
-      <div>
-        <p>3. Select the cross-matching configuration choices:</p>
-        <TextField
-          id="searchRadius"
-          label="Search Radius (arcsec)"
-          variant="outlined"
-          value={searchRadius}
-          onChange={handleSearchRadiusChange}
-        />
-      </div>
-    </div>
+          <Grid item xs={12}>
+            <div>
+              <p>3. Select the cross-matching configuration choices:</p>
+              <TextField
+                id="searchRadius"
+                label="Search Radius (arcsec)"
+                variant="outlined"
+                value={searchRadius}
+                onChange={handleSearchRadiusChange}
+              />
+            </div>
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
   )
 }

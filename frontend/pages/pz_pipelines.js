@@ -1,4 +1,3 @@
-// PZPipelines.jsx
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
 import SpeczCatalogs from '../components/SpeczCatalogs'
