@@ -37,7 +37,6 @@ function DataTable({ rows }) {
         columns={columns}
         // getRowId={row => row.id}
         pageSizeOptions={[5, 10]}
-        checkboxSelection
       />
     </div>
   )
