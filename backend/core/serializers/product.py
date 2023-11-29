@@ -22,6 +22,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     can_delete = serializers.SerializerMethodField()
 
+    can_update = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         read_only_fields = ("internal_name", "is_owner")
@@ -49,3 +51,7 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_can_delete(self, obj):
         current_user = self.context["request"].user
         return obj.can_delete(current_user)
+
+    def get_can_update(self, obj):
+        current_user = self.context["request"].user
+        return obj.can_update(current_user)    

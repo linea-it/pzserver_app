@@ -18,6 +18,8 @@ export const downloadProduct = (id, internalName) => {
   })
 }
 
+export const MAX_UPLOAD_SIZE = 200
+
 // Exemplo de como enviar arquivo via upload: https://dev.to/thomz/uploading-images-to-django-rest-framework-from-forms-in-react-3jhj
 export const createProduct = data => {
   const formData = new FormData()
@@ -135,6 +137,17 @@ export const getProducts = ({
 
 export const getProduct = product_id => {
   return api.get(`/api/products/${product_id}/`).then(res => res.data)
+}
+
+export const getProductByInternalName = (internalName) => {
+  return api.get(`/api/products/`, { params: { internal_name: internalName } }).then((res) => {
+    if (res.data.count == 1) {
+      return res.data.results[0]
+    } else {
+      return undefined
+    }
+  });
+
 }
 
 export const fetchProductData = ({ queryKey }) => {

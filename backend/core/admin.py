@@ -40,6 +40,7 @@ class ProductAdmin(admin.ModelAdmin):
         "official_product",
         "pz_code",
         "created_at",
+        "updated_at",
         "status",
     )
 
@@ -69,7 +70,7 @@ class ProductContentAdmin(admin.ModelAdmin):
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
     list_display = ("id", "product", "file", "role",
-                    "type", "size", "extension")
+                    "type", "size", "extension", "created", "updated")
 
     def has_add_permission(self, request):
         return False

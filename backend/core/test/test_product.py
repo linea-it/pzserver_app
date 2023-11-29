@@ -289,6 +289,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "uploaded_by": self.user.username,
             "is_owner": True,
             "can_delete": True,
+            "can_update": True,
             "internal_name": self.product.internal_name,
             "display_name": self.product.display_name,
             "official_product": self.product.official_product,
@@ -296,6 +297,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "description": self.product.description,
             "created_at": self.product.created_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "status": self.product.status,
+            "updated_at": self.product.updated_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         }
 
         response = self.client.get(self.url)
