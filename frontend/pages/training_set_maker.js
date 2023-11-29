@@ -1,11 +1,10 @@
 import React from 'react'
-import { Typography, CircularProgress } from '@mui/material'
+import { Typography } from '@mui/material'
 
 function TrainingSetMaker() {
   return (
     <div style={{ textAlign: 'center' }}>
       <Typography variant="h4">Coming soon...</Typography>
-      <CircularProgress style={{ marginTop: '20px' }} />
     </div>
   )
 }
