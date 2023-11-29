@@ -1,5 +1,6 @@
 import UploadIcon from '@mui/icons-material/Upload'
 import VerifiedIcon from '@mui/icons-material/Verified'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -184,8 +185,29 @@ export default function EditProduct() {
     <Container sx={{ flex: 1, m: 4 }}>
       {isLoading && <Loading isLoading={isLoading} />}
       <React.Fragment>
-        <Box mb={5}>
-          <Typography variant="h6">Edit Product</Typography>
+        <Box
+          sx={{
+            mt: 2,
+            mb: 2,
+            p: 2
+          }}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Stack
+            direction="row"
+            justifyContent="flex-start"
+            alignItems="center"
+            spacing={2}
+          >
+            <ArrowBackIosIcon
+              onClick={() => {
+                router.back()
+              }}
+              sx={{ cursor: 'pointer' }}
+            />
+            <Typography variant="h6">Edit Product</Typography>
+          </Stack>
         </Box>
         <Box
           sx={{
@@ -269,11 +291,13 @@ export default function EditProduct() {
                   </CardContent>
                   <CardActions>
                     <Button
-                      size="small"
+                      size="large"
+                      variant="contained"
                       disabled={
                         originalProduct?.description === product?.description
                       }
                       onClick={handleUpdate}
+                      sx={{ width: '100%' }}
                     >
                       Update
                     </Button>
