@@ -3,6 +3,7 @@ import VerifiedIcon from '@mui/icons-material/Verified'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 
 import Alert from '@mui/material/Alert'
+import { Breadcrumbs, Link } from '@mui/material'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -185,6 +186,12 @@ export default function EditProduct() {
     <Container sx={{ flex: 1, m: 4 }}>
       {isLoading && <Loading isLoading={isLoading} />}
       <React.Fragment>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Typography color="textPrimary">Edit Product</Typography>
+        </Breadcrumbs>
         <Box
           sx={{
             mt: 2,
