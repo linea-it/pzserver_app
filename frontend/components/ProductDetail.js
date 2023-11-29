@@ -20,6 +20,7 @@ import {
   Tabs,
   Typography
 } from '@mui/material'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import Alert from '@mui/material/Alert'
 import ProductShare from './ProductShare'
 
@@ -232,7 +233,30 @@ export default function ProductDetail({ productId, internalName }) {
             Link copied successfully!
           </Alert>
         </Snackbar>
-        <Typography variant="h6">Product</Typography>
+        <Box
+          sx={{
+            mt: 1,
+            mb: 1,
+            p: 1
+          }}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Stack
+            direction="row"
+            justifyContent="flex-start"
+            alignItems="center"
+            spacing={2}
+          >
+            <ArrowBackIosIcon
+              onClick={() => {
+                router.back()
+              }}
+              sx={{ cursor: 'pointer' }}
+            />
+            <Typography variant="h6">Product</Typography>
+          </Stack>
+        </Box>
       </Box>
       <Box component="form" noValidate autoComplete="off">
         <Grid

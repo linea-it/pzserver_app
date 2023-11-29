@@ -1,17 +1,45 @@
-import { Container, Grid, Typography, Link } from '@mui/material'
+import { Container, Grid, Typography, Link, Box, Stack } from '@mui/material'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+import { useRouter } from 'next/router'
 import useStyles from '../styles/pages/contact'
 import { parseCookies } from 'nookies'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+
 export default function Contact() {
+  const router = useRouter()
   const classes = useStyles()
+
   return (
     <Container className={classes.root}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Contact
-          </Typography>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 1,
+              p: 1
+            }}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Stack
+              direction="row"
+              justifyContent="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <ArrowBackIosIcon
+                onClick={() => {
+                  router.back()
+                }}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Contact
+              </Typography>
+            </Stack>
+          </Box>
           <Card>
             <CardContent>
               <Typography variant="body1" component="span">

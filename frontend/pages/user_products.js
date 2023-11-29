@@ -4,8 +4,10 @@ import {
   Card,
   CardContent,
   FormControl,
-  Paper
+  Paper,
+  Stack
 } from '@mui/material'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { useRouter } from 'next/router'
@@ -34,10 +36,33 @@ export default function Products() {
     <Paper className={classes.root}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
-          {/* TODO: Aqui deve entrar o BREADCRUMB */}
-          <Typography variant="h3" className={classes.title}>
-            User-generated Data Products
-          </Typography>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 1,
+              p: 1
+            }}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Stack
+              direction="row"
+              justifyContent="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <ArrowBackIosIcon
+                onClick={() => {
+                  router.back()
+                }}
+                sx={{ cursor: 'pointer' }}
+              />
+              {/* TODO: Aqui deve entrar o BREADCRUMB */}
+              <Typography variant="h3" className={classes.title}>
+                User-generated Data Products
+              </Typography>
+            </Stack>
+          </Box>
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}

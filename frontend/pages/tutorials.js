@@ -1,20 +1,46 @@
-import { Container, Grid, Link, Typography } from '@mui/material'
+import { Container, Grid, Link, Typography, Box, Stack } from '@mui/material'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+import { useRouter } from 'next/router'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/tutorials'
-// import ReactPrismjs from '@uiw/react-prismjs'
-// import 'prismjs/components/prism-bash'
+
 export default function Tutorials() {
   const classes = useStyles()
+  const router = useRouter()
+
   return (
     <Container className={classes.root}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Tutorials
-          </Typography>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 1,
+              p: 1
+            }}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Stack
+              direction="row"
+              justifyContent="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <ArrowBackIosIcon
+                onClick={() => {
+                  router.back()
+                }}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Tutorials
+              </Typography>
+            </Stack>
+          </Box>
           <Card>
             <CardContent>
               <Typography variant="h6">Download</Typography>
