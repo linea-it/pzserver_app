@@ -18,7 +18,9 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography
+  Typography,
+  Link,
+  Breadcrumbs
 } from '@mui/material'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import Alert from '@mui/material/Alert'
@@ -233,6 +235,12 @@ export default function ProductDetail({ productId, internalName }) {
             Link copied successfully!
           </Alert>
         </Snackbar>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Typography color="textPrimary">Product</Typography>
+        </Breadcrumbs>
         <Box
           sx={{
             mt: 1,

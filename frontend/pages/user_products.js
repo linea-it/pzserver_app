@@ -5,7 +5,9 @@ import {
   CardContent,
   FormControl,
   Paper,
-  Stack
+  Stack,
+  Link,
+  Breadcrumbs
 } from '@mui/material'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import Grid from '@mui/material/Grid'
@@ -36,6 +38,14 @@ export default function Products() {
     <Paper className={classes.root}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">
+              User-generated Data Products
+            </Typography>
+          </Breadcrumbs>
           <Box
             sx={{
               mt: 1,

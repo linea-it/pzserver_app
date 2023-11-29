@@ -1,4 +1,12 @@
-import { Container, Grid, Typography, Link, Box, Stack } from '@mui/material'
+import {
+  Container,
+  Grid,
+  Typography,
+  Link,
+  Box,
+  Stack,
+  Breadcrumbs
+} from '@mui/material'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import { useRouter } from 'next/router'
 import useStyles from '../styles/pages/contact'
@@ -14,6 +22,12 @@ export default function Contact() {
     <Container className={classes.root}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">Contact</Typography>
+          </Breadcrumbs>
           <Box
             sx={{
               mt: 1,

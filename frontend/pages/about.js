@@ -1,4 +1,12 @@
-import { Container, Grid, Link, Typography, Box, Stack } from '@mui/material'
+import {
+  Container,
+  Grid,
+  Link,
+  Typography,
+  Box,
+  Breadcrumbs,
+  Stack
+} from '@mui/material'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import { useRouter } from 'next/router'
 import Card from '@mui/material/Card'
@@ -14,6 +22,12 @@ export default function About() {
     <Container className={classes.root}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">About</Typography>
+          </Breadcrumbs>
           <Box
             sx={{
               mt: 1,

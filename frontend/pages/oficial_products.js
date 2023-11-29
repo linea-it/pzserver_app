@@ -1,4 +1,13 @@
-import { Box, Button, Card, CardContent, Paper, Stack } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Paper,
+  Stack,
+  Link,
+  Breadcrumbs
+} from '@mui/material'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
@@ -31,6 +40,14 @@ export default function Products() {
     <Paper className={classes.root} elevation={3}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">
+              Rubin Observatory PZ Data Products
+            </Typography>
+          </Breadcrumbs>
           <Box
             sx={{
               mt: 1,
