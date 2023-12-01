@@ -33,7 +33,7 @@ export default function Index() {
       path: '/pz_pipelines',
       background: '/interfaces/gamma-ray-burst.jpg',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.'
+        'Pipelines to create customized science-driven PZ-related data products.'
     }
   ]
 

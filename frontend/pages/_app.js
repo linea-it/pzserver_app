@@ -31,7 +31,10 @@ export default function MyApp(props) {
 
   const light = createTheme({
     palette: {
-      mode: 'light'
+      mode: 'light',
+      background: {
+        default: '#f1f1f1'
+      }
     }
   })
 
