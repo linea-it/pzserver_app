@@ -1,10 +1,21 @@
-import { Box, Button, Card, CardContent, Paper } from '@mui/material'
+import * as React from 'react'
+
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Paper from '@mui/material/Paper'
+import Link from '@mui/material/Link'
+import Stack from '@mui/material/Stack'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
-import * as React from 'react'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
@@ -30,10 +41,41 @@ export default function Products() {
     <Paper className={classes.root} elevation={3}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
-          {/* TODO: Aqui deve entrar o BREADCRUMB */}
-          <Typography variant="h3" className={classes.title}>
-            Rubin Observatory PZ Data Products
-          </Typography>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">
+              Rubin Observatory PZ Data Products
+            </Typography>
+          </Breadcrumbs>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 1,
+              p: 1
+            }}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Stack
+              direction="row"
+              justifyContent="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <ArrowBackIosIcon
+                onClick={() => {
+                  router.back()
+                }}
+                color="primary"
+                cursor="pointer"
+              />
+              <Typography variant="h3" className={classes.title}>
+                Rubin Observatory PZ Data Products
+              </Typography>
+            </Stack>
+          </Box>
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}

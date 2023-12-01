@@ -1,35 +1,38 @@
-import ShareIcon from '@mui/icons-material/Share'
-import VerifiedIcon from '@mui/icons-material/Verified'
-import LoadingButton from '@mui/lab/LoadingButton'
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Chip,
-  Divider,
-  Grid,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Snackbar,
-  Stack,
-  Tab,
-  Tabs,
-  Typography
-} from '@mui/material'
-import Alert from '@mui/material/Alert'
-import ProductShare from './ProductShare'
+import React from 'react'
 
+import ShareIcon from '@mui/icons-material/Share'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+import VerifiedIcon from '@mui/icons-material/Verified'
 import EditIcon from '@mui/icons-material/Edit'
+
+import LoadingButton from '@mui/lab/LoadingButton'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import CardMedia from '@mui/material/CardMedia'
+import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Paper from '@mui/material/Paper'
+import Snackbar from '@mui/material/Snackbar'
+import Stack from '@mui/material/Stack'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
+import Typography from '@mui/material/Typography'
+import Link from '@mui/material/Link'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Alert from '@mui/material/Alert'
+
 import moment from 'moment'
 import { useRouter } from 'next/router'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
-import React from 'react'
 import Loading from '../components/Loading'
+import ProductShare from './ProductShare'
 import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
 import {
@@ -232,7 +235,38 @@ export default function ProductDetail({ productId, internalName }) {
             Link copied successfully!
           </Alert>
         </Snackbar>
-        <Typography variant="h6">Product</Typography>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Typography>Data Products</Typography>
+          <Typography color="textPrimary">Product</Typography>
+        </Breadcrumbs>
+        <Box
+          sx={{
+            mt: 1,
+            mb: 1,
+            p: 1
+          }}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Stack
+            direction="row"
+            justifyContent="flex-start"
+            alignItems="center"
+            spacing={2}
+          >
+            <ArrowBackIosIcon
+              onClick={() => {
+                router.back()
+              }}
+              color="primary"
+              cursor="pointer"
+            />
+            <Typography variant="h6">Product</Typography>
+          </Stack>
+        </Box>
       </Box>
       <Box component="form" noValidate autoComplete="off">
         <Grid

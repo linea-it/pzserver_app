@@ -1,17 +1,28 @@
-import { Container, Grid, Link, Typography } from '@mui/material'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Typography from '@mui/material/Typography'
+import Container from '@mui/material/Container'
+import Link from '@mui/material/Link'
+import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
+
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/tutorials'
-// import ReactPrismjs from '@uiw/react-prismjs'
-// import 'prismjs/components/prism-bash'
+
 export default function Tutorials() {
   const classes = useStyles()
+
   return (
     <Container className={classes.root}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">Tutorials</Typography>
+          </Breadcrumbs>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Tutorials
           </Typography>

@@ -1,8 +1,11 @@
+import React, { useState } from 'react'
+
 import UploadIcon from '@mui/icons-material/Upload'
 import VerifiedIcon from '@mui/icons-material/Verified'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 
 import Alert from '@mui/material/Alert'
+import { Breadcrumbs, Link } from '@mui/material'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -16,10 +19,10 @@ import Snackbar from '@mui/material/Snackbar'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+
 import moment from 'moment'
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
-import React, { useState } from 'react'
 import FileUploader from '../../../components/FileUploader'
 import LinearProgressWithLabel from '../../../components/LinearProgressWithLabel'
 import Loading from '../../../components/Loading'
@@ -185,6 +188,13 @@ export default function EditProduct() {
     <Container sx={{ flex: 1, m: 4 }}>
       {isLoading && <Loading isLoading={isLoading} />}
       <React.Fragment>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Typography>Data Products</Typography>
+          <Typography color="textPrimary">Edit Product</Typography>
+        </Breadcrumbs>
         <Box
           sx={{
             mt: 2,
@@ -204,7 +214,8 @@ export default function EditProduct() {
               onClick={() => {
                 router.back()
               }}
-              sx={{ cursor: 'pointer' }}
+              color="primary"
+              cursor="pointer"
             />
             <Typography variant="h6">Edit Product</Typography>
           </Stack>
