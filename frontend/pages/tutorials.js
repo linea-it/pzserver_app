@@ -1,23 +1,17 @@
-import {
-  Container,
-  Grid,
-  Link,
-  Typography,
-  Box,
-  Stack,
-  Breadcrumbs
-} from '@mui/material'
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
-import { useRouter } from 'next/router'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Typography from '@mui/material/Typography'
+import Container from '@mui/material/Container'
+import Link from '@mui/material/Link'
+import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
+
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/tutorials'
 
 export default function Tutorials() {
   const classes = useStyles()
-  const router = useRouter()
 
   return (
     <Container className={classes.root}>
@@ -29,32 +23,9 @@ export default function Tutorials() {
             </Link>
             <Typography color="textPrimary">Tutorials</Typography>
           </Breadcrumbs>
-          <Box
-            sx={{
-              mt: 1,
-              mb: 1,
-              p: 1
-            }}
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Stack
-              direction="row"
-              justifyContent="flex-start"
-              alignItems="center"
-              spacing={2}
-            >
-              <ArrowBackIosIcon
-                onClick={() => {
-                  router.back()
-                }}
-                sx={{ cursor: 'pointer' }}
-              />
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Tutorials
-              </Typography>
-            </Stack>
-          </Box>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Tutorials
+          </Typography>
           <Card>
             <CardContent>
               <Typography variant="h6">Download</Typography>

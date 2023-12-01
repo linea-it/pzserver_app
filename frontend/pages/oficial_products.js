@@ -1,20 +1,21 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Paper,
-  Stack,
-  Link,
-  Breadcrumbs
-} from '@mui/material'
+import * as React from 'react'
+
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Paper from '@mui/material/Paper'
+import Link from '@mui/material/Link'
+import Stack from '@mui/material/Stack'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
-import * as React from 'react'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
@@ -67,9 +68,9 @@ export default function Products() {
                 onClick={() => {
                   router.back()
                 }}
-                sx={{ cursor: 'pointer' }}
+                color="primary"
+                cursor="pointer"
               />
-              {/* TODO: Aqui deve entrar o BREADCRUMB */}
               <Typography variant="h3" className={classes.title}>
                 Rubin Observatory PZ Data Products
               </Typography>

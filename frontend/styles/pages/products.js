@@ -6,7 +6,6 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '4px',
     padding: theme.spacing(3),
     flex: '1 1 0%',
-    // background: 'rgb(247, 249, 252)'
   },
   gridTitle: {
     display: 'flex',
@@ -25,8 +24,6 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(3),
     marginLeft: theme.spacing(2),
     width: '100%'
-    // marginRight: `calc(${theme.spacing(2)} * -1})`
-
   },
   gridContent: {
     display: 'flex',
