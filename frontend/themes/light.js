@@ -17,7 +17,7 @@ const light = createTheme({
       main: '#ca2c0c'
     },
     background: {
-      default: '#f8f6f5'
+      default: '#f5f5f5'
     },
     text: {
       primary: 'rgba(18,48,78,0.87)',

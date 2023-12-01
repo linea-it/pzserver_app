@@ -5,19 +5,14 @@ import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
 import Link from '../components/Link'
-import { useTheme } from '@mui/system'
 
 function SpeczCatalogs() {
-  const theme = useTheme()
-
   return (
     <Link href="/specz_catalogs">
       <Card
+        elevation={3}
         sx={{
-          display: 'flex',
-          backgroundColor:
-            theme.palette.mode === 'light' ? theme.palette.grey[100] : '',
-          boxShadow: 4
+          display: 'flex'
         }}
       >
         <CardMedia

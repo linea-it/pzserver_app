@@ -5,20 +5,15 @@ import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
 import Link from '../components/Link'
-import { useTheme } from '@mui/system'
 
 function TrainingSetMaker() {
-  const theme = useTheme()
-
   return (
     <Link href="/training_set_maker">
       <Card
+        elevation={3}
         sx={{
           display: 'flex',
-          flexDirection: 'row-reverse',
-          backgroundColor:
-            theme.palette.mode === 'light' ? theme.palette.grey[100] : '',
-          boxShadow: 4
+          flexDirection: 'row-reverse'
         }}
       >
         <CardMedia
