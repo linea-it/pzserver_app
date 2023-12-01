@@ -1,5 +1,6 @@
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
+import { Box } from '@mui/material'
 import PropTypes from 'prop-types'
 
 const columns = [
@@ -31,7 +32,7 @@ const columns = [
 
 function DataTable({ rows }) {
   return (
-    <div style={{ height: 300, width: '100%' }}>
+    <Box style={{ height: 300, width: '100%' }}>
       <DataGrid
         rows={rows}
         columns={columns}
@@ -39,7 +40,7 @@ function DataTable({ rows }) {
         pageSizeOptions={[5, 10]}
         checkboxSelection
       />
-    </div>
+    </Box>
   )
 }
 
