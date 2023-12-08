@@ -65,11 +65,12 @@ export default function ProductDetail({ productId, internalName }) {
         setProduct(res)
         setLoading(false)
       })
-      .catch(res => {
+      .catch(error => {
         setLoading(false)
-        if (res.response.status === 500) {
-          // TODO: Tratar erro
-          setNotFound(true)
+        if (error.response && error.response.status === 500) {
+          console.error('Internal Server Error:', error.response.data)
+        } else {
+          console.error('Error loading product by ID:', error.message)
         }
       })
   }, [productId])
@@ -82,38 +83,30 @@ export default function ProductDetail({ productId, internalName }) {
 
   const loadProductByName = React.useCallback(async () => {
     setLoading(true)
-    getProducts({ filters: { internal_name: internalName } })
-      .then(res => {
-        // Apresenta a interface de Produtos
-        if (res.results.length === 1) {
-          setLoading(false)
-          setProduct(res)
-        }
-        if (res.results.length === 0) {
-          setNotFound(true)
-        }
-      })
-      .catch(res => {
-        setLoading(false)
-        if (res.response.status === 500) {
-          // TODO: Tratar erro
-          setNotFound(true)
-        }
+
+    try {
+      const res = await getProducts({
+        filters: { internal_name: internalName }
       })
 
-    getProducts({ filters: { internal_name: internalName } })
-      .then(res => {
-        // Apresenta a interface de Produtos
-        if (res.results.length === 1) {
-          setProduct(res.results[0])
-        }
+      if (res.results.length === 1) {
         setLoading(false)
-      })
-      .catch(res => {
-        // Retorna error 404
-        // TODO: Tratar os errors e apresentar.
+        setProduct(res.results[0])
+      } else if (res.results.length === 0) {
         setLoading(false)
-      })
+        setNotFound(true)
+      }
+    } catch (error) {
+      setLoading(false)
+
+      if (error.response && error.response.status === 404) {
+        console.error('Product not found:', error.response.data)
+      } else if (error.response && error.response.status === 500) {
+        console.error('Internal Server Error:', error.response.data)
+      } else {
+        console.error('Error loading product by name:', error.message)
+      }
+    }
   }, [internalName])
 
   React.useEffect(() => {
@@ -146,7 +139,9 @@ export default function ProductDetail({ productId, internalName }) {
       .catch(error => {
         setLoading(false)
         if (error.response && error.response.status === 500) {
-          // TODO: Tratar erro
+          console.error('Internal Server Error:', error.response.data)
+        } else {
+          console.error('Error loading product files:', error.message)
         }
       })
   }, [product])
@@ -169,8 +164,8 @@ export default function ProductDetail({ productId, internalName }) {
         link.click()
         setDownloading(false)
       })
-      .catch(() => {
-        // TODO: Tratar erro no download
+      .catch(error => {
+        console.error('Error downloading file:', error.message)
         setDownloading(false)
       })
   }
