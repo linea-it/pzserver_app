@@ -46,6 +46,10 @@ export default function EditProduct() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [fileError, setFileError] = React.useState(undefined)
   const [progress, setProgress] = useState(null)
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
 
   const loadFiles = React.useCallback(async () => {
     setIsLoading(true)
@@ -64,18 +68,27 @@ export default function EditProduct() {
 
   const loadProduct = React.useCallback(async () => {
     setIsLoading(true)
-    getProductByInternalName(pid)
-      .then(res => {
-        // Apresenta a interface de Produtos
-        setOriginalProduct(res)
-        setProduct(res)
-        setIsLoading(false)
-      })
-      .catch(res => {
-        // Retorna error 404
-        // TODO: Tratar os errors e apresentar.
-        setIsLoading(false)
-      })
+    try {
+      const res = await getProductByInternalName(pid)
+      setOriginalProduct(res)
+      setProduct(res)
+    } catch (error) {
+      console.error('Error loading product:', error)
+      if (error.response && error.response.status === 404) {
+        setErrorSnackbar({
+          open: true,
+          message: 'Product not found. Please check the product ID.'
+        })
+      } else {
+        setErrorSnackbar({
+          open: true,
+          message:
+            'An error occurred while loading the product. Please try again.'
+        })
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }, [pid])
 
   React.useEffect(() => {
@@ -101,17 +114,21 @@ export default function EditProduct() {
           setIsOpen(true)
         }
       })
-      .catch(res => {
-        if (res.response.status === 400) {
-          // Tratamento para erro nos campos
-          // handleFieldsErrors(res.response.data)
-        }
-        if (res.response.status === 500) {
-          // Tratamento erro no backend
-          // catchFormError(res.response.data)
-        }
+      .catch(error => {
+        console.error('Error updating product:', error)
+        handleOpenErrorSnackbar(
+          'An error occurred while updating the product. Please try again.'
+        )
         setIsLoading(false)
       })
+  }
+
+  const handleOpenErrorSnackbar = message => {
+    setFileError(undefined)
+    setErrorSnackbar({
+      open: true,
+      message
+    })
   }
 
   const handleOnDeleteFile = fileId => {
@@ -364,6 +381,19 @@ export default function EditProduct() {
           onClose={() => setIsOpen(false)}
           message="Product has been updated"
         />
+        <Snackbar
+          open={errorSnackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+        >
+          <Alert
+            onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+            severity="error"
+            sx={{ width: '100%' }}
+          >
+            {errorSnackbar.message}
+          </Alert>
+        </Snackbar>
       </React.Fragment>
     </Container>
   )
