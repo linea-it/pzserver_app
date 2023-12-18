@@ -7,7 +7,9 @@ import {
   Box,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
+  Snackbar,
+  Alert
 } from '@mui/material'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -35,6 +37,10 @@ export default function NewProduct() {
   const [isLoading, setLoading] = React.useState(false)
   const [activeStep, setActiveStep] = React.useState(0)
   const [open, setOpen] = React.useState(false)
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
 
   React.useEffect(() => {
     // Procurar por produtos que foram criados mas não foram publicados ainda pelo usuario.
@@ -48,6 +54,9 @@ export default function NewProduct() {
       })
       .catch(res => {
         setLoading(false)
+        handleOpenErrorSnackbar(
+          'Error loading pending product. Please try again.'
+        )
       })
   }, [])
 
@@ -57,13 +66,11 @@ export default function NewProduct() {
 
   const handleNextStep = id => {
     setProductId(id)
-
     setActiveStep(activeStep + 1)
   }
 
   const handlePrevStep = id => {
     setProductId(id)
-
     setActiveStep(activeStep - 1)
   }
 
@@ -142,7 +149,6 @@ export default function NewProduct() {
   ]
 
   const handleDiscard = () => {
-    // setOpen(true)
     setLoading(true)
     deleteProduct(pendingProduct.id)
       .then(res => {
@@ -151,13 +157,13 @@ export default function NewProduct() {
       })
       .catch(res => {
         setLoading(false)
-        // TODO: Tratar o erro
-        console.log('Falhou ao excluir o produto')
+        handleOpenErrorSnackbar(
+          'Failed to discard the pending product. Please try again.'
+        )
       })
   }
 
   const handleContinue = () => {
-    // setProduct(pendingProduct)
     setProductId(pendingProduct.id)
     setPendingProduct(null)
   }
@@ -178,6 +184,13 @@ export default function NewProduct() {
         </DialogActions>
       </Dialog>
     )
+  }
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
   }
 
   return (
@@ -205,7 +218,6 @@ export default function NewProduct() {
               mb: 2,
               p: 2
             }}
-            // height="400px"
             alignItems="center"
             justifyContent="center"
           >
@@ -216,6 +228,19 @@ export default function NewProduct() {
           </Box>
         </React.Fragment>
       )}
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   )
 }

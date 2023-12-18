@@ -3,6 +3,8 @@ import FormGroup from '@mui/material/FormGroup'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
+import Snackbar from '@mui/material/Snackbar'
+import MuiAlert from '@mui/material/Alert'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -10,6 +12,18 @@ import { deleteProductFile } from '../services/product'
 
 export default function ProductFileTextField(props) {
   const { id, role, name, size, readOnly, onDelete } = props
+
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
 
   const handleRemoveFile = () => {
     deleteProductFile(id)
@@ -19,7 +33,7 @@ export default function ProductFileTextField(props) {
       })
       .catch(res => {
         if (res.response.status === 500) {
-          // TODO: Tratamento erro no backend
+          handleOpenErrorSnackbar('Server error. Please try again later.')
         }
       })
   }
@@ -41,32 +55,48 @@ export default function ProductFileTextField(props) {
   }
 
   return (
-    <FormGroup row key={`display_file_${id}`}>
-      <TextField
-        value={name}
-        label={getLabelByRole(role)}
-        readOnly={true}
-        fullWidth
-        InputProps={
-          readOnly === false
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleRemoveFile}
-                      // onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
-            : {}
-        }
-        helperText={prettyBytes(Number(size))}
-      />
-    </FormGroup>
+    <React.Fragment>
+      <FormGroup row key={`display_file_${id}`}>
+        <TextField
+          value={name}
+          label={getLabelByRole(role)}
+          readOnly={true}
+          fullWidth
+          InputProps={
+            readOnly === false
+              ? {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleRemoveFile}
+                        // onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
+              : {}
+          }
+          helperText={prettyBytes(Number(size))}
+        />
+      </FormGroup>
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          severity="error"
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+        >
+          {errorSnackbar.message}
+        </MuiAlert>
+      </Snackbar>
+    </React.Fragment>
   )
 }
 ProductFileTextField.propTypes = {
