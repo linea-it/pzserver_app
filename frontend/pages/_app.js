@@ -1,5 +1,5 @@
 import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import Footer from '../components/Footer'
 import { AuthProvider } from '../contexts/AuthContext'
+import lightTheme from '../themes/light'
+import darkTheme from '../themes/dark'
 import '../styles/global.css'
 import Header from '../components/Header'
 
@@ -29,21 +31,6 @@ export default function MyApp(props) {
     }
   }, [])
 
-  const light = createTheme({
-    palette: {
-      mode: 'light',
-      background: {
-        default: '#f1f1f1'
-      }
-    }
-  })
-
-  const dark = createTheme({
-    palette: {
-      mode: 'dark'
-    }
-  })
-
   return (
     <>
       <Head>
@@ -54,7 +41,7 @@ export default function MyApp(props) {
         />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={darkMode ? dark : light}>
+        <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
           <CssBaseline />
           <div
             style={{
