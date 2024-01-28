@@ -17,15 +17,14 @@ import EmailField from '../components/EmailField'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import TsmData from '../components/TsmData'
-import useStyles from '../styles/pages/products'
+import { useTheme } from '@mui/system'
 
 function TrainingSetMaker() {
-  const classes = useStyles()
+  const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = React.useState('')
   const filters = React.useState()
-  const [selectedSpeczCatalogs, setSelectedTrainingSet] = useState([])
   const [searchRadius, setSearchRadius] = useState('1.0')
   const [selectedOption, setSelectedOption] = useState('pickOne')
   const [email, setEmail] = useState('')
@@ -34,10 +33,6 @@ function TrainingSetMaker() {
 
   const handleCatalogNameChange = event => {
     setCombinedCatalogName(event.target.value)
-  }
-
-  const handleSpeczCatalogsChange = event => {
-    setSelectedTrainingSet(event.target.value)
   }
 
   const handleSearchRadiusChange = event => {
@@ -55,7 +50,6 @@ function TrainingSetMaker() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setSelectedTrainingSet([])
     setSearchRadius('1.0')
     setSelectedOption('pickOne')
     setEmail('')
@@ -69,12 +63,22 @@ function TrainingSetMaker() {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
   }
+
+  const styles = {
+    root: {
+      transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+      borderRadius: '4px',
+      padding: theme.spacing(3),
+      flex: '1 1 0%'
+    }
+  }
+
   return (
-    <Paper className={classes.root}>
+    <Paper style={styles.root}>
       <CardContent>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h4" sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" mb={3} textAlign={'center'}>
               Training Set Maker
               <IconButton
                 color="primary"
@@ -88,7 +92,7 @@ function TrainingSetMaker() {
 
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
-              <Typography variant="body1" sx={{ mr: '16px' }}>
+              <Typography variant="body1" mr={'16px'}>
                 1. Combined catalog name:
               </Typography>
               <TextField
@@ -108,27 +112,10 @@ function TrainingSetMaker() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1" mb={1}>
-              2. Select the Spec-z Catalogs to include in your sample:
-            </Typography>
-            <Box display="flex">
-              <Select
-                multiple
-                value={selectedSpeczCatalogs}
-                onChange={handleSpeczCatalogsChange}
-                sx={{ marginRight: '16px', height: '0', marginTop: '8px' }}
-              >
-                <MenuItem value="name">name</MenuItem>
-                <MenuItem value="uploadby">upload by</MenuItem>
-                <MenuItem value="createdat">created at</MenuItem>
-              </Select>
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="Select the column you want to filter"
-              >
-                <InfoIcon />
-              </IconButton>
+            <Box display="flex" alignItems="center">
+              <Typography variant="body1" mb={1}>
+                2. Select the Spec-z Catalogs to include in your sample:
+              </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
           </Grid>
@@ -149,9 +136,19 @@ function TrainingSetMaker() {
                 onChange={handleLsstCatalogChange}
                 sx={{ marginLeft: '16px' }}
               >
+                <MenuItem value="DP0.2" disabled>
+                  DP0.1
+                </MenuItem>
                 <MenuItem value="DP0.2">DP0.2</MenuItem>
-                <MenuItem value="DP1">DP1</MenuItem>
-                <MenuItem value="DP2">DP2</MenuItem>
+                <MenuItem value="DP1" disabled>
+                  DP1
+                </MenuItem>
+                <MenuItem value="DP2" disabled>
+                  DP2
+                </MenuItem>
+                <MenuItem value="DP2" disabled>
+                  DR1
+                </MenuItem>
               </Select>
             </Typography>
           </Grid>
@@ -173,7 +170,6 @@ function TrainingSetMaker() {
                 <Select
                   value={selectedOption}
                   onChange={event => setSelectedOption(event.target.value)}
-                  sx={{ marginRight: '10px' }}
                 >
                   <MenuItem value="pickOne">Keep the closet only</MenuItem>
                   <MenuItem value="keepAll">Keep all</MenuItem>
@@ -201,7 +197,7 @@ function TrainingSetMaker() {
               <Button
                 variant="outlined"
                 onClick={handleClearForm}
-                sx={{ marginRight: '16px' }}
+                sx={{ marginRight: '12px' }}
               >
                 Clear form
               </Button>

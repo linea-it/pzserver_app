@@ -17,15 +17,14 @@ import EmailField from '../components/EmailField'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import SpeczData from '../components/SpeczData'
-import useStyles from '../styles/pages/products'
+import { useTheme } from '@mui/system'
 
 function SpeczCatalogs() {
-  const classes = useStyles()
+  const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = React.useState('')
   const filters = React.useState()
-  const [selectedSpeczCatalogs, setSelectedSpeczCatalogs] = useState([])
   const [searchRadius, setSearchRadius] = useState('1.0')
   const [selectedOption, setSelectedOption] = useState('keepAll')
   const [email, setEmail] = useState('')
@@ -33,10 +32,6 @@ function SpeczCatalogs() {
 
   const handleCatalogNameChange = event => {
     setCombinedCatalogName(event.target.value)
-  }
-
-  const handleSpeczCatalogsChange = event => {
-    setSelectedSpeczCatalogs(event.target.value)
   }
 
   const handleSearchRadiusChange = event => {
@@ -50,7 +45,6 @@ function SpeczCatalogs() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setSelectedSpeczCatalogs([])
     setSearchRadius('1.0')
     setSelectedOption('keepAll')
     setEmail('')
@@ -63,12 +57,22 @@ function SpeczCatalogs() {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
   }
+
+  const styles = {
+    root: {
+      transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+      borderRadius: '4px',
+      padding: theme.spacing(3),
+      flex: '1 1 0%'
+    }
+  }
+
   return (
-    <Paper className={classes.root}>
+    <Paper style={styles.root}>
       <CardContent>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h4" sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" mb={3} textAlign={'center'}>
               Combine Spec-z Catalogs
               <IconButton
                 color="primary"
@@ -81,7 +85,7 @@ function SpeczCatalogs() {
           </Grid>
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
-              <Typography variant="body1" sx={{ mr: '16px' }}>
+              <Typography variant="body1" mr={'16px'}>
                 1. Combined catalog name:
               </Typography>
               <TextField
@@ -100,27 +104,10 @@ function SpeczCatalogs() {
             </Box>
           </Grid>
           <Grid item xs={12}>
-            <Typography variant="body1" mb={1}>
-              2. Select the Spec-z Catalogs to include in your sample:
-            </Typography>
-            <Box display="flex">
-              <Select
-                multiple
-                value={selectedSpeczCatalogs}
-                onChange={handleSpeczCatalogsChange}
-                sx={{ marginRight: '16px', height: '0', marginTop: '8px' }}
-              >
-                <MenuItem value="name">name</MenuItem>
-                <MenuItem value="uploadby">upload by</MenuItem>
-                <MenuItem value="createdat">created at</MenuItem>
-              </Select>
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="Select the column you want to filter"
-              >
-                <InfoIcon />
-              </IconButton>
+            <Box display="flex" alignItems="center">
+              <Typography variant="body1" mb={1}>
+                2. Select the Spec-z Catalogs to include in your sample:
+              </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
           </Grid>
@@ -133,7 +120,7 @@ function SpeczCatalogs() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ mb: '12px' }}>
+            <Typography variant="body1" mb={'12px'}>
               3. Select the cross-matching configuration choices:
             </Typography>
           </Grid>
@@ -153,7 +140,6 @@ function SpeczCatalogs() {
             <Select
               value={selectedOption}
               onChange={event => setSelectedOption(event.target.value)}
-              sx={{ marginRight: '10px' }}
             >
               <MenuItem value="keepAll">Keep all</MenuItem>
               <MenuItem value="pickOne">
@@ -181,7 +167,7 @@ function SpeczCatalogs() {
               <Button
                 variant="outlined"
                 onClick={handleClearForm}
-                sx={{ marginRight: '16px' }}
+                sx={{ marginRight: '12px' }}
               >
                 Clear form
               </Button>
