@@ -37,7 +37,7 @@ export default function Tutorials() {
                   Observatory PZ Data Products&quot; (for official products
                   released by LSST DM Team) or &quot;User-generated Data
                   Products&quot; (for products uploaded by the members of LSST
-                  community. The download button is on the left side of each
+                  community). The download button is on the left side of each
                   data product (each row of the list).
                 </p>
               </Typography>
