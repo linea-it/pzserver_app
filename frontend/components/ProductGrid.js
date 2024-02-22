@@ -14,6 +14,7 @@ import PropTypes from 'prop-types'
 import * as React from 'react'
 import { getProducts } from '../services/product'
 
+import ProductStatus from './ProductStatus.js'
 import ProductRemove from '../components/ProductRemove'
 import ProductShare from './ProductShare'
 
@@ -133,6 +134,15 @@ export default function ProductGrid(props) {
           }
           return moment(params.value).format('YYYY-MM-DD')
         }
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        flex: 1,
+        sortable: false,
+        renderCell: params => (
+          <ProductStatus value={parseInt(params.row.status)} />
+        )
       },
       {
         field: 'actions_download',
