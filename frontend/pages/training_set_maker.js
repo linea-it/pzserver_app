@@ -4,6 +4,8 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
+import Breadcrumbs  from '@mui/material/Breadcrumbs'
+import Link from '@mui/material/Link'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
@@ -77,6 +79,15 @@ function TrainingSetMaker() {
     <Paper style={styles.root}>
       <CardContent>
         <Grid container spacing={3}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Link color="inherit" href="pz_pipelines">
+            Pipelines
+            </Link>
+          <Typography color="textPrimary">Training Set Maker</Typography>
+        </Breadcrumbs>
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign={'center'}>
               Training Set Maker
