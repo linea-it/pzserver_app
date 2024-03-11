@@ -1,3 +1,5 @@
+import * as React from 'react'
+import { getProducts } from '../services/product'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { Box } from '@mui/material'
@@ -30,15 +32,27 @@ const columns = [
   }
 ]
 
+async function fetchData(filters, query) {
+  try {
+    const response = await getProducts({
+      filters,
+      page: 0,
+      page_size: 25,
+      sort: [{ field: 'created_at', sort: 'desc' }],
+      search: query
+    })
+
+    return response.results
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
 function DataTable({ rows }) {
   return (
-    <Box style={{ height: 300, width: '100%' }}>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        // getRowId={row => row.id}
-        pageSizeOptions={[5, 10]}
-      />
+    <Box sx={{ height: 300, width: '100%' }}>
+      <DataGrid rows={rows} columns={columns} pageSizeOptions={[5, 10]} />
     </Box>
   )
 }
@@ -47,39 +61,33 @@ DataTable.propTypes = {
   rows: PropTypes.arrayOf(PropTypes.object).isRequired
 }
 
-const rows = [
-  {
-    id: 1,
-    display_name: 'Jandson 1',
-    uploaded_by: 'User1',
-    created_at: '2023-01-01'
-  },
-  {
-    id: 2,
-    display_name: 'Jandson 2',
-    uploaded_by: 'User2',
-    created_at: '2023-02-15'
-  },
-  {
-    id: 3,
-    display_name: 'Jandson 3',
-    uploaded_by: 'User3',
-    created_at: '2023-03-22'
-  },
-  {
-    id: 4,
-    display_name: 'Jandson V',
-    uploaded_by: 'User1',
-    created_at: '2023-04-10'
-  },
-  {
-    id: 5,
-    display_name: 'Jandson Try',
-    uploaded_by: 'User2',
-    created_at: '2023-05-05'
-  }
-]
+function DataTableWrapper({ filters, query }) {
+  const [rows, setRows] = React.useState([])
 
-export default function App() {
+  React.useEffect(() => {
+    const fetchAndSetData = async () => {
+      try {
+        const data = await fetchData(filters, query)
+        setRows(data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    fetchAndSetData()
+  }, [filters, query])
+
   return <DataTable rows={rows} />
 }
+
+DataTableWrapper.propTypes = {
+  filters: PropTypes.object,
+  query: PropTypes.string
+}
+
+DataTableWrapper.defaultProps = {
+  filters: {},
+  query: ''
+}
+
+export default DataTableWrapper
