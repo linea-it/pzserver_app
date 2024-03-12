@@ -17,9 +17,7 @@ function TrainingSetMaker() {
         <Link color="inherit" href="pz_pipelines">
           Pipelines
         </Link>
-        <Typography color="textPrimary">
-          Training Set Maker
-        </Typography>
+        <Typography color="textPrimary">Training Set Maker</Typography>
       </Breadcrumbs>
       <Grid>
         <Typography variant="h5" textAlign={'left'} ml={1} mt={1}>

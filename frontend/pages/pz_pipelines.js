@@ -25,13 +25,13 @@ function PZPipelines() {
           <Typography color="textPrimary">Pipelines</Typography>
         </Breadcrumbs>
         <IconButton
-            color="primary"
-            edge="start"
-            aria-label="Go back"
-            onClick={() => window.history.back()}
-          >
-            <ArrowBackIos />
-          </IconButton>
+          color="primary"
+          edge="start"
+          aria-label="Go back"
+          onClick={() => window.history.back()}
+        >
+          <ArrowBackIos />
+        </IconButton>
         Photo-z Server Pipelines
       </Typography>
 

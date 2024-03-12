@@ -17,13 +17,11 @@ function SpeczCatalogs() {
         <Link color="inherit" href="pz_pipelines">
           Pipelines
         </Link>
-        <Typography color="textPrimary">
-          Combine Spec-z Catalogs
-        </Typography>
+        <Typography color="textPrimary">Combine Spec-z Catalogs</Typography>
       </Breadcrumbs>
       <Grid>
         <Typography variant="h5" textAlign={'left'} ml={1} mt={1}>
-        <IconButton
+          <IconButton
             color="primary"
             aria-label="Go back"
             onClick={() => window.history.back()}
