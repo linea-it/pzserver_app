@@ -1,5 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
@@ -18,6 +19,7 @@ export default function MyApp(props) {
   const { Component, pageProps } = props
   const route = useRouter()
   const [darkMode, setDarkMode] = useState(false)
+  const [scrollNeeded, setScrollNeeded] = useState(false)
 
   useEffect(() => {
     const jssStyles = document.querySelector('#jss-server-side')
@@ -29,7 +31,21 @@ export default function MyApp(props) {
     if (darkModePreference) {
       setDarkMode(darkModePreference === '1')
     }
+
+    handleScroll()
   }, [])
+
+  useEffect(() => {
+    handleScroll()
+  }, [route.pathname])
+
+  const handleScroll = () => {
+    const contentHeight = document.body.scrollHeight
+    const windowHeight = window.innerHeight
+    const hasVerticalScrollbar = contentHeight > windowHeight
+
+    setScrollNeeded(hasVerticalScrollbar)
+  }
 
   return (
     <>
@@ -43,12 +59,13 @@ export default function MyApp(props) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
           <CssBaseline />
-          <div
+          <Box
             style={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              height: '100%'
+              minHeight: '100vh',
+              overflowY: scrollNeeded ? 'auto' : 'hidden'
             }}
           >
             <AuthProvider>
@@ -62,7 +79,7 @@ export default function MyApp(props) {
               <Component {...pageProps} />
               {route.pathname !== '/login' && <Footer />}
             </AuthProvider>
-          </div>
+          </Box>
         </ThemeProvider>
       </QueryClientProvider>
     </>
