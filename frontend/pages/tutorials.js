@@ -97,7 +97,15 @@ export default function Tutorials() {
                   >
                     API&apos;s documentation page
                   </Link>
-                  .
+                  . There, a{' '}
+                  <Link
+                    href="https://linea-it.github.io/pzserver/notebooks/intro_notebook.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+		    Jupyter Notebook{' '}  
+                  </Link>
+		    with instructions and use-case examples can be found.
                 </p>
                 <p>
                   <strong>Instalation via pip</strong>
@@ -129,8 +137,7 @@ export default function Tutorials() {
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  A Jupyter Notebook with instructions and use-case examples is
-                  available also in the{' '}
+                  The executable file with the notebook tutorial is available in the{' '}
                   <Link
                     href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/intro_notebook.ipynb"
                     target="_blank"
