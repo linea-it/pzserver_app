@@ -14,7 +14,7 @@ export default function Tutorials() {
   const classes = useStyles()
 
   return (
-    <Container className={classes.root}>
+    <Container className={classes.root} sx={{ overflowY: 'hidden' }}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
           <Breadcrumbs aria-label="breadcrumb">
