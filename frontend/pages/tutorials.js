@@ -103,9 +103,9 @@ export default function Tutorials() {
                     target="_blank"
                     rel="noreferrer"
                   >
-		    Jupyter Notebook{' '}  
+                    Jupyter Notebook{' '}
                   </Link>
-		    with instructions and use-case examples can be found.
+                  with instructions and use-case examples can be found.
                 </p>
                 <p>
                   <strong>Instalation via pip</strong>
@@ -137,7 +137,8 @@ export default function Tutorials() {
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  The executable file with the notebook tutorial is available in the{' '}
+                  The executable file with the notebook tutorial is available in
+                  the{' '}
                   <Link
                     href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/intro_notebook.ipynb"
                     target="_blank"
