@@ -8,3 +8,4 @@ from core.views.user import GetToken
 from core.views.user import CsrfToOauth
 from core.views.user import Logout
 from core.views.user import UserViewSet
+from core.views.git import GitAPIView
