@@ -16,41 +16,30 @@ export default function ProductDataGrid(props) {
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
 
-  const { status, isLoading } = useQuery({
-    queryKey: ['productData', { productId, page, pageSize }],
-    queryFn: fetchProductData,
-    keepPreviousData: true,
-    refetchInterval: false,
-    retry: false,
-    onSuccess: data => {
-      if (!data) {
-        return
-      }
+  const { status, isLoading, data } = useQuery(
+    ['productData', { productId, page, pageSize }],
+    fetchProductData,
+    {
+      enabled: !!productId,
+      staleTime: Infinity,
+      refetchInterval: false,
+      retry: false
+    }
+  )
+
+  React.useEffect(() => {
+    if (status === 'success' && data) {
       setRowCount(data.count)
       setRows(data.results)
       makeColumns(data.columns)
-    },
-    onError: error => {
-      let msg = error.message
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        // console.log(error.response.data);
-        // console.log(error.response.status);
-        // console.log(error.response.headers);
-        msg = error.response.data.message
-      } else if (error.request) {
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        console.log(error.request)
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.log('Error', error.message)
-      }
-      setError(msg)
+    } else if (status === 'error') {
+      setError('Error loading data. Please try again.')
     }
-  })
+  }, [status, data])
+
+  if (isLoading) return <p>Loading...</p>
+  if (error !== null) return <Alert severity="error">{error}</Alert>
+  if (status !== 'success' || !data) return null
 
   function makeColumns(names) {
     const cols = names.map(name => {
@@ -64,12 +53,6 @@ export default function ProductDataGrid(props) {
     setColumns(cols)
   }
 
-  function handleError() {
-    return <Alert severity="error">{error}</Alert>
-  }
-
-  if (isLoading && rows.length === 0) return <p>Loading data...</p>
-  if (error !== null) return handleError()
   return (
     <>
       {status === 'success' && (
