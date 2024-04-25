@@ -36,13 +36,13 @@ function PZPipelines() {
         Photo-z Server Pipelines
       </Typography>
 
-      <Grid item mb={5}>
+      <Grid item xs={12} mb={5}>
         <SpeczCatalogs />
       </Grid>
-      <Grid item mb={5}>
+      <Grid item xs={12} mb={5}>
         <TrainingSetMaker />
       </Grid>
-      <Grid item>
+      <Grid item xs={12}>
         <PzCompute />
       </Grid>
     </Grid>
