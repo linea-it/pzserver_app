@@ -17,7 +17,7 @@ function PzCompute() {
       >
         <CardMedia
           component="img"
-          sx={{ width: 350 }}
+          sx={{ width: 350, height: 231 }}
           image="../interfaces/telescope.jpg"
           alt="PhotozCompute"
         />

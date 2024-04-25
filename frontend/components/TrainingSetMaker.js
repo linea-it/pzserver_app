@@ -18,7 +18,7 @@ function TrainingSetMaker() {
       >
         <CardMedia
           component="img"
-          sx={{ width: 350 }}
+          sx={{ width: 350, height: 231 }}
           image="../interfaces/lsst_summit.jpg"
           alt="Training Set Maker"
         />
