@@ -60,12 +60,12 @@ export default function MyApp(props) {
         <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
           <CssBaseline />
           <Box
-            style={{
+            sx={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: '100vh',
-              overflowY: scrollNeeded ? 'auto' : 'hidden'
+              overflowY: scrollNeeded ? 'hidden' : 'hidden'
             }}
           >
             <AuthProvider>

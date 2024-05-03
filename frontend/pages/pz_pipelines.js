@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton'
 import React from 'react'
 import SpeczCatalogs from '../components/SpeczCatalogs'
 import TrainingSetMaker from '../components/TrainingSetMaker'
+import PzCompute from '../components/PzCompute'
 
 function PZPipelines() {
   return (
@@ -35,11 +36,14 @@ function PZPipelines() {
         Photo-z Server Pipelines
       </Typography>
 
-      <Grid item mb={5}>
+      <Grid item xs={12} mb={5}>
         <SpeczCatalogs />
       </Grid>
-      <Grid item>
+      <Grid item xs={12} mb={5}>
         <TrainingSetMaker />
+      </Grid>
+      <Grid item xs={12}>
+        <PzCompute />
       </Grid>
     </Grid>
   )
