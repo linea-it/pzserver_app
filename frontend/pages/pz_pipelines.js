@@ -29,7 +29,7 @@ function PZPipelines() {
           color="primary"
           edge="start"
           aria-label="Go back"
-          onClick={() => window.history.back()}
+          onClick={() => (window.location.href = window.location.origin)}
         >
           <ArrowBackIos />
         </IconButton>
