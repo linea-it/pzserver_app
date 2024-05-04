@@ -1,11 +1,21 @@
 import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
-import React from 'react'
+import { React, useEffect, useState } from 'react'
 import Link from '../components/Link'
+import { getVersion } from '../services/git'
 import useStyles from '../styles/components/Footer'
 
 function Footer() {
   const classes = useStyles()
+
+  const [version, setVersion] = useState(null)
+
+  useEffect(() => {
+    getVersion().then(res => {
+      console.log(res.version)
+      return setVersion(res.version)
+    })
+  }, [])
 
   return (
     <footer className={classes.root}>
@@ -54,6 +64,7 @@ function Footer() {
         </Grid>
         <Grid item className={classes.marginItem}>
           <Typography>
+            <span className={classes.poweredBy}>Release: {version}</span>
             <span className={classes.poweredBy}>Powered By</span>
             <Link
               href="https://www.linea.org.br/"
