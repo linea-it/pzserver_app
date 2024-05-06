@@ -30,6 +30,13 @@ cp .env.local-template .env.local
 
 Edit the files and change the variables according to your environment, in this first moment pay attention to the variables referring to the django database and connection (optional).
 
+Check your linux user id with: 
+
+```bash
+echo $UID
+```
+and update it in the `docker-compose.yml` file if necessary (if it is not the usual 1000). 
+
 Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`.
 
 ```bash
