@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from datetime import datetime
 import subprocess
 import requests 
 
@@ -10,7 +11,8 @@ class GitAPIView(APIView):
         project = 'pzserver_app'
         response = requests.get(f"https://api.github.com/repos/linea-it/{project}/releases/latest")
         data = response.json() 
-        return Response({"version": data['name']})
+        date_published_at = datetime.strptime(data['published_at'][0:10], '%Y-%m-%d').date()
+        return Response({"version": data['name'], "date": date_published_at.strftime("%d/%b/%Y") })
     
 
 
