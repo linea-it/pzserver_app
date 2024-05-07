@@ -2,18 +2,18 @@ import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
 import { React, useEffect, useState } from 'react'
 import Link from '../components/Link'
-import { getVersion } from '../services/git'
+import { getGitInfo } from '../services/git'
 import useStyles from '../styles/components/Footer'
 
 function Footer() {
   const classes = useStyles()
 
-  const [version, setVersion] = useState(null)
+  const [gitinfo, setGitinfo] = useState(null)
 
   useEffect(() => {
-    getVersion().then(res => {
-      console.log(res.version)
-      return setVersion(res.version)
+    getGitInfo().then(res => {
+      console.log(res)
+      return setGitinfo(res)
     })
   }, [])
 
@@ -64,7 +64,7 @@ function Footer() {
         </Grid>
         <Grid item className={classes.marginItem}>
           <Typography>
-            <span className={classes.poweredBy}>Release: {version}</span>
+            <span className={classes.poweredBy}>Last update: {gitinfo["date"]} ({gitinfo["version"]})</span>
             <span className={classes.poweredBy}>Powered By</span>
             <Link
               href="https://www.linea.org.br/"
