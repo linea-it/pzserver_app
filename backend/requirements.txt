@@ -1,5 +1,5 @@
 asgiref==3.5.2
-astropy==5.1
+astropy==5.3.3
 attrs==21.4.0
 certifi==2022.5.18.1
 cffi==1.15.0
