@@ -1,4 +1,4 @@
-astropy==5.1
+astropy==5.3.3
 coverage==6.5.0
 Django==4.1.10
 django-cors-headers==3.11.0
