@@ -25,4 +25,5 @@ requests-oauthlib==2.0.0
 social-auth-app-django==5.4.1
 social-auth-core==4.5.4
 tables-io==0.9.6
+tables==3.9.2
 uWSGI==2.0.25.1
