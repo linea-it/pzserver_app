@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib.auth.models import Group
-
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 
@@ -20,18 +19,16 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
         log.debug(user)
 
         # Guardar o email do usuario
-        user.email = shib_meta.get('email', None)
-        log.debug("Updated user email")
+        # user.email = shib_meta.get('email', None)
+        # log.debug("Updated user email")
 
-        if not shib_meta.get('first_name', None):
+        if not shib_meta.get("first_name", None):
             user.profile.display_name = user.username
             user.profile.save()
             log.debug("Added user profile display name")
 
         # Adiciona um display name para o usuario
-        if (
-            user.profile.display_name is None
-        ):
+        if user.profile.display_name is None:
             user.profile.display_name = user.username
             user.profile.save()
             log.debug("Added user profile display name")
