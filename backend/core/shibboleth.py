@@ -19,19 +19,19 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
         log.debug(user)
 
         # Guardar o email do usuario
-        # user.email = shib_meta.get('email', None)
-        # log.debug("Updated user email")
+        if shib_meta.get('email', None):
+            user.email = shib_meta.get('email')
+            log.debug("Updated user email")
 
-        if not shib_meta.get("display_name", None):
-            user.profile.display_name = user.username
-            user.profile.save()
+        if user.profile.display_name != shib_meta.get("display_name", None):
+            user.profile.display_name = shib_meta.get("display_name", user.username)
             log.debug("Added user profile display name")
+            user.profile.save()
 
         # Adiciona um display name para o usuario
         if user.profile.display_name is None:
             user.profile.display_name = user.username
             user.profile.save()
-            log.debug("Added user profile display name")
 
         user.save()
 
@@ -43,8 +43,6 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
                 log.debug("Added user to Shibboleth group")
         except Exception as e:
             log.error("Failed on add user to group shibboleth. Error: %s" % e)
-
-        log.debug("--------------------------")
 
         return
 
