@@ -23,6 +23,11 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
             user.email = shib_meta.get('email')
             log.debug("Updated user email")
 
+        if not user.last_name and shib_meta.get("first_name", None):
+            fullname = shib_meta.get("first_name")
+            user.first_name = fullname.split()[0]
+            user.last_name = fullname.split()[-1]
+
         if user.profile.display_name != shib_meta.get("display_name", None):
             user.profile.display_name = shib_meta.get("display_name", user.username)
             log.debug("Added user profile display name")

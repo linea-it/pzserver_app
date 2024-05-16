@@ -206,9 +206,9 @@ SHIBBOLETH_ENABLED = False
 if os.getenv("AUTH_SHIB_URL", None) is not None:
     # https://github.com/Brown-University-Library/django-shibboleth-remoteuser
     SHIBBOLETH_ATTRIBUTE_MAP = {
-        "eppn": (True, "id"),
-        "cn": (False, "display_name"),
-        "sn": (False, "username"),
+        "eppn": (True, "username"),
+        "cn": (False, "first_name"),
+        "sn": (False, "display_name"),
         "Shib-inetOrgPerson-mail": (False, "email"),
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
