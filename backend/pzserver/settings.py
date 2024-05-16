@@ -208,7 +208,7 @@ if os.getenv("AUTH_SHIB_URL", None) is not None:
     SHIBBOLETH_ATTRIBUTE_MAP = {
         "eppn": (True, "username"),
         "cn": (False, "first_name"),
-        "sn": (False, "last_name"),
+        "sn": (False, "display_name"),
         "Shib-inetOrgPerson-mail": (False, "email"),
     }
     SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
