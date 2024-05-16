@@ -19,11 +19,11 @@ class ShibbolethMiddleware(ShibbolethRemoteUserMiddleware):
         log.debug(user)
 
         # Guardar o email do usuario
-        if shib_meta.get('email', None):
-            user.email = shib_meta.get('email')
+        if shib_meta.get("email", None):
+            user.email = shib_meta.get("email")
             log.debug("Updated user email")
 
-        if not user.last_name and shib_meta.get("first_name", None):
+        if shib_meta.get("first_name", None):
             fullname = shib_meta.get("first_name")
             user.first_name = fullname.split()[0]
             user.last_name = fullname.split()[-1]
