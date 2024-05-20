@@ -19,7 +19,7 @@ function PZPipelines() {
         mb={5}
         mr={55}
       >
-        <Breadcrumbs aria-label="breadcrumb">
+        <Breadcrumbs aria-label="breadcrumb" sx={{ mt: '25px' }}>
           <Link color="inherit" href="/">
             Home
           </Link>
