@@ -8,12 +8,16 @@ import useStyles from '../styles/components/Footer'
 function Footer() {
   const classes = useStyles()
 
-  const [gitinfo, setGitinfo] = useState(null)
+  const [gitVersion, setGitVersion] = useState(null)
+  const [gitDate, setGitDate] = useState(null)
 
   useEffect(() => {
     getGitInfo().then(res => {
-      console.log(res)
-      return setGitinfo(res)
+      console.log(res["version"])
+      console.log(res["date"])
+      setGitVersion(res["version"])
+      setGitDate(res["date"])
+      return res
     })
   }, [])
 
@@ -64,7 +68,6 @@ function Footer() {
         </Grid>
         <Grid item className={classes.marginItem}>
           <Typography>
-            <span className={classes.poweredBy}>Last update: {gitinfo["date"]} ({gitinfo["version"]})</span>
             <span className={classes.poweredBy}>Powered By</span>
             <Link
               href="https://www.linea.org.br/"
@@ -80,6 +83,7 @@ function Footer() {
               />
             </Link>
           </Typography>
+          <span className={classes.poweredBy}>Last update: {gitDate} ({gitVersion}) </span>
         </Grid>
       </Grid>
     </footer>
