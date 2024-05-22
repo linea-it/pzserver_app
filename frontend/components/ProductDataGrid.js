@@ -4,6 +4,7 @@ import uniqueId from 'lodash/uniqueId'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
+import Box from '@mui/material/Box'
 
 import { fetchProductData } from '../services/product'
 
@@ -66,21 +67,26 @@ export default function ProductDataGrid(props) {
           // sortModel={sortModel}
           // onSortModelChange={handleSortModelChange}
           paginationMode="server"
-          rowCount={rowCount}
-          pagination
+          //rowCount={rowCount}
           page={page}
           onPageChange={page => setPage(page)}
           pageSize={pageSize}
+          hideFooter
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-          rowsPerPageOptions={[10, 25, 50, 100]}
+          
+          rowsPerPageOptions={[10]}
+          
           loading={isLoading}
           disableColumnMenu
           disableColumnSelector
           localeText={{
-            noRowsLabel: isLoading ? 'No rows' : 'Loading...'
+            noRowsLabel: isLoading ? 'No rows' : 'Loading...',
           }}
-        />
+        /> 
       )}
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', fontSize: '14px' }}>
+        10 First Rows
+      </Box>
     </>
   )
 }
