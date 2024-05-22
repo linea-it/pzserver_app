@@ -18,7 +18,7 @@ LOGGING_LEVEL=DEBUG
 # disable it.
 AUTORELOAD=1
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY=Z-cVO6l8catnpijVIKXcwwaKeGJTzJ2hiItn3lw2a4M
+SECRET_KEY=JUlNLdVQ2SF_xRdcwsUVjnqecHf1cqHW4B9iuofmyvY
 
 # Database
 DB_ENGINE=django.db.backends.postgresql
@@ -35,8 +35,8 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 # Frontend
 # Client ID e Client Secret devem ser cadastradas no Django Admin
 # Apos o Setup do backend, na interface Django Oauth Aplications
-# DJANGO_OAUTH_CLIENT_ID=
-# DJANGO_OAUTH_CLIENT_SECRET=
+# DJANGO_OAUTH_CLIENT_ID= Fz6kPRSGbB10urMGbo6OcFyZ2MhBivfdJ6sAKVow
+# DJANGO_OAUTH_CLIENT_SECRET= uFrvcAK5utGUcAu8VDArT6o24hYhZQjwVq3mQ2XT0OgKPWZ7Crd3CKvSa6n1RxXwDfpADmnmsuyNJFS67OuSss73v60j6JinZnrWIlgbKGEVvXRCw8KUcgM4SJmbgz3H
 
 # Github OAuth
 # To enable Github OAuth authentication, 
