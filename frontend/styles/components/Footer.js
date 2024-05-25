@@ -4,7 +4,7 @@ const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
     float: 'right',
-    height: 64,
+    //height: 64,
     position: 'relative',
     zIndex: 2,
     backgroundColor: theme.palette.grey[900],
@@ -35,6 +35,14 @@ const useStyles = makeStyles(theme => ({
     color: '#fff',
     marginRight: 16,
     fontFamily: 'Roboto Condensed'
+  },
+  lastUpdate: {
+    display: 'flex',
+    verticalAlign: 'middle',
+    color: '#fff',
+    marginRight: 0,
+    fontFamily: 'Roboto Condensed',
+    fontSize: 12
   },
   marginItem: {
     marginLeft: 20,

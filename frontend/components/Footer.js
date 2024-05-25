@@ -66,25 +66,38 @@ function Footer() {
             </Typography>
           </div>
         </Grid>
+
         <Grid item className={classes.marginItem}>
-          <Typography>
-            <span className={classes.poweredBy}>Powered By</span>
-            <Link
-              href="https://www.linea.org.br/"
-              target="_blank"
-              className={classes.logoLink}
-            >
-              <Image
-                src="/logo.png"
-                alt="LIneA"
-                width={52}
-                height={52}
-                className={classes.logoFooter}
-              />
-            </Link>
-          </Typography>
-          <span className={classes.poweredBy}>Last update: {gitDate} ({gitVersion}) </span>
+          <Grid container
+            direction="column"
+            justifyContent="flex-end"
+            alignItems="flex-end"
+          >
+            <Grid item xs={12} >
+
+              <Typography>
+                <span className={classes.poweredBy}>Powered By</span>
+                <Link
+                  href="https://www.linea.org.br/"
+                  target="_blank"
+                  className={classes.logoLink}
+                >
+                  <Image
+                    src="/logo.png"
+                    alt="LIneA"
+                    width={52}
+                    height={52}
+                    className={classes.logoFooter}
+                  />
+                </Link>
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <span className={classes.lastUpdate}>Last update: {gitDate} ({gitVersion}) </span>
+            </Grid>
+          </Grid>
         </Grid>
+
       </Grid>
     </footer>
   )
