@@ -4,6 +4,7 @@ import uniqueId from 'lodash/uniqueId'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
+import Box from '@mui/material/Box'
 
 import { fetchProductData } from '../services/product'
 
@@ -11,7 +12,7 @@ export default function ProductDataGrid(props) {
   const { productId } = props
   const [rows, setRows] = React.useState([])
   const [columns, setColumns] = React.useState([])
-  const [rowCount, setRowCount] = React.useState(0)
+  const [, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
@@ -57,7 +58,7 @@ export default function ProductDataGrid(props) {
     <>
       {status === 'success' && (
         <DataGrid
-          getRowId={row => uniqueId('id_')}
+          getRowId={() => uniqueId('id_')}
           rows={rows}
           columns={columns}
           disableSelectionOnClick
@@ -66,13 +67,14 @@ export default function ProductDataGrid(props) {
           // sortModel={sortModel}
           // onSortModelChange={handleSortModelChange}
           paginationMode="server"
-          rowCount={rowCount}
-          pagination
+          // rowCount={rowCount}
+          // pagination
           page={page}
           onPageChange={page => setPage(page)}
           pageSize={pageSize}
+          hideFooter
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-          rowsPerPageOptions={[10, 25, 50, 100]}
+          rowsPerPageOptions={[10]}
           loading={isLoading}
           disableColumnMenu
           disableColumnSelector
@@ -81,6 +83,16 @@ export default function ProductDataGrid(props) {
           }}
         />
       )}
+      <Box
+        sx={{
+          mt: 2,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          fontSize: '14px'
+        }}
+      >
+        10 First Rows
+      </Box>
     </>
   )
 }
