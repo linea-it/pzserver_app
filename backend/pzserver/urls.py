@@ -25,6 +25,7 @@ from core.views import (
     ProductViewSet,
     ReleaseViewSet,
     UserViewSet,
+    GitAPIView,
 )
 from django.contrib import admin
 from django.urls import include, path
@@ -66,4 +67,7 @@ urlpatterns = [
         name="swagger",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    # API Git
+    path("api/git/", GitAPIView.as_view(), name="git"),
+
 ]

@@ -1,11 +1,25 @@
 import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
-import React from 'react'
+import { React, useEffect, useState } from 'react'
 import Link from '../components/Link'
+import { getGitInfo } from '../services/git'
 import useStyles from '../styles/components/Footer'
 
 function Footer() {
   const classes = useStyles()
+
+  const [gitVersion, setGitVersion] = useState(null)
+  const [gitDate, setGitDate] = useState(null)
+
+  useEffect(() => {
+    getGitInfo().then(res => {
+      console.log(res["version"])
+      console.log(res["date"])
+      setGitVersion(res["version"])
+      setGitDate(res["date"])
+      return res
+    })
+  }, [])
 
   return (
     <footer className={classes.root}>
@@ -52,24 +66,38 @@ function Footer() {
             </Typography>
           </div>
         </Grid>
+
         <Grid item className={classes.marginItem}>
-          <Typography>
-            <span className={classes.poweredBy}>Powered By</span>
-            <Link
-              href="https://www.linea.org.br/"
-              target="_blank"
-              className={classes.logoLink}
-            >
-              <Image
-                src="/logo.png"
-                alt="LIneA"
-                width={52}
-                height={52}
-                className={classes.logoFooter}
-              />
-            </Link>
-          </Typography>
+          <Grid container
+            direction="column"
+            justifyContent="flex-end"
+            alignItems="flex-end"
+          >
+            <Grid item xs={12} >
+
+              <Typography>
+                <span className={classes.poweredBy}>Powered By</span>
+                <Link
+                  href="https://www.linea.org.br/"
+                  target="_blank"
+                  className={classes.logoLink}
+                >
+                  <Image
+                    src="/logo.png"
+                    alt="LIneA"
+                    width={52}
+                    height={52}
+                    className={classes.logoFooter}
+                  />
+                </Link>
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <span className={classes.lastUpdate}>Last update: {gitDate} ({gitVersion}) </span>
+            </Grid>
+          </Grid>
         </Grid>
+
       </Grid>
     </footer>
   )
