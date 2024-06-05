@@ -18,3 +18,11 @@ nginx.conf
 # Docker Compose 
 docker-compose.yml
 .env.local
+
+# Orchestration
+orchestration/db
+orchestration/processes
+orchestration/logs
+orchestration/rabbitmq/*
+!orchestration/rabbitmq/enabled_plugins
+

@@ -1,0 +1,8 @@
+cross_lsdb_dev:
+    display_name: 'LSDB Crossmatch (dev)'
+    path: '/pipelines/cross_lsdb_dev'
+    executor: 'local' # only to orchestration
+    runner: 'bash'
+    executable: 'run.sh'
+    schema_config: '/pipelines/cross_lsdb_dev/config.py'
+    version: '0.0.1'

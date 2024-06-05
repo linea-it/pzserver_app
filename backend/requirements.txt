@@ -27,3 +27,4 @@ social-auth-core==4.5.4
 tables-io==0.9.6
 tables==3.9.2
 uWSGI==2.0.25.1
+pydantic==2.7.1

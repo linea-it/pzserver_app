@@ -14,31 +14,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 # from core.api import viewsets as products_viewsets
-from core.views import (
-    CsrfToOauth,
-    GetToken,
-    LoggedUserView,
-    Logout,
-    ProductContentViewSet,
-    ProductFileViewSet,
-    ProductTypeViewSet,
-    ProductViewSet,
-    ReleaseViewSet,
-    UserViewSet,
-)
+from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
+                        PipelineViewSet, ProcessViewSet, ProductContentViewSet,
+                        ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
+                        ReleaseViewSet, UserViewSet)
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 from rest_framework import routers
 
 route = routers.DefaultRouter()
 
 route.register(r"users", UserViewSet, basename="users")
 route.register(r"releases", ReleaseViewSet, basename="releases")
+route.register(r"pipelines", PipelineViewSet, basename="pipelines")
+route.register(r"processes", ProcessViewSet, basename="processes")
 route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")

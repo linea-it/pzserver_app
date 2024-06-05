@@ -299,3 +299,12 @@ LOGGING = {
         },
     },
 }
+
+# directory where it will contain the processing of the pipelines.
+PROCESSING_DIR = os.getenv("PROCESSING_DIR", "/processes")
+
+# directory where it will contain the source code of the pipelines.
+PIPELINES_DIR = os.getenv("PIPELINES_DIR", "/pipelines")
+
+# directory where it will contain the datasets.
+DATASETS_DIR = os.getenv("DATASETS_DIR", "/datasets")

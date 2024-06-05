@@ -1,0 +1,8 @@
+{
+    "catalog_name": "DatasetA",
+    "catalog_type": "object",
+    "total_rows": 100,
+    "epoch": "J2000",
+    "ra_column": "ra",
+    "dec_column": "dec"
+}

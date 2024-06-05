@@ -15,6 +15,7 @@ class RegistryProduct:
         self.log = self.get_log()
 
         self.log.info("----------------------------")
+
         self.log.info("Product ID: [%s]" % product_id)
 
         self.product = Product.objects.get(pk=product_id)

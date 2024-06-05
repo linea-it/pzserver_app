@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+import argparse
+import time
+import os
+from pathlib import Path
+from dask.distributed import Client
+import lsdb
+
+from utils import setup_logger, load_yml
+from executor import get_executor_config
+
+
+def run(config_file):
+    """Run lsdb crossmatch
+
+    Args:
+        config_file (str): lsdb parameters
+    """
+
+    logger = setup_logger(name="cross-lsdb")
+
+    start_time_full = time.time()
+
+    # Loading configurations
+    pipe_config = load_yml(config_file)
+    param = pipe_config.get("inputs")
+    logger.info("Parameters: %s", param)
+
+    executor_key = os.getenv("DASK_EXECUTOR_KEY", "local")
+    cluster = get_executor_config(executor_key, config_file)
+
+    with Client(cluster):
+        phot_dp0 = lsdb.read_hipscat(param.get("photo"))
+        spec_dp0 = lsdb.read_hipscat(param.get("specz"))
+
+        cross = spec_dp0.crossmatch(phot_dp0)
+        data = cross.compute()
+
+        os.makedirs(pipe_config.get("output_dir"), exist_ok=True)
+        outputfile = Path(pipe_config.get("output_dir"), "cross-output.parquet")
+        data.to_parquet(outputfile)
+
+        logger.info("--> Object Count: \n%s", str(data.count()))
+
+    cluster.close()
+
+    logger.info("Time elapsed: %s", str(time.time() - start_time_full))
+
+
+if __name__ == "__main__":
+    # Create the parser and add arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest="config_path", help="yaml config path")
+
+    args = parser.parse_args()
+    config_path = args.config_path
+
+    # Run pipeline
+    run(config_path)

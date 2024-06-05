@@ -9,6 +9,9 @@ services:
       - ..:/workspaces:cached
       - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
+      - ./orchestration/pipelines:/pipelines
+      - ./orchestration/processes:/processes
+      - ./orchestration/datasets:/datasets
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity

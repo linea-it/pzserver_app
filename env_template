@@ -48,3 +48,12 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 # Shibboleth / Satosa Auth
 # Url para login utilizando Shibboleth
 # AUTH_SHIB_URL=
+
+# directory where it will contain the processing of the pipelines.
+PROCESSING_DIR=/processes
+
+# directory where it will contain the source code of the pipelines.
+PIPELINES_DIR=/pipelines
+
+# directory where it will contain the datasets.
+DATASETS_DIR=/datasets
