@@ -12,7 +12,7 @@ Clone the repository and access the directory:
 ```bash
 git clone https://github.com/linea-it/pzserver_app.git  
 cd pzserver_app
-mkdir -p archive/data archive/log/archive/log/backend
+mkdir -p archive/data archive/log/backend
 ```
 
 Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
@@ -134,7 +134,7 @@ Turn on background environment (if you have the application already running on t
 docker-compose up -d
 ```
 
-    Access in the browser:
+Access in the browser:
     - Frontend: <http://localhost/>
     - Django Admin: <http://localhost/admin/>
     - Django REST: <http://localhost/api>
@@ -233,6 +233,64 @@ run single test method
 docker-compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase::test_list_product_file
 ```
 
+## Enable authentication via LIneA Satosa (Github)
+
+### Keys and certificates
+
+Edit the `.env` to include the path to the certificates for signing and encrypting SAML assertions:
+(It is possible to use the same certificate for both signing and encryption.)
+
+```bash
+# Keys and certificates
+SIG_KEY_PEM=<your-key-path>
+SIG_CERT_PEM=<your-certificate-path>
+ENCRYP_KEY_PEM=<your-key-path>
+ENCRYP_CERT_PEM=<your-certificate-path>
+```
+
+If you do not have valid certificates (not recommended in production), generate a self-signed certificate using the command below:
+
+Create the `certificates` directory with the following command:
+
+```bash
+mkdir -p saml2/certificates 
+
+openssl genrsa -out pz.key 2048
+openssl req -new -key pz.key -out pz.csr
+openssl x509 -req -days 365 -in pz.csr -signkey pz.key -out pz.crt
+
+cp pz.key pzkey.pem
+cp pz.crt pzcert.pem
+```
+
+Next we must uncomment the volume that represents the saml2 directory in docker-compose.yml:
+
+```yml
+- ./archive/log/backend:/archive/log
+- ./archive/data:/archive/data
+- ./saml2:/saml2  # uncomment if authentication with github is required
+```
+
+### IDP Metadata (Github)
+
+Edit the `.env` and tell where the metadata can be found:
+(Contact the infrastructure team to find out more details about the metadata.)
+
+```bash
+# IDP metadata
+IDP_METADATA=<Github-metadata-path>
+```
+
+And finally, just uncomment the `AUTH_SHIB_URL` variable in the `.env`:
+
+```bash
+# Saml2 / Satosa Auth
+# URL to login using satosa
+AUTH_SHIB_URL=${URI}/saml2/login/
+```
+
+With everything configured and the services started, we must access the URL `${URI}/saml2/metadata/` and send the content (xml) to the infrastructure team to create a trust relationship between the application and satosa.
+
 ## Setup Production Enviroment
 
 In the production environment **NO** it is necessary to clone the repository.
@@ -320,3 +378,4 @@ Procedure to update the production environment or any other that uses built imag
 - Edit the `.env` file to add new variables or change them if necessary.
 - Pull the new images with the `docker-compose pull` command.
 - Restart services `docker-compose stop && docker-compose up -d`.
+

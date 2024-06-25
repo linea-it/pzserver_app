@@ -14,25 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 # from core.api import viewsets as products_viewsets
-from core.views import (
-    CsrfToOauth,
-    GetToken,
-    LoggedUserView,
-    Logout,
-    ProductContentViewSet,
-    ProductFileViewSet,
-    ProductTypeViewSet,
-    ProductViewSet,
-    ReleaseViewSet,
-    UserViewSet,
-)
+from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
+                        ProductContentViewSet, ProductFileViewSet,
+                        ProductTypeViewSet, ProductViewSet, ReleaseViewSet,
+                        UserViewSet)
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 from rest_framework import routers
 
 route = routers.DefaultRouter()
@@ -57,7 +46,6 @@ urlpatterns = [
     path("api/csrf_oauth/", CsrfToOauth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view(), name="logged_user"),
     path("api/logout/", Logout.as_view(), name="logout"),
-    path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
     # API DOCs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -66,4 +54,5 @@ urlpatterns = [
         name="swagger",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path(r"saml2/", include('djangosaml2.urls')),
 ]
