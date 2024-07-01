@@ -254,7 +254,7 @@ export default function ProductDetail({ productId, internalName }) {
           >
             <ArrowBackIosIcon
               onClick={() => {
-                router.back()
+                router.push('/user_products')
               }}
               color="primary"
               cursor="pointer"
