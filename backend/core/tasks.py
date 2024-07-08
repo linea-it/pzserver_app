@@ -1,0 +1,111 @@
+import logging
+import pathlib
+import shutil
+
+from celery import shared_task
+from core.maestro import Maestro
+from core.models import Process
+from core.models.product_file import FileRoles
+from core.product_steps import RegistryProduct
+from core.utils import load_yaml
+from django.conf import settings
+from django.utils import dateparse, timezone
+
+logger = logging.getLogger('beat')
+maestro = Maestro(settings.ORCHEST_URL)
+
+
+@shared_task()
+def check_processes_finish():
+    logger.info("Checking running processes...")
+
+    procs_updated = []
+    active_statuses = ['Pending', 'Running']
+    procs_running = Process.objects.filter(status__in=active_statuses)
+
+    for proc in procs_running:
+        logger.info(f"Consulting the {str(proc)} process status.")
+        proc_orches_id = proc.orchestration_process_id # type: ignore
+
+        if not proc_orches_id:
+            message = f"Process {str(proc.pk)} without Orchestration ID."
+            logger.error(message)
+            proc.status = "Failed"
+            proc = update_dates(proc, {})
+            proc.save()
+            continue
+
+        proc_orchest = maestro.status(proc_orches_id)
+        proc_orchest_status = proc_orchest.get('status') # type: ignore
+
+        logger.info(f"-> Process orchestration ID: {proc_orches_id}")
+        logger.info(f"-> Status: {proc_orchest_status}")
+    
+        if proc_orchest_status == 'Running' and not proc.status:
+            started_at = proc_orchest.get('started_at', str(proc.created_at))
+            proc.started_at = dateparse.parse_datetime(started_at)
+            proc.save()
+
+        if not proc_orchest_status in active_statuses:
+            proc.status = proc_orchest_status
+            proc = update_dates(proc, proc_orchest)
+            proc.save()
+            logger.info(f"-> Process {str(proc)} updated.")
+            procs_updated.append(proc_orches_id)
+
+    return procs_updated
+
+def update_dates(process, data):
+    started_at = data.get('started_at', str(process.created_at))
+    ended_at = data.get('ended_at', str(timezone.now()))
+    process.started_at = dateparse.parse_datetime(started_at)
+    process.ended_at = dateparse.parse_datetime(ended_at)
+    return process
+
+
+def register_outputs(process_id):
+    """_summary_
+
+    Args:
+        process_id (_type_): _description_
+    """
+
+    file_roles = dict(FileRoles.choices)
+    file_roles = {str(v).lower(): k for k, v in file_roles.items()}
+
+    process = Process.objects.get(pk=process_id)
+    process_dir = pathlib.Path(settings.PROCESSING_DIR, process.path)
+    process_file = process_dir.joinpath("process.yml")
+
+    reg_product = RegistryProduct(process.upload.pk)
+
+    process_file_dict = load_yaml(process_file)
+    outputs = process_file_dict.get('outputs', None)
+
+    try:
+        for output in outputs:
+            filepath = output.get('path')
+            rolename = output.get('role')
+            role_id = file_roles.get(rolename, file_roles.get('description'))
+            upload_path = copy_upload(filepath, process.upload.path)
+            reg_product.create_product_file(upload_path, role_id)
+            process.upload.save()
+        
+        reg_product.registry()
+        process.upload.status = 1  # Published status
+    except Exception as error:
+        process.upload.status = 9  # Failed status
+        logger.error("--> Failed to upload register <--")
+        logger.error(error)
+
+    process.upload.save()
+
+def copy_upload(filepath, upload_dir):
+    filepath = pathlib.Path(filepath)
+    new_filepath = pathlib.Path(settings.MEDIA_ROOT, upload_dir, filepath.name)
+    shutil.copyfile(str(filepath), str(new_filepath))
+    return str(new_filepath)
+
+
+if __name__ == "__main__":
+    register_outputs(5)

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import time
 import os
+import time
 from pathlib import Path
-from dask.distributed import Client
-import lsdb
 
-from utils import setup_logger, load_yml
+import lsdb
+from dask.distributed import Client
 from executor import get_executor_config
+from utils import dump_yml, load_yml, setup_logger
 
 
 def run(config_file):
@@ -27,6 +27,7 @@ def run(config_file):
     param = pipe_config.get("inputs")
     logger.info("Parameters: %s", param)
 
+
     executor_key = os.getenv("DASK_EXECUTOR_KEY", "local")
     cluster = get_executor_config(executor_key, config_file)
 
@@ -41,11 +42,34 @@ def run(config_file):
         outputfile = Path(pipe_config.get("output_dir"), "cross-output.parquet")
         data.to_parquet(outputfile)
 
+        register_outputs(outputfile)
+
         logger.info("--> Object Count: \n%s", str(data.count()))
 
     cluster.close()
 
     logger.info("Time elapsed: %s", str(time.time() - start_time_full))
+
+
+def register_outputs(filepath, role='main'):
+    """ Register outputs in process.yml
+
+    Args:
+        filepath (str): output path
+        role (str, optional): role name. Defaults to 'main'.
+    """
+
+    outpath = str(Path(filepath).resolve())
+    proc_yaml_file = str(Path('./process.yml').resolve())
+    process_info = load_yml(proc_yaml_file)
+    process_info['outputs'] = [{"path": outpath, "role": role}]
+    dump_yml(proc_yaml_file, process_info)
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

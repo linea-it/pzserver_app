@@ -9,13 +9,11 @@ from pathlib import Path
 
 from core.models import Product
 from core.product_handle import FileHandle, NotTableError
+from core.product_steps import CreateProduct, RegistryProduct
 from core.serializers import ProductSerializer
 from core.utils import format_query_to_char
-from core.views.create_product import CreateProduct
-from core.views.registry_product import RegistryProduct
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import FileResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
@@ -87,6 +85,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
+
+        print('PRODUCT -> ', request.data)
+        print('PRODUCT (type) -> ', type(request.data))
+
+        print("USER -> ", request.user)
+        print("USER (type) -> ", type(request.user))
+
         try:
             product = CreateProduct(request.data, request.user)
             check_prodtype = product.check_product_types()

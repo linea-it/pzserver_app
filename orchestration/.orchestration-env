@@ -5,13 +5,11 @@ LOGGING_LEVEL="DEBUG"
 AUTORELOAD=1
 
 # CORS
-DJANGO_ALLOWED_HOSTS="orchestration localhost 127.0.0.1 [::1]"
-ALLOWED_HOSTS="orchestration localhost 127.0.0.1 [::1]"
-DJANGO_CSRF_TRUSTED_ORIGINS="http://orchestration http://localhost http://127.0.0.1"
+DJANGO_ALLOWED_HOSTS="orchestrator localhost 127.0.0.1 [::1]"
+DJANGO_CSRF_TRUSTED_ORIGINS="http://orchestrator http://localhost"
 
 # AMQP
 RABBITMQ_HOST="rabbitmq"
-# RABBITMQ_HOST="host-gateway"
 RABBITMQ_PORT="5672"
 RABBITMQ_ERLANG_COOKIE="SWQOKODSQALRPCLNMEQG"
 RABBITMQ_DEFAULT_USER="orcadmin"

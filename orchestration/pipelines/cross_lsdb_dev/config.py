@@ -48,4 +48,6 @@ if __name__ == "__main__":
   cfg = Config()
 
   with open('config.yml', 'w') as outfile:
-    yaml.dump(cfg.model_dump(), outfile)
+    data_json = cfg.model_dump()
+    print(data_json)
+    yaml.dump(data_json, outfile)

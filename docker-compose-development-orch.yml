@@ -6,13 +6,15 @@ services:
     env_file:
       - .env
     expose:
-      # Deixa a porta do banco de dados acessivel 
+      # Deixa a porta do banco de dados acessivel
       # para ferramentas externas como o dbeaver por exemplo.
       - 5432
+    networks:
+      - default
     volumes:
       - ./pg_data:/var/lib/postgresql/data
 
-  backend:
+  backend: &pzbackend
     build:
       context: ./backend
       args:
@@ -23,12 +25,35 @@ services:
     user: "1000:1000"
     env_file:
       - .env
+    networks:
+      - default
+      - orchestration-network
     volumes:
       - ./backend:/app
       - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
+      - ./orchestration/pipelines:/pipelines
+      - ./orchestration/processes:/processes
+      - ./orchestration/datasets:/datasets
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - database
+      - orchestration-api
+
+  pz-beat:
+    <<: *pzbackend
+    hostname: "pzbeat"
+    command: /app/pz-beat.sh
+    depends_on:
+      - backend
+
+  pz-worker:
+    <<: *pzbackend
+    hostname: "pzworker"
+    command: /app/worker.sh
+    depends_on:
+      - backend
 
   frontend:
     image: node:lts
@@ -39,46 +64,51 @@ services:
       - ./.env.local:/app/.env.local
     stdin_open: true
     command: yarn dev
+    networks:
+      - default
 
-  orchestration:
+  orchestration-api:
     extends:
       file: ./orchestration/docker-compose.yml
-      service: orchestration
+      service: orchestration-api
 
-  celery_local_worker:
+  orchestration-local-worker:
     extends:
       file: ./orchestration/docker-compose.yml
-      service: celery_local_worker
+      service: orchestration-local-worker
 
-  celery_flower:
+  orchestration-flower:
     extends:
       file: ./orchestration/docker-compose.yml
-      service: celery_flower
+      service: orchestration-flower
 
   rabbitmq:
-    image: "rabbitmq:3.12.12-management"
-    hostname: "rabbitmq"
-    env_file:
-      - ./orchestration/.orchestration-env
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-    volumes:
-      - "./orchestration/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
-      - "./orchestration/rabbitmq/data/:/var/lib/rabbitmq/"
-      - "./orchestration/rabbitmq/log/:/var/log/rabbitmq/"
+    extends:
+      file: ./orchestration/docker-compose.yml
+      service: rabbitmq
+
+  orchestrator:
+    extends:
+      file: ./orchestration/docker-compose.yml
+      service: orchestrator
 
   nginx:
     image: nginx:1.21.6-alpine
     ports:
       - 80:8080
     volumes:
-      - ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx_development-orch.conf:/etc/nginx/conf.d/default.conf:ro
       - ./archive/data:/var/www/data
       - ./backend/htmlcov:/var/www/coverage
+    networks:
+      - default
     depends_on:
       - backend
       - frontend
-      - orchestration
       - rabbitmq
-      - celery_flower
+      - orchestration-flower
+
+networks:
+  orchestration-network:
+    external: true
+    driver: bridge

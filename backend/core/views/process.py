@@ -1,11 +1,19 @@
+import json
+import logging
+import pathlib
+
+from core.maestro import Maestro
 from core.models import Pipeline, Process
+from core.product_steps import CreateProduct
 from core.serializers import ProcessSerializer
 from core.utils import format_query_to_char
-from core.views.create_product import CreateProduct
+from django.conf import settings
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+logger = logging.getLogger("django")
 
 
 class ProcessFilter(filters.FilterSet):
@@ -75,22 +83,69 @@ class ProcessViewSet(viewsets.ModelViewSet):
             instance = self.perform_create(serializer)
 
             print("INSTANCE: ", instance)
-            print("INSTANCE type: ", type(instance))
 
             process = Process.objects.get(pk=instance.pk)
             process.save()
-
-            data = self.get_serializer(instance=process).data
-            return Response(data, status=status.HTTP_201_CREATED)
-
         except Exception as e:
             content = {"error": str(e)}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            maestro = Maestro(url=settings.ORCHEST_URL)
+
+            release_path = None
+            if process.release:
+                release_path = str(pathlib.Path(
+                    settings.DATASETS_DIR, process.release.name
+                ))
+
+            used_config = {}
+            if process.used_config:
+                used_config = process.used_config
+
+            _inputs = process.inputs.all()
+            print("INPUTS: ", _inputs)
+
+            inputfiles = []
+
+            for _input in _inputs:
+                print("INPUT: ", _input)
+                main_file = _input.files.get(role=0)
+                filepath = pathlib.Path(settings.MEDIA_ROOT, _input.path, main_file.name)
+                print("FILEPATH: ", filepath)
+                inputfiles.append(str(filepath))
+
+            used_config['inputfiles'] = inputfiles
+            used_config['inputs'] = {'release': release_path}
+
+            print("USED CONFIG: ", used_config)
+
+            orchestration_process = maestro.start(
+                pipeline=process.pipeline.name,
+                config=used_config
+            )
+
+            print("ORCHESTRATION PROCESS: ", orchestration_process)
+
+            process.orchestration_process_id = orchestration_process.get('id')
+            process.used_config = json.loads(
+                orchestration_process.get('used_config', None)
+            )
+            process.path = orchestration_process.get('path_str')
+            process.save()
+            data = self.get_serializer(instance=process).data
+            return Response(data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            content = {"error": f"Orchestration API failure: {str(e)}"}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
         """Add user and upload"""
 
         owned_by = self.request.user
+
+        #TODO: testar path pro release
+        
         upload = self.create_initial_upload(serializer, owned_by)
         return serializer.save(user=owned_by, upload=upload)
 
@@ -104,7 +159,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             "pz_code": data.get("pz_code", None),
             "official_product": data.get("official_product", False),
             "description": data.get("description", None),
-            "product_type": pipeline.output_product_type.pk,
+            "product_type": pipeline.output_product_type.pk, # type: ignore
         }
         product = CreateProduct(upload_data, user)
         check_prodtype = product.check_product_types()
@@ -120,6 +175,30 @@ class ProcessViewSet(viewsets.ModelViewSet):
         meta = self.metadata_class()
         data = meta.determine_metadata(request, self)
         return Response(data)
+    
+    @action(methods=["GET"], detail=True)
+    def stop(self, request):
+        try:
+            instance = self.get_object()
+            _id = instance.pk
+            process = Process.objects.get(pk=_id)
+            orchestration_process_id = process.orchestration_process_id
+
+            if not orchestration_process_id:
+                raise ValueError(f"Process[{_id}]: orchestration process not found.")
+
+            maestro = Maestro(url=settings.ORCHEST_URL)
+            orcdata = maestro.stop(orchestration_process_id)
+            process.status = orcdata.get("status", "Stopping*")
+            process.save()
+            data = self.get_serializer(instance=process).data
+            code_status = status.HTTP_200_OK
+        except Exception as err:
+            data = {"error": str(err)}
+            code_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+        
+        logger.info("Process[%s]: %s", str(process), data)
+        return Response(data, status=code_status)
 
     def destroy(self, request, pk=None, *args, **kwargs):
         """Product can only be deleted by the OWNER or if the user 

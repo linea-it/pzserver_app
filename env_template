@@ -1,4 +1,4 @@
-# Postgres 
+# Postgres
 POSTGRES_USER=pzadmin
 POSTGRES_PASSWORD=adminpz
 POSTGRES_DB=pzdev
@@ -20,6 +20,14 @@ AUTORELOAD=1
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY=Z-cVO6l8catnpijVIKXcwwaKeGJTzJ2hiItn3lw2a4M
 
+# AMQP
+RABBITMQ_HOST="rabbitmq"
+RABBITMQ_PORT="5672"
+RABBITMQ_ERLANG_COOKIE="SWQOKODSQALRPCLNMEQG"
+RABBITMQ_DEFAULT_USER="orcadmin"
+RABBITMQ_DEFAULT_PASS="adminorc"
+RABBITMQ_DEFAULT_VHOST="/"
+
 # Database
 DB_ENGINE=django.db.backends.postgresql
 DB_USER=pzadmin
@@ -38,12 +46,20 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 # DJANGO_OAUTH_CLIENT_ID=
 # DJANGO_OAUTH_CLIENT_SECRET=
 
+# Configure the ORCHEST_URL variable with an active instance of an orchestration app
+# ORCHEST_URL=
+
+# Client ID and Client Secret must be registered in Django Admin
+# after backend Setup, in the Django Oauth Applications interface
+# ORCHEST_CLIENT_ID=
+# ORCHEST_CLIENT_SECRET=
+
 # Github OAuth
 # To enable Github OAuth authentication, 
 # uncomment and fill in the following variables.
-#GITHUB_CLIENT_ID=
-#GITHUB_CLIENT_SECRET=
-#GITHUB_ORG_NAME=linea-it
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
+# GITHUB_ORG_NAME=linea-it
 
 # Shibboleth / Satosa Auth
 # Url para login utilizando Shibboleth

@@ -12,10 +12,14 @@ from django.db.models import Q
 logger = logging.getLogger()
 
 
+def load_yaml(filepath, encoding="utf-8"):
+    with open(filepath, encoding=encoding) as _file:
+        return yaml.safe_load(_file)
+
+
 def get_pipelines():
     sys_pipes_file = pathlib.Path(settings.PIPELINES_DIR, 'pipelines.yaml')
-    with open(sys_pipes_file, encoding="utf-8") as _file:
-        return yaml.safe_load(_file)
+    return load_yaml(sys_pipes_file)
 
 
 def get_pipeline(name):
@@ -78,7 +82,7 @@ def get_returncode(process_dir):
         return -1
     
 
-def format_query_to_char(key, value, fields):
+def format_query_to_char(key, value, fields) -> Q:
     condition = Q.OR if key.endswith("__or") else Q.AND
     values = value.split(",")
     query = Q()

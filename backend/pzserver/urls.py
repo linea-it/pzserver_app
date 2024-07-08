@@ -15,9 +15,11 @@ Including another URLconf
 """
 # from core.api import viewsets as products_viewsets
 from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
+                        OrchestrationInfoView, OrchestrationPipelinesView,
                         PipelineViewSet, ProcessViewSet, ProductContentViewSet,
                         ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
                         ReleaseViewSet, UserViewSet)
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
@@ -28,13 +30,14 @@ route = routers.DefaultRouter()
 
 route.register(r"users", UserViewSet, basename="users")
 route.register(r"releases", ReleaseViewSet, basename="releases")
-route.register(r"pipelines", PipelineViewSet, basename="pipelines")
-route.register(r"processes", ProcessViewSet, basename="processes")
 route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 route.register(r"product-files", ProductFileViewSet, basename="product_files")
 
+if settings.ORCHEST_URL:
+    route.register(r"pipelines", PipelineViewSet, basename="pipelines")
+    route.register(r"processes", ProcessViewSet, basename="processes")
 
 from rest_framework.authtoken import views
 
@@ -58,3 +61,7 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
+
+if settings.ORCHEST_URL:
+    urlpatterns.append(path("api/sysinfo/", OrchestrationInfoView.as_view()))
+    urlpatterns.append(path("api/orch_pipelines/", OrchestrationPipelinesView.as_view()))

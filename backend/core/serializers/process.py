@@ -1,4 +1,4 @@
-from core.models import Process, Product, Release
+from core.models import Process, Release
 from rest_framework import serializers
 
 
@@ -7,13 +7,9 @@ class ProcessSerializer(serializers.ModelSerializer):
     release = serializers.PrimaryKeyRelatedField(
         queryset=Release.objects.all(), many=False, allow_null=True, required=False
     )
-    # upload = serializers.PrimaryKeyRelatedField(
-    #     queryset=Product.objects.all(), many=False
-    # )
     release_name = serializers.SerializerMethodField()
     pipeline_name = serializers.SerializerMethodField()
     pipeline_version = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
     owned_by = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
     # can_delete = serializers.SerializerMethodField()
@@ -21,18 +17,17 @@ class ProcessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Process
-        read_only_fields = ("pipeline_version", "is_owner", "upload", "status")
-        exclude = ("user", "path")
+        read_only_fields = (
+            "pipeline_version", "is_owner", "upload", "status",
+            "orchestration_process_id", "started_at", "ended_at", "path"
+        )
+        exclude = ("user", "task_id")
 
     def get_pipeline_name(self, obj):
         return obj.pipeline.name
     
     def get_pipeline_version(self, obj):
         return obj.pipeline.version
-
-    def get_status(self, obj):
-        return obj.upload.status
-        # return "REG"
 
     def get_release_name(self, obj):
         try:

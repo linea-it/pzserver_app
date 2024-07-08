@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     # "django.contrib.sites",
     # Third-party
     "corsheaders",
+    "django_celery_beat",
+    "django_celery_results",
     "django_filters",
     "rest_framework",
     "drf_spectacular",
@@ -102,6 +104,27 @@ DATABASES = {
     }
 }
 
+
+# rabbitmq
+AMQP_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+AMQP_PORT = os.getenv("RABBITMQ_PORT","5672")
+AMQP_USER = os.getenv("RABBITMQ_DEFAULT_USER", "orcadmin")
+AMQP_PASS = os.getenv("RABBITMQ_DEFAULT_PASS", "adminorc")
+AMQP_VHOST = os.getenv("RABBITMQ_DEFAULT_VHOST", "/")
+
+
+# Celery Configuration Options
+CELERY_BROKER_URL = (
+    f"amqp://{AMQP_USER}:{AMQP_PASS}@{AMQP_HOST}:{AMQP_PORT}{AMQP_VHOST}"
+)
+CELERY_CACHE_BACKEND = "django-cache"
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_RESULT_EXTENDED = True
+CELERY_TIMEZONE = "UTC"
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -154,6 +177,13 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 
 # https://docs.djangoproject.com/en/4.1/ref/settings/#csrf-cookie-name
 CSRF_COOKIE_NAME = "pzserver.csrftoken"
+
+# Orchestration
+ORCHEST_URL = os.getenv("ORCHEST_URL", None)
+
+if ORCHEST_URL:
+    ORCHEST_CLIENT_ID = os.getenv("ORCHEST_CLIENT_ID")
+    ORCHEST_CLIENT_SECRET = os.getenv("ORCHEST_CLIENT_SECRET")
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -254,18 +284,26 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "standard",
         },
-        "shibboleth": {
+        "beat": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "shibboleth.log"),
+            "filename": os.path.join(LOG_DIR, "celerybeat.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
             "formatter": "standard",
         },
-        "registry_product": {
+        # "shibboleth": {
+        #     "level": LOGGING_LEVEL,
+        #     "class": "logging.handlers.RotatingFileHandler",
+        #     "filename": os.path.join(LOG_DIR, "shibboleth.log"),
+        #     "maxBytes": 1024 * 1024 * 5,  # 5 MB
+        #     "backupCount": 5,
+        #     "formatter": "standard",
+        # },
+        "products": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "registry_product.log"),
+            "filename": os.path.join(LOG_DIR, "products.log"),
             "maxBytes": 1024 * 1024 * 5,  # 5 MB
             "backupCount": 5,
             "formatter": "standard",
@@ -287,13 +325,18 @@ LOGGING = {
             "level": LOGGING_LEVEL,
             "propagate": True,
         },
-        "shibboleth": {
-            "handlers": ["shibboleth"],
+        "beat": {
+            "handlers": ["beat"],
             "level": LOGGING_LEVEL,
             "propagate": True,
         },
-        "registry_product": {
-            "handlers": ["registry_product"],
+        # "shibboleth": {
+        #     "handlers": ["shibboleth"],
+        #     "level": LOGGING_LEVEL,
+        #     "propagate": True,
+        # },
+        "products": {
+            "handlers": ["products"],
             "level": LOGGING_LEVEL,
             "propagate": True,
         },

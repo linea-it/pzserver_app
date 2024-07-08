@@ -26,3 +26,7 @@ orchestration/logs
 orchestration/rabbitmq/*
 !orchestration/rabbitmq/enabled_plugins
 
+saml2
+
+*.pyc
+__pycache__

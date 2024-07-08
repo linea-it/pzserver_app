@@ -1,8 +1,12 @@
+import logging
+
 from core import models
 from core.serializers import PipelineSerializer
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+logger = logging.getLogger("django")
 
 
 class PipelineViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,4 +27,3 @@ class PipelineViewSet(viewsets.ReadOnlyModelViewSet):
         meta = self.metadata_class()
         data = meta.determine_metadata(request, self)
         return Response(data)
-    

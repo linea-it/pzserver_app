@@ -1,10 +1,11 @@
 """_summary_ """
 
-import yaml
 import logging
 import os
 import pathlib
 from typing import Any
+
+import yaml
 
 
 def setup_logger(name="pipeline-logger"):
@@ -44,3 +45,15 @@ def load_yml(filepath: str) -> Any:
         content = yaml.safe_load(_file)
 
     return content
+
+
+def dump_yml(filepath, content, encoding="utf-8"):
+    """ Dump yaml file
+
+    Args:
+        filepath (str): filepath output
+        content (dict): yaml content
+    """
+
+    with open(filepath, 'w', encoding=encoding) as _file:
+        yaml.dump(content, _file)

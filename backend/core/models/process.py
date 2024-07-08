@@ -1,7 +1,7 @@
 import pathlib
 import shutil
 
-from core.models import Pipeline, Product, ProductStatus, Release
+from core.models import Pipeline, Product, Release
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
@@ -35,14 +35,9 @@ class Process(models.Model):
     started_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
     task_id = models.CharField(max_length=255, null=True, blank=True, default=None)
-    status = models.IntegerField(
-        verbose_name="Status",
-        default=ProductStatus.REGISTERING,
-        choices=ProductStatus.choices,
-    )
-    path = models.FilePathField(
-        verbose_name="Path", null=True, blank=True, default=None
-    )
+    orchestration_process_id = models.IntegerField(null=True, blank=True, default=None)
+    status = models.CharField(max_length=255, default="Pending")
+    path = models.CharField(max_length=255, null=True, blank=True, default=None)
     comment = models.TextField(null=True, blank=True)
 
     def __str__(self):

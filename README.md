@@ -134,8 +134,8 @@ Another important detail is that the `CLIENT ID` and `SECRET KEY` value from the
 ``` bash
 # Client ID and Client Secret must be registered in Django Admin
 # after backend Setup, in the Django Oauth Applications interface
-ORC_CLIENT_ID=wD85gkYeqGEQvVWv5o3Cx6ppBlfDl2S88dek8Exp
-ORC_CLIENT_SECRET=eM2dhhxa2vovfaAXmMwqR1M8TdGhVmBjT7co5uaA9pI4aKPDZGxtBtDG5LHfhHvZUabbSP5aUDRpTLpUJAiGS0ScNuhktbuCwuSPiz0bmEftEROJ3ZzzKp2aDNO7Vx0k
+ORCHEST_CLIENT_ID=wD85gkYeqGEQvVWv5o3Cx6ppBlfDl2S88dek8Exp
+ORCHEST_CLIENT_SECRET=eM2dhhxa2vovfaAXmMwqR1M8TdGhVmBjT7co5uaA9pI4aKPDZGxtBtDG5LHfhHvZUabbSP5aUDRpTLpUJAiGS0ScNuhktbuCwuSPiz0bmEftEROJ3ZzzKp2aDNO7Vx0k
 ```
 
 This is enough to have orchestration working with an image pinned to `orchestration/docker-compose.yml`. If you want to change the orchestration version, just change the image in `orchestration/docker-compose.yml`
