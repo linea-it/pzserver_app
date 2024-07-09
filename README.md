@@ -12,7 +12,7 @@ Clone the repository and access the directory:
 ```bash
 git clone https://github.com/linea-it/pzserver_app.git  
 cd pzserver_app
-mkdir -p archive/data archive/log/archive/log/backend
+mkdir -p archive/data archive/log/backend
 ```
 
 Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
