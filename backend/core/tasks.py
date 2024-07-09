@@ -50,10 +50,12 @@ def check_processes_finish():
             proc.status = proc_orchest_status
             proc = update_dates(proc, proc_orchest)
             proc.save()
+            register_outputs(proc.pk)
             logger.info(f"-> Process {str(proc)} updated.")
             procs_updated.append(proc_orches_id)
 
     return procs_updated
+
 
 def update_dates(process, data):
     started_at = data.get('started_at', str(process.created_at))
@@ -84,6 +86,7 @@ def register_outputs(process_id):
 
     try:
         for output in outputs:
+            logger.debug('-> output: %s', output)
             filepath = output.get('path')
             rolename = output.get('role')
             role_id = file_roles.get(rolename, file_roles.get('description'))
@@ -93,16 +96,17 @@ def register_outputs(process_id):
         
         reg_product.registry()
         process.upload.status = 1  # Published status
-    except Exception as error:
+        process.save()
+    except Exception as _:
         process.upload.status = 9  # Failed status
-        logger.error("--> Failed to upload register <--")
-        logger.error(error)
+        process.save()
+        logger.exception("Failed to upload register!")
 
-    process.upload.save()
 
 def copy_upload(filepath, upload_dir):
     filepath = pathlib.Path(filepath)
     new_filepath = pathlib.Path(settings.MEDIA_ROOT, upload_dir, filepath.name)
+    logger.debug('new_filepath -> %s', str(new_filepath))
     shutil.copyfile(str(filepath), str(new_filepath))
     return str(new_filepath)
 
