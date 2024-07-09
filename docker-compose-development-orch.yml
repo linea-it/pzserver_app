@@ -110,5 +110,4 @@ services:
 
 networks:
   orchestration-network:
-    external: true
     driver: bridge
