@@ -99,55 +99,6 @@ But if a local change is needed, copy the `nginx_development.conf` file to `ngin
 Also change the `docker-compose.yml` file in the ngnix service at the line `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. In this way, the ngnix.conf file represents your local environment, if you make any modifications that are necessary for the project, copy this modification to the template file, as the nginx.conf file is not part of the repository.
 
 
-### Orchestration setup
-
-The Pz Server uses [orchestration](https://github.com/linea-it/orchestration/) to process its pipelines and for this you need to configure it:
-
-``` bash
-mkdir orchestration/db orchestration/logs orchestration/processes
-```
-
-The next step is to add a virtual host to your local machine. On Linux, this must be done by adding the line `127.0.0.1 orchestration` in the `/etc/host`. The file should look like this:
-
-``` bash
-127.0.0.1 localhost
-127.0.0.1 orchestration
-
-# The following lines are desirable for IPv6 capable hosts
-::1 ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-```
-
-Start the orchestration with the command:
-
-``` bash
-docker-compose up orchestration
-```
-
-And follow the procedure to add an authentication app in this [link](https://github.com/linea-it/orchestration?tab=readme-ov-file#how-to-use-using-client-credential). But be careful because when integrating with the Pz Server, the orchestration will have a different url than `http://localhost`, in this case it will be [http://orchestration/admin/oauth2_provider/application/add/](http://orchestration/admin/oauth2_provider/application/add/).
-
-Another important detail is that the `CLIENT ID` and `SECRET KEY` value from the previous procedure must be changed in the `.env` of the Pz Server, looking similar to this:
-
-``` bash
-# Client ID and Client Secret must be registered in Django Admin
-# after backend Setup, in the Django Oauth Applications interface
-ORCHEST_CLIENT_ID=wD85gkYeqGEQvVWv5o3Cx6ppBlfDl2S88dek8Exp
-ORCHEST_CLIENT_SECRET=eM2dhhxa2vovfaAXmMwqR1M8TdGhVmBjT7co5uaA9pI4aKPDZGxtBtDG5LHfhHvZUabbSP5aUDRpTLpUJAiGS0ScNuhktbuCwuSPiz0bmEftEROJ3ZzzKp2aDNO7Vx0k
-```
-
-This is enough to have orchestration working with an image pinned to `orchestration/docker-compose.yml`. If you want to change the orchestration version, just change the image in `orchestration/docker-compose.yml`
-
-Once this is done, the development environment setup process is complete.
-
-Finally, to start the whole application:
-
-``` bash
-docker-compose up 
-```
-
 ### Setting Up a New Application to manage authentication
 
 Go to Django ADMIN (for local installation, open a web browser and go to the URL: http://localhost/admin) and add a new Application with the following configuration:
@@ -167,6 +118,35 @@ Go to Django ADMIN (for local installation, open a web browser and go to the URL
 
 The installation is done, you can now test the newly configured application.
 
+
+### Orchestration setup
+
+The Pz Server uses [orchestration](https://github.com/linea-it/orchestration/) to process its pipelines and for this you need to configure it:
+
+``` bash
+mkdir orchestration/db orchestration/logs orchestration/processes
+```
+
+``` bash
+cp docker-compose-development-orch.yml docker-compose.yml
+```
+
+``` bash
+docker-compose run orchestration-api bash
+```
+
+Dentro do container, criar um usuário admin
+``` bash
+python manage.py createsuperuser
+```
+
+Seguir o passo a passo de adição de um aplicativo de autenticação (seguindo o que esta no readme do repo) só alterando a url de http://localhost para http://localhost:8088, e utilizando o usuário admin criado anteriormente
+
+Finally, to start the whole application:
+
+``` bash
+docker-compose up 
+```
 
 ### Some example commands
 
