@@ -37,3 +37,14 @@
   pk: 1
   fields:
     name: Admin
+- model: core.pipeline
+  pk: 1
+  fields:
+    name: cross_lsdb_dev
+    display_name: Cross LSDB (dev)
+    version: 0.0.1
+    description: Test pipeline
+    created_at: 2022-05-18 15:36:59.830913+00:00
+    system_config: {'executor': {'linea_slurm': {'adapt': {'maximum_jobs': 10}, 'instance': {'job_extra_directives': ['--propagate', '--time=2:00:00'], 'memory': '123GiB', 'processes': 1, 'queue': 'cpu'}}, 'local': {'memory_limit': '1GiB', 'n_workers': 2, 'threads_per_worker': 2}}, 'inputs': {'photo': '/datasets/DatasetA', 'specz': '/datasets/DatasetB'}, 'output_dir': './output'}
+    product_types_accepted: [1,2,4]
+    output_product_type: 2

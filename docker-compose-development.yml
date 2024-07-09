@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     expose:
-      # Deixa a porta do banco de dados acessivel 
+      # Deixa a porta do banco de dados acessivel
       # para ferramentas externas como o dbeaver por exemplo.
       - 5432
     volumes:
@@ -40,34 +40,6 @@ services:
     stdin_open: true
     command: yarn dev
 
-  orchestration:
-    extends:
-      file: ./orchestration/docker-compose.yml
-      service: orchestration
-
-  celery_local_worker:
-    extends:
-      file: ./orchestration/docker-compose.yml
-      service: celery_local_worker
-
-  celery_flower:
-    extends:
-      file: ./orchestration/docker-compose.yml
-      service: celery_flower
-
-  rabbitmq:
-    image: "rabbitmq:3.12.12-management"
-    hostname: "rabbitmq"
-    env_file:
-      - ./orchestration/.orchestration-env
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-    volumes:
-      - "./orchestration/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
-      - "./orchestration/rabbitmq/data/:/var/lib/rabbitmq/"
-      - "./orchestration/rabbitmq/log/:/var/log/rabbitmq/"
-
   nginx:
     image: nginx:1.21.6-alpine
     ports:
@@ -79,6 +51,3 @@ services:
     depends_on:
       - backend
       - frontend
-      - orchestration
-      - rabbitmq
-      - celery_flower

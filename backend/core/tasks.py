@@ -96,9 +96,11 @@ def register_outputs(process_id):
         
         reg_product.registry()
         process.upload.status = 1  # Published status
+        process.upload.save()
         process.save()
     except Exception as _:
         process.upload.status = 9  # Failed status
+        process.upload.save()
         process.save()
         logger.exception("Failed to upload register!")
 

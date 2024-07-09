@@ -16,7 +16,6 @@ class NonAdminError(ValueError):
 
 
 class CreateProduct:
-    
     def __init__(self, data, user):
         """ Create a product with initial information
 
@@ -201,7 +200,8 @@ class RegistryProduct:
                 df_product = ProductHandle().df_from_file(self.main_file, nrows=5)
                 # Lista de Colunas no arquivo.
                 product_columns = df_product.columns.tolist()
-            except NotTableError:
+            except NotTableError as err:
+                self.log.warn(err)
                 # Acontece com arquivos comprimidos .zip etc.
                 pass
 
