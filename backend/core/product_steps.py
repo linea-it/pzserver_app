@@ -8,6 +8,13 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 
+class NonAdminError(ValueError):
+    def __init__(self, message):
+        self.log = logging.getLogger("products")
+        self.log.debug('Debug: %s', message)
+        super().__init__(message)
+
+
 class CreateProduct:
     
     def __init__(self, data, user):
@@ -58,7 +65,7 @@ class CreateProduct:
         if is_official:
             if user.profile.is_admin() is False:
                 self.__delete()
-                raise ValueError(
+                raise NonAdminError(
                     "Not allowed. Only users with admin permissions "
                     "can create official products."
                 )

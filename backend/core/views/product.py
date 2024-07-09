@@ -9,7 +9,7 @@ from pathlib import Path
 
 from core.models import Product
 from core.product_handle import FileHandle, NotTableError
-from core.product_steps import CreateProduct, RegistryProduct
+from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
 from core.utils import format_query_to_char
 from django.conf import settings
@@ -104,6 +104,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             product.save()
             data = self.get_serializer(instance=product.data).data
             return Response(data, status=status.HTTP_201_CREATED)
+
+        except NonAdminError as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_403_FORBIDDEN)
 
         except Exception as e:
             content = {"error": str(e)}
