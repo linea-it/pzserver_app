@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  orchestration-api: &orchestration
+    image: linea/orchestration:cdb4c5f
+    command: /app/sh/start.sh
+    user: "1000:1000"
+    env_file:
+      - .orchestration-env
+    networks:
+      - default
+      - orchestration-network
+    volumes:
+      - ./pipelines:/pipelines # pipelines repo
+      - ./datasets:/datasets # datasets repo
+      - ./processes:/processes
+      - ./logs:/logs
+      - ./db:/db
+    depends_on:
+      - rabbitmq
+
+  orchestration-local-worker: &celery_local_worker
+    <<: *orchestration
+    hostname: "orchestration-local-worker"
+    command: /app/sh/local_worker.sh
+    depends_on:
+      - orchestration-api
+
+  orchestration-flower: &celery_flower
+    <<: *orchestration
+    hostname: "flower"
+    command: /app/sh/flower.sh
+    ports:
+      - 5555:5555
+    depends_on:
+      - orchestration-local-worker
+
+  rabbitmq:
+    image: "rabbitmq:3.12.12-management"
+    hostname: "rabbitmq"
+    env_file:
+      - .orchestration-env
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - default
+      - orchestration-network
+    volumes:
+      - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+      - "./rabbitmq/data/:/var/lib/rabbitmq/"
+      - "./rabbitmq/log/:/var/log/rabbitmq/"
+
+  orchestrator:
+    image: nginx:1.21.6-alpine
+    ports:
+      - 8088:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - default
+      - orchestration-network
+    depends_on:
+      - orchestration-api
+      - orchestration-flower
+      - rabbitmq
+
+networks:
+  orchestration-network:
+    external: true
+    driver: bridge

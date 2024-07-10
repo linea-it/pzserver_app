@@ -12,10 +12,10 @@ venv.bak/
 pg_data/
 pg_backups/
 
-# Ngnix 
+# Ngnix
 nginx.conf
 
-# Docker Compose 
+# Docker Compose
 docker-compose.yml
 .env.local
 
@@ -25,6 +25,8 @@ orchestration/processes
 orchestration/logs
 orchestration/rabbitmq/*
 !orchestration/rabbitmq/enabled_plugins
+!orchestration/docker-compose.yml
+!orchestration/nginx.conf
 
 saml2
 
