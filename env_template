@@ -14,7 +14,7 @@ POSTGRES_DB=pzdev
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
 LOGGING_LEVEL=DEBUG
-# AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must 
+# AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must
 # disable it.
 AUTORELOAD=1
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -36,9 +36,13 @@ DB_DATABASE=pzdev
 DB_HOST=database
 DB_PORT=5432
 
+# URI
+DOMAIN=localhost
+URI=http://${DOMAIN}
+
 # CORS
-DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
+DJANGO_ALLOWED_HOSTS=${DOMAIN} 127.0.0.1 [::1]
+DJANGO_CSRF_TRUSTED_ORIGINS=${URI} http://127.0.0.1
 
 # Frontend
 # Client ID e Client Secret devem ser cadastradas no Django Admin
@@ -73,3 +77,16 @@ PIPELINES_DIR=/pipelines
 
 # directory where it will contain the datasets.
 DATASETS_DIR=/datasets
+
+# Saml2 / Satosa Auth
+# URL to login using satosa
+# AUTH_SHIB_URL=${URI}/saml2/login/
+
+# Keys and Certificates
+# SIG_KEY_PEM=
+# SIG_CERT_PEM=
+# ENCRYP_KEY_PEM=
+# ENCRYP_CERT_PEM=
+
+# IDP metadata
+# IDP_METADATA= 

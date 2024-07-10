@@ -16,6 +16,9 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     libpcre3 \
     libpcre3-dev \
     iputils-ping \
+    xmlsec1 \
+    libssl-dev \
+    libsasl2-dev \
     && apt-get clean \
     && apt-get autoclean \
     && apt-get autoremove --purge  -y \

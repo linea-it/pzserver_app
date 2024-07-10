@@ -20,6 +20,7 @@ from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
                         ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
                         ReleaseViewSet, UserViewSet)
 from django.conf import settings
+
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
@@ -51,7 +52,6 @@ urlpatterns = [
     path("api/csrf_oauth/", CsrfToOauth.as_view()),
     path("api/logged_user/", LoggedUserView.as_view(), name="logged_user"),
     path("api/logout/", Logout.as_view(), name="logout"),
-    path("api/shib/", include("core.shibboleth_urls", namespace="shibboleth")),
     # API DOCs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -60,6 +60,7 @@ urlpatterns = [
         name="swagger",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path(r"saml2/", include('djangosaml2.urls')),
 ]
 
 if settings.ORCHEST_URL:

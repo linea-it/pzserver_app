@@ -27,6 +27,7 @@ services:
       - ./backend:/app
       - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
+      # - ./saml2:/saml2    # uncomment if authentication with github is required
     depends_on:
       - database
 
