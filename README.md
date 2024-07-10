@@ -131,16 +131,28 @@ mkdir orchestration/db orchestration/logs orchestration/processes
 cp docker-compose-development-orch.yml docker-compose.yml
 ```
 
+Enter the orchestration-api container:
 ``` bash
 docker-compose run orchestration-api bash
 ```
 
-Dentro do container, criar um usuário admin
+Inside the container, create the database and an admin user:
 ``` bash
+python manage.py migrate
 python manage.py createsuperuser
 ```
 
-Seguir o passo a passo de adição de um aplicativo de autenticação (seguindo o que esta no readme do repo) só alterando a url de http://localhost para http://localhost:8088, e utilizando o usuário admin criado anteriormente
+Start orchestration services:
+``` bash
+docker-compose up orchestrator
+```
+
+And then follow the steps to create an authentication application ([step by step](https://github.com/linea-it/orchestration/?tab=readme-ov-file#how-to-use-using-client-credential)) just by changing the url from http://localhost to http://localhost:8088, and using the admin user created previously. Note when creating an authentication application, we must change the `ORCHEST_CLIENT_ID` and `ORCHEST_CLIENT_SECRET` in the `.env` with the client_id and secret_id values ​​respectively.
+
+All that remains is to modify the ORCHEST_URL variable in the `.env` with the value http://orchestrator
+``` bash
+ORCHEST_URL=http://orchestrator
+```
 
 Finally, to start the whole application:
 
