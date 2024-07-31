@@ -8,6 +8,7 @@ services:
       # dockerfile: backend/Dockerfile
     volumes:
       - ..:/workspaces:cached
+      - ./backend:/app:cached
       - ./archive/log/backend:/archive/log:cached
       - ./archive/data:/archive/data:cached
       - ./orchestration/pipelines:/pipelines:cached

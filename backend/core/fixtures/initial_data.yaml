@@ -1,9 +1,9 @@
 - model: core.release
   pk: 1
   fields:
-    name: lsst_dp0
-    display_name: LSST DP0
-    description: LSST Data Preview 0
+    name: mini_dataset
+    display_name: Small Dataset
+    description: Small dataset for example runs
     created_at: 2022-05-18 15:36:16.234786+00:00
 - model: core.producttype
   pk: 1

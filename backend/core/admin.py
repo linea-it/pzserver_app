@@ -58,7 +58,7 @@ class ProductAdmin(admin.ModelAdmin):
         "status",
     )
 
-    search_fields = ("name", "display_name")
+    search_fields = ("internal_name", "display_name")
 
     form = ProductAdminForm
 

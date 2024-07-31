@@ -14,6 +14,7 @@ services:
       - ./pipelines:/pipelines # pipelines repo
       - ./datasets:/datasets # datasets repo
       - ./processes:/processes
+      - ../archive/data:/archive/data # access to PZ server uploads
       - ./logs:/logs
       - ./db:/db
     depends_on:

@@ -1,0 +1,19 @@
+executor:
+  linea_slurm:
+    adapt:
+      maximum_jobs: 10
+    instance:
+      job_extra_directives:
+      - --propagate
+      - --time=2:00:00
+      memory: 123GiB
+      processes: 1
+      queue: cpu
+  local:
+    memory_limit: 1GiB
+    n_workers: 2
+    threads_per_worker: 2
+inputs:
+  photo: /datasets/DatasetA
+  specz: /datasets/DatasetB
+output_dir: ./output

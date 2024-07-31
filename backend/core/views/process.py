@@ -19,8 +19,8 @@ logger = logging.getLogger("django")
 class ProcessFilter(filters.FilterSet):
     release__isnull = filters.BooleanFilter(
         field_name="release", lookup_expr="isnull")
-    pipeline__or = filters.CharFilter(method="filter_type_name")
-    pipeline = filters.CharFilter(method="filter_type_name")
+    pipeline__or = filters.CharFilter(method="filter_pipeline")
+    pipeline = filters.CharFilter(method="filter_pipeline")
     release_name__or = filters.CharFilter(method="filter_release")
     release_name = filters.CharFilter(method="filter_release")
 
@@ -113,10 +113,17 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 main_file = _input.files.get(role=0)
                 filepath = pathlib.Path(settings.MEDIA_ROOT, _input.path, main_file.name)
                 print("FILEPATH: ", filepath)
-                inputfiles.append(str(filepath))
 
-            used_config['inputfiles'] = inputfiles
-            used_config['inputs'] = {'release': release_path}
+                ra = self.__get_mapped_column(_input, 'RA')
+                dec = self.__get_mapped_column(_input, 'Dec')
+
+                _file = {'path': str(filepath), 'columns': {'ra': ra, 'dec': dec }}
+                inputfiles.append(_file)
+
+            used_config['inputs'] = {
+                'dataset': {'path': release_path},
+                'specz': inputfiles
+            }
 
             print("USED CONFIG: ", used_config)
 
@@ -138,6 +145,26 @@ class ProcessViewSet(viewsets.ModelViewSet):
         except Exception as e:
             content = {"error": f"Orchestration API failure: {str(e)}"}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def __get_mapped_column(self, product, column):
+        """ Get mapped column by column name
+
+        Args:
+            product (Product): Product object
+            column (str): column name
+        """
+
+        columns = product.contents.filter(alias=column)
+
+        if columns.count() != 1:
+            logger.warn(f"Column {column} was not mapped for product {product}.")
+            logger.warn(f"Column {column}: value {column.lower()} will be used.")
+            value = column.lower()
+        else:
+            obj = columns[0]
+            value = obj.column_name
+
+        return value
 
     def perform_create(self, serializer):
         """Add user and upload"""

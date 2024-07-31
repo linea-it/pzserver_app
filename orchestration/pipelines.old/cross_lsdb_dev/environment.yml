@@ -1,0 +1,14 @@
+name: pipe_cross_lsdb_dev
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip:
+      - PyYaml
+      - dask==2024.1.0
+      - distributed==2024.1.0
+      - dask-jobqueue==0.8.2
+      - hipscat==0.2.1
+      - hipscat-import==0.2.1
+      - lsdb==0.1.0
+
