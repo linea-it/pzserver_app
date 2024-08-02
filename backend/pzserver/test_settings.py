@@ -148,6 +148,13 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 # https://docs.djangoproject.com/en/4.1/ref/settings/#csrf-cookie-name
 CSRF_COOKIE_NAME = "pzserver.csrftoken"
 
+# Orchestration
+ORCHEST_URL = os.getenv("ORCHEST_URL", None)
+
+if ORCHEST_URL:
+    ORCHEST_CLIENT_ID = os.getenv("ORCHEST_CLIENT_ID")
+    ORCHEST_CLIENT_SECRET = os.getenv("ORCHEST_CLIENT_SECRET")
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (

@@ -1,0 +1,50 @@
+{
+    "catalog_name": "mini_dataset",
+    "catalog_type": "object",
+    "total_rows": 40,
+    "epoch": "J2000",
+    "ra_column": "ra",
+    "dec_column": "dec",
+    "version": "0.3.5",
+    "generation_date": "2024.07.15",
+    "tool_args": {
+        "tool_name": "hipscat_import",
+        "version": "0.3.4",
+        "runtime_args": {
+            "catalog_name": "mini_dataset",
+            "output_path": "/workspaces/pzserver_pipelines/data-example",
+            "output_artifact_name": "mini_dataset",
+            "tmp_dir": "",
+            "dask_tmp": "",
+            "dask_n_workers": 1,
+            "dask_threads_per_worker": 1,
+            "catalog_path": "/workspaces/pzserver_pipelines/data-example/mini_dataset",
+            "tmp_path": "/workspaces/pzserver_pipelines/data-example/mini_dataset/intermediate",
+            "epoch": "J2000",
+            "catalog_type": "object",
+            "input_path": null,
+            "input_paths": [
+                "mini_dataset.parquet"
+            ],
+            "input_file_list": [
+                "mini_dataset.parquet"
+            ],
+            "ra_column": "ra",
+            "dec_column": "dec",
+            "use_hipscat_index": false,
+            "sort_columns": null,
+            "constant_healpix_order": -1,
+            "lowest_healpix_order": 0,
+            "highest_healpix_order": 7,
+            "pixel_threshold": 1000000,
+            "mapping_healpix_order": 7,
+            "debug_stats_only": false,
+            "file_reader_info": {
+                "input_reader_type": "ParquetReader",
+                "chunksize": 500000,
+                "column_names": null,
+                "kwargs": {}
+            }
+        }
+    }
+}

@@ -5,10 +5,15 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
+      # dockerfile: backend/Dockerfile
     volumes:
       - ..:/workspaces:cached
-      - ./archive/log/backend:/archive/log
-      - ./archive/data:/archive/data
+      - ./backend:/app:cached
+      - ./archive/log/backend:/archive/log:cached
+      - ./archive/data:/archive/data:cached
+      - ./orchestration/pipelines:/pipelines:cached
+      - ./orchestration/processes:/processes:cached
+      - ./orchestration/datasets:/datasets:cached
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity

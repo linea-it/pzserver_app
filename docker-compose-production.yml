@@ -1,7 +1,6 @@
-version: "3.9"
+name: "pz"
 
 services:
-
   backend:
     # ATENÇÃO: Substitua a imagem pela versão desejada
     image: linea/pzserver:backend_<VERSION>
