@@ -120,7 +120,14 @@ Go to Django ADMIN (for local installation, open a web browser and go to the URL
 
 ![Adding new application](images/new_app.png)
 
-The installation is done, you can now test the newly configured application.
+The installation is done. To test the newly configured application, restart the service by pressing `Ctrl+C` in the terminal, then execute:  
+
+```
+docker compose up -d 
+```
+
+And then, go to `https://localhost` to open the application.   
+
 
 
 ### Orchestration setup
