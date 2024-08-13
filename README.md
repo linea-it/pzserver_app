@@ -14,10 +14,10 @@ git clone https://github.com/linea-it/pzserver_app.git
 cd pzserver_app
 ```
 
-Copy the file `docker-compose-development.yml` and rename to `docker-compose.yml`
+Copy the file `docker compose-development.yml` and rename to `docker compose.yml`
 
 ```bash
-cp docker-compose-development.yml docker-compose.yml
+cp docker compose-development.yml docker compose.yml
 ```
 
 Create the environment variables file based on `env_template`.
@@ -34,37 +34,37 @@ Check your linux user id with:
 ```bash
 echo $UID
 ```
-and update it in the `docker-compose.yml` file if necessary (if it is not the usual 1000). 
+and update it in the `docker compose.yml` file if necessary (if it is not the usual 1000). 
 
 Now start the database service. It is important that the first time the database service is turned on alone, in this step postgresql will create the database and the user based on the settings `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`.
 
 ```bash
-docker-compose up database
+docker compose up database
 ```
 
-Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker-compose stop database` in another terminal.
+Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker compose stop database` in another terminal.
 
 Now start the backend service. As this is the first time, the base image will be pulled and the container will be built, this may take a while.
 
 ```bash
-docker-compose up backend
+docker compose up backend
 ```
 If everything goes normally the last message will be something like `... spawned uWSGI worker x (pid: xx, cores: x)`
  
 Shut down the backend service to change one of the Django variables.
 
-To terminate use `CTRL + C` or `docker-compose stop`.
+To terminate use `CTRL + C` or `docker compose stop`.
 
 With the services turned off, let's run a command in the backend container to generate a SECRET for Django.
 
 ```bash
-docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
+docker compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
 This is the output of the command:
 
 ```bash
-$ docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
+$ docker compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 Creating pzserver_backend_run ... done
 6klbHhaeA6J2imKt9AVVgS5yl9mCWoiQqrfUV469DLA
 ```
@@ -74,13 +74,13 @@ Copy the generated key and replace the `SECRET` variable value in the `.env` fil
 Create the Django superuser.
 
 ```bash
-docker-compose run backend python manage.py createsuperuser
+docker compose run backend python manage.py createsuperuser
 ```
 
 Import the application's initial data using the following command:
 
 ```bash
-docker-compose run backend python manage.py loaddata initial_data
+docker compose run backend python manage.py loaddata initial_data
 ```
 
 This `loaddata` command will insert some basic records into the database for the application to work. these records are in the `core/fixtures/initial_data.yaml` file.
@@ -88,19 +88,19 @@ This `loaddata` command will insert some basic records into the database for the
 Now install the Frontend dependencies by running the `yarn` command. As this is the first time starting this container, the base image will be pulled, which may take a while.
 
 ```bash
-docker-compose run frontend yarn
+docker compose run frontend yarn
 ```
 
 This command will create the directory `pzserver/frontend/node_modules` if you have any problem with dependencies remove this directory and run the command again.
 
 In the development environment it is not necessary to change Ngnix settings.
 But if a local change is needed, copy the `nginx_development.conf` file to `nginx.conf`
-Also change the `docker-compose.yml` file in the ngnix service at the line `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. In this way, the ngnix.conf file represents your local environment, if you make any modifications that are necessary for the project, copy this modification to the template file, as the nginx.conf file is not part of the repository.
+Also change the `docker compose.yml` file in the ngnix service at the line `- ./nginx_development.conf:/etc/nginx/conf.d/default.conf:ro`. In this way, the ngnix.conf file represents your local environment, if you make any modifications that are necessary for the project, copy this modification to the template file, as the nginx.conf file is not part of the repository.
 
 Finally, to start the whole application:
 
 ``` bash
-docker-compose up
+docker compose up
 ```
 
 ### Setting Up a New Application to manage authentication
@@ -132,7 +132,7 @@ mkdir orchestration/db orchestration/logs orchestration/processes
 ```
 
 ``` bash
-cp docker-compose-development-orch.yml docker-compose.yml
+cp docker compose-development-orch.yml docker compose.yml
 docker network create orchestration-network  # create internal network
 ```
 
@@ -145,7 +145,7 @@ git submodule update
 
 Enter the orchestration-api container:
 ``` bash
-docker-compose run orchestration-api bash
+docker compose run orchestration-api bash
 ```
 
 Inside the container, create the database and an admin user:
@@ -162,7 +162,7 @@ cd /pipelines
 
 Exit the container and start orchestration services:
 ``` bash
-docker-compose up orchestrator
+docker compose up orchestrator
 ```
 
 And then follow the steps to create an authentication application ([step by step](https://github.com/linea-it/orchestration/?tab=readme-ov-file#how-to-use-using-client-credential)) just by changing the url from http://localhost to http://localhost:8088, and using the admin user created previously. Note when creating an authentication application, we must change the `ORCHEST_CLIENT_ID` and `ORCHEST_CLIENT_SECRET` in the `.env` with the client_id and secret_id values ​​respectively.
@@ -178,7 +178,7 @@ Turn on background environment (if you have the application already running on t
 
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Access in the browser:
@@ -189,41 +189,41 @@ Access in the browser:
 Turn off all environment:
 
 ```bash
-docker-compose stop
+docker compose stop
 ```
 
 Restart all environment:
 
 ```bash
-docker-compose stop && docker-compose up -d
+docker compose stop && docker compose up -d
 ```
 
 Run a terminate on one of the services
 
 ```bash
 # with the service turned on
-docker-compose exec backend bash
+docker compose exec backend bash
 # with the service turned off
-docker-compose run backend bash
+docker compose run backend bash
 ```
 
 Access database with psql:
 
 ```bash
 # Use the credentials that are in the .env
-docker-compose exec database psql -h localhost -U <username> -d <database>
+docker compose exec database psql -h localhost -U <username> -d <database>
 ```
 
 Add libraries to frontend using yarn:
 
 ``` bash
-docker-compose run frontend yarn add <library>
+docker compose run frontend yarn add <library>
 ```
 
 Check front-end changes before pushing new commits to the remote repository (it is recommended to build the frontend to prevent errors with ESlint from disrupting the Pull Request process):
 
 ``` bash
-docker-compose run frontend yarn build
+docker compose run frontend yarn build
 ```
 
 ### Manual build of images and push to docker hub
@@ -253,31 +253,31 @@ docker push linea/pzserver:frontend_<commit_hash>
 run all tests
 
 ```bash
-docker-compose exec backend pytest
+docker compose exec backend pytest
 ```
 
 run all tests with coverage, Check local coverage in localhost/coverage
 
 ```bash
-docker-compose exec backend pytest --cov=./ --cov-report=html
+docker compose exec backend pytest --cov=./ --cov-report=html
 ```
 
 run only a file
 
 ```bash
-docker-compose exec backend pytest core/test/test_product_file.py
+docker compose exec backend pytest core/test/test_product_file.py
 ```
 
 run only a class
 
 ```bash
-docker-compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase
+docker compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase
 ```
 
 run single test method
 
 ```bash
-docker-compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase::test_list_product_file
+docker compose exec backend pytest core/test/test_product_file.py::ProductFileListCreateAPIViewTestCase::test_list_product_file
 ```
 
 ## Enable authentication via LIneA Satosa (Github)
@@ -310,7 +310,7 @@ cp pz.key pzkey.pem
 cp pz.crt pzcert.pem
 ```
 
-Next we must uncomment the volume that represents the saml2 directory in docker-compose.yml:
+Next we must uncomment the volume that represents the saml2 directory in docker compose.yml:
 
 ```yml
 - ./archive/log/backend:/archive/log
@@ -347,7 +347,7 @@ The following example assumes an installation where the database and ngnix are i
 Only:
 
 - create the folders
-- create `docker-compose.yml` file
+- create `docker compose.yml` file
 - create `.env` file
 - create `ngnix.conf` file
 
@@ -358,7 +358,7 @@ mkdir pzserver pzserver/archive pzserver/archive/data pzserver/archive/django_st
 cd pzserver
 ```
 
-Create a `docker-compose.yml` file based on the `docker-compose-production.yml` template
+Create a `docker compose.yml` file based on the `docker compose-production.yml` template
 
 Change the frontend and backend images to the desired version, replace the string `<VERSION>` with the image tag.
 
@@ -369,16 +369,16 @@ Usually the changes are in ngnix volumes and port.
 
 Create an `.env` file based on the `env_template` file and edit the database access variables.
 
-Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker-compose stop database` in another terminal.
+Wait for the message `database system is ready to accept connections` and then close the service with the `CTRL + C` keys or `docker compose stop database` in another terminal.
 
 ```bash
-docker-compose up database
+docker compose up database
 ```
 
 Start the backend service and wait for the `Booting worker with pid...` message.
 
 ```bash
-docker-compose up backend
+docker compose up backend
 ```
 
 Shutdown the backend service and change the Django variables.
@@ -389,11 +389,11 @@ In production it is **MANDATORY** to turn off Debug `DEBUG=0`. and change the `S
 With the service turned off, run the command below to generate a SECRET, copy and paste it into the `.env`
 
 ```bash
-docker-compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
+docker compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
 ```bash
-docker-compose run backend python manage.py createsuperuser
+docker compose run backend python manage.py createsuperuser
 ```
 
 Create the Ngnix configuration file `nginx.conf` based on the `nginx_production.conf` file
@@ -401,15 +401,15 @@ Create the Ngnix configuration file `nginx.conf` based on the `nginx_production.
 Start all services
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-Configure a URL that points to the machine where it is installed on the port configured for Ngnix in docker-compose.
+Configure a URL that points to the machine where it is installed on the port configured for Ngnix in docker compose.
 
 At the end of this example the pzserver folder looks like this:
 
 ```bash
--rw-r--r-- docker-compose.yml
+-rw-r--r-- docker compose.yml
 -rw-r--r-- nginx.conf # Ngnix configuration file.
 -rw-r--r-- .env # File with configuration variables
 drwxr-xr-x archive # Directory where the files generated by the application are kept.
@@ -421,8 +421,8 @@ drwxr-xr-x pg_backups # Directory where postgresql files are in container
 
 Procedure to update the production environment or any other that uses built images.
 
-- Edit the `docker-compose.yml` file and change the frontend and backend images tag.
+- Edit the `docker compose.yml` file and change the frontend and backend images tag.
 - Edit the `.env` file to add new variables or change them if necessary.
-- Pull the new images with the `docker-compose pull` command.
-- Restart services `docker-compose stop && docker-compose up -d`.
+- Pull the new images with the `docker compose pull` command.
+- Restart services `docker compose stop && docker compose up -d`.
 
