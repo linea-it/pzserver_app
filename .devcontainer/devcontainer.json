@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/postgres
 {
-	"name": "Python 3 & PostgreSQL",
+	"name": "Pz Server",
 	"dockerComposeFile": [
 		"../docker-compose.yml",
 		"docker-compose.yml"

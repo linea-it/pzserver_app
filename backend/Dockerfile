@@ -15,6 +15,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     build-essential \
     libpcre3 \
     libpcre3-dev \
+    iputils-ping \
     xmlsec1 \
     libssl-dev \
     libsasl2-dev \
