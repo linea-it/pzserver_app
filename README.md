@@ -172,7 +172,7 @@ Exit the container and start orchestration services:
 docker compose up orchestrator
 ```
 
-And then follow the steps to create an authentication application ([step by step](https://github.com/linea-it/orchestration/?tab=readme-ov-file#how-to-use-using-client-credential)) just by changing the url from http://localhost to http://localhost:8088, and using the admin user created previously. Note when creating an authentication application, we must change the `ORCHEST_CLIENT_ID` and `ORCHEST_CLIENT_SECRET` in the `.env` with the client_id and secret_id values ​​respectively.
+And then follow the steps to create an authentication application ([step by step](https://github.com/linea-it/orchestration/?tab=readme-ov-file#how-to-use-using-client-credential)) just by changing the url from  `http://localhost/admin/oauth2_provider/application/add/` to `http://localhost:8080/admin/oauth2_provider/application/add/` (or 8088, if 8080 doesn't work), and using the admin user created previously. Note when creating an authentication application, we must change the `ORCHEST_CLIENT_ID` and `ORCHEST_CLIENT_SECRET` in the `.env` with the client_id and secret_id values ​​respectively.
 
 All that remains is to modify the ORCHEST_URL variable in the `.env` with the value http://orchestrator
 ``` bash
