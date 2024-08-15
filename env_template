@@ -59,7 +59,7 @@ DJANGO_CSRF_TRUSTED_ORIGINS=${URI} http://127.0.0.1
 # ORCHEST_CLIENT_SECRET=
 
 # Github OAuth
-# To enable Github OAuth authentication, 
+# To enable Github OAuth authentication,
 # uncomment and fill in the following variables.
 # GITHUB_CLIENT_ID=
 # GITHUB_CLIENT_SECRET=
@@ -78,6 +78,10 @@ PIPELINES_DIR=/pipelines
 # directory where it will contain the datasets.
 DATASETS_DIR=/datasets
 
+# Upload dir
+MEDIA_URL=/archive/data
+MEDIA_ROOT=/archive/data
+
 # Saml2 / Satosa Auth
 # URL to login using satosa
 # AUTH_SHIB_URL=${URI}/saml2/login/
@@ -89,4 +93,4 @@ DATASETS_DIR=/datasets
 # ENCRYP_CERT_PEM=
 
 # IDP metadata
-# IDP_METADATA= 
+# IDP_METADATA=
