@@ -155,8 +155,8 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
-MEDIA_URL = "/archive/data/"
-MEDIA_ROOT = "/archive/data/"
+MEDIA_URL = os.getenv("MEDIA_URL", "/archive/data/")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/archive/data/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
