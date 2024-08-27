@@ -17,8 +17,7 @@ logger = logging.getLogger("django")
 
 
 class ProcessFilter(filters.FilterSet):
-    release__isnull = filters.BooleanFilter(
-        field_name="release", lookup_expr="isnull")
+    release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
     pipeline__or = filters.CharFilter(method="filter_pipeline")
     pipeline = filters.CharFilter(method="filter_pipeline")
     release_name__or = filters.CharFilter(method="filter_release")
@@ -35,23 +34,20 @@ class ProcessFilter(filters.FilterSet):
 
     def filter_user(self, queryset, name, value):
         query = format_query_to_char(
-            name, value, 
-            ["user__username", "user__first_name", "user__last_name"]
+            name, value, ["user__username", "user__first_name", "user__last_name"]
         )
 
         return queryset.filter(query)
 
     def filter_pipeline(self, queryset, name, value):
         query = format_query_to_char(
-            name, value,
-            ["pipeline__display_name", "pipeline__name"]
+            name, value, ["pipeline__display_name", "pipeline__name"]
         )
 
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = format_query_to_char(
-            name, value, ["release__display_name"])
+        query = format_query_to_char(name, value, ["release__display_name"])
         return queryset.filter(query)
 
 
@@ -73,81 +69,84 @@ class ProcessViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
-        print("USER: ", request.user)
-        print("PROCESS: ", request.data)
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
+            logger.debug(f"Create DB process: {request.data}")
             instance = self.perform_create(serializer)
-
-            print("INSTANCE: ", instance)
-
             process = Process.objects.get(pk=instance.pk)
             process.save()
-        except Exception as e:
-            content = {"error": str(e)}
+            logger.debug(f"Process ID {instance.pk} inserted.")
+        except Exception as err:
+            content = {"error": str(err)}
+            logger.error(err)
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
-            maestro = Maestro(url=settings.ORCHEST_URL)
+            orch_url = settings.ORCHEST_URL
+            logger.debug(f"Instantiating maestro: {orch_url}")
+            maestro = Maestro(url=orch_url)
 
             release_path = None
+            release_index_col = None
+
             if process.release:
-                release_path = str(pathlib.Path(
-                    settings.DATASETS_DIR, process.release.name
-                ))
+                release_path = str(
+                    pathlib.Path(settings.DATASETS_DIR, process.release.name)
+                )
+                release_index_col = process.release.indexing_column
+                logger.debug(f"Release: {process.release}")
 
             used_config = {}
             if process.used_config:
                 used_config = process.used_config
+                
+            logger.debug(f"Config: {used_config}")
 
             _inputs = process.inputs.all()
-            print("INPUTS: ", _inputs)
-
             inputfiles = []
 
             for _input in _inputs:
-                print("INPUT: ", _input)
                 main_file = _input.files.get(role=0)
-                filepath = pathlib.Path(settings.MEDIA_ROOT, _input.path, main_file.name)
-                print("FILEPATH: ", filepath)
+                filepath = pathlib.Path(
+                    settings.MEDIA_ROOT, _input.path, main_file.name
+                )
 
-                ra = self.__get_mapped_column(_input, 'RA')
-                dec = self.__get_mapped_column(_input, 'Dec')
+                ra = self.__get_mapped_column(_input, "RA")
+                dec = self.__get_mapped_column(_input, "Dec")
+                z = self.__get_mapped_column(_input, "z")
 
-                _file = {'path': str(filepath), 'columns': {'ra': ra, 'dec': dec }}
+                _file = {"path": str(filepath), "columns": {"ra": ra, "dec": dec, "z": z}}
                 inputfiles.append(_file)
 
-            used_config['inputs'] = {
-                'dataset': {'path': release_path},
-                'specz': inputfiles
+            used_config["inputs"] = {
+                "dataset": {"path": release_path, "columns": {"id": release_index_col}},
+                "specz": inputfiles,
             }
 
-            print("USED CONFIG: ", used_config)
+            logger.debug(f"Inputs: {used_config.get('inputs')}")
 
-            orchestration_process = maestro.start(
-                pipeline=process.pipeline.name,
-                config=used_config
+            orch_process = maestro.start(
+                pipeline=process.pipeline.name, config=used_config
             )
+            logger.debug(f"Process submitted: ORCH_ID {process.orchestration_process_id}")
 
-            print("ORCHESTRATION PROCESS: ", orchestration_process)
-
-            process.orchestration_process_id = orchestration_process.get('id')
-            process.used_config = json.loads(
-                orchestration_process.get('used_config', None)
-            )
-            process.path = orchestration_process.get('path_str')
+            process.orchestration_process_id = orch_process.get("id")
+            process.used_config = json.loads(orch_process.get("used_config", None))
+            process.path = orch_process.get("path_str")
             process.save()
+
             data = self.get_serializer(instance=process).data
             return Response(data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            content = {"error": f"Orchestration API failure: {str(e)}"}
+            msg = f"Orchestration API failure: {str(e)}"
+            logger.error(msg)
+            content = {"error": msg}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def __get_mapped_column(self, product, column):
-        """ Get mapped column by column name
+        """Get mapped column by column name
 
         Args:
             product (Product): Product object
@@ -171,22 +170,22 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
         owned_by = self.request.user
 
-        #TODO: testar path pro release
-        
+        # TODO: testar path pro release
+
         upload = self.create_initial_upload(serializer, owned_by)
         return serializer.save(user=owned_by, upload=upload)
 
     def create_initial_upload(self, serializer, user):
         """_summary_"""
         data = serializer.initial_data
-        pipeline = Pipeline.objects.get(pk=data.get('pipeline'))
+        pipeline = Pipeline.objects.get(pk=data.get("pipeline"))
         upload_data = {
             "display_name": data.get("display_name"),
             "release": data.get("release", None),
             "pz_code": data.get("pz_code", None),
             "official_product": data.get("official_product", False),
             "description": data.get("description", None),
-            "product_type": pipeline.output_product_type.pk, # type: ignore
+            "product_type": pipeline.output_product_type.pk,  # type: ignore
         }
         product = CreateProduct(upload_data, user)
         check_prodtype = product.check_product_types()
@@ -202,9 +201,9 @@ class ProcessViewSet(viewsets.ModelViewSet):
         meta = self.metadata_class()
         data = meta.determine_metadata(request, self)
         return Response(data)
-    
+
     @action(methods=["GET"], detail=True)
-    def stop(self, request):
+    def stop(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             _id = instance.pk
@@ -215,7 +214,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 raise ValueError(f"Process[{_id}]: orchestration process not found.")
 
             maestro = Maestro(url=settings.ORCHEST_URL)
-            orcdata = maestro.stop(orchestration_process_id)
+            maestro.stop(orchestration_process_id)
+            orcdata = maestro.status(orchestration_process_id)
             process.status = orcdata.get("status", "Stopping*")
             process.save()
             data = self.get_serializer(instance=process).data
@@ -223,12 +223,12 @@ class ProcessViewSet(viewsets.ModelViewSet):
         except Exception as err:
             data = {"error": str(err)}
             code_status = status.HTTP_500_INTERNAL_SERVER_ERROR
-        
+
         logger.info("Process[%s]: %s", str(process), data)
         return Response(data, status=code_status)
 
     def destroy(self, request, pk=None, *args, **kwargs):
-        """Product can only be deleted by the OWNER or if the user 
+        """Product can only be deleted by the OWNER or if the user
         has an admin profile.
         """
 

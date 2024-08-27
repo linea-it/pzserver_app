@@ -5,6 +5,7 @@
     display_name: Small Dataset
     description: Small dataset for example runs
     created_at: 2022-05-18 15:36:16.234786+00:00
+    indexing_column: id
 - model: core.producttype
   pk: 1
   fields:
@@ -45,6 +46,61 @@
     version: 0.0.1
     description: Training Set Maker pipeline
     created_at: 2022-05-18 15:36:59.830913+00:00
-    system_config: {"executor": {"local": {"n_workers": 2, "threads_per_worker": 2, "memory_limit": "1GiB"}, "linea-slurm": {"instance": {"cores": 54, "processes": 1, "memory": "123GiB", "queue": "cpu", "job_extra_directives": ["--propagate", "--time=2:00:00"]}, "adapt": {"maximum_jobs": 10}}}, "inputs": {"dataset": {"path": "/datasets/mini_dataset"}, "specz": [{"path": "/datasets/specz.parquet", "columns": {"ra": "ra", "dec": "dec"}}]}, "output_dir": "outputs", "param": {"suffixes": ["_specz", "_dataset"], "output_catalog_name": "tsm_cross_001", "radius_arcsec": 1, "n_neighbors": 1}}
+    system_config:
+      executor:
+        name: "local"
+        args:
+          n_workers: 2
+          threads_per_worker: 2
+          memory_limit: "1GiB"
+      inputs:
+        dataset:
+          path: "/datasets/data-example/mini_dataset"
+          columns:
+            id: "id"
+        specz:
+          - path: "/datasets/data-example/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+      output_dir: "outputs"
+      param:
+        duplicate_criteria: "closest"
+        crossmatch:
+          output_catalog_name: "tsm_cross_001"
+          radius_arcsec: 1.0
+          n_neighbors: 1
     product_types_accepted: [1]
     output_product_type: 2
+- model: core.pipeline
+  pk: 2
+  fields:
+    name: combine_specz
+    display_name: Combine Specz Catalogs
+    version: 0.0.1
+    description: Combine Specz Catalogs pipeline
+    created_at: 2022-05-18 15:36:59.830913+00:00
+    system_config:
+      executor: 
+        name: "local"   # or "slurm"
+        args:
+          n_workers: 2
+          threads_per_worker: 2
+          memory_limit: "1GiB"
+      inputs:
+        specz:
+          - path: "/datasets/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+              z: "z"
+          - path: "/datasets/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+              z: "z"
+      output_dir: "outputs"
+      param:
+        debug: true
+    product_types_accepted: [1]
+    output_product_type: 1

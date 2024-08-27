@@ -34,15 +34,15 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = [
-            "internal_name",
-            "display_name",
-            "release",
-            "product_type",
-            "official_product",
-            "status",
-            "user",
-        ]
+        fields = {
+            "internal_name": ["exact", "in"],
+            "display_name": ["exact", "in"],
+            "release": ["exact", "in"],
+            "product_type": ["exact", "in"],
+            "official_product": ["exact", "in"],
+            "status": ["exact", "in"],
+            "user": ["exact", "in"],
+        }
 
     def filter_user(self, queryset, name, value):
         query = format_query_to_char(
@@ -57,12 +57,12 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(query)
 
     def filter_type_name(self, queryset, name, value):
-        query = format_query_to_char(name, value, ["product_type__display_name"])
+        query = format_query_to_char(name, value, ["product_type__display_name", "product_type__name"])
 
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = format_query_to_char(name, value, ["release__display_name"])
+        query = format_query_to_char(name, value, ["release__display_name", "release__name"])
         return queryset.filter(query)
 
 
@@ -86,8 +86,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
 
-        print('PRODUCT -> ', request.data)
-        print('PRODUCT (type) -> ', type(request.data))
+        print("PRODUCT -> ", request.data)
+        print("PRODUCT (type) -> ", type(request.data))
 
         print("USER -> ", request.user)
         print("USER (type) -> ", type(request.user))
