@@ -1,4 +1,4 @@
 [submodule "orchestration/pipelines"]
 	path = orchestration/pipelines
     url = https://github.com/linea-it/pzserver_pipelines
-    branch = main
+	branch = main
