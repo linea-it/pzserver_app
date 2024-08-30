@@ -99,9 +99,10 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 logger.debug(f"Release: {process.release}")
 
             used_config = {}
+
             if process.used_config:
                 used_config = process.used_config
-                
+
             logger.debug(f"Config: {used_config}")
 
             _inputs = process.inputs.all()
@@ -117,7 +118,10 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 dec = self.__get_mapped_column(_input, "Dec")
                 z = self.__get_mapped_column(_input, "z")
 
-                _file = {"path": str(filepath), "columns": {"ra": ra, "dec": dec, "z": z}}
+                _file = {
+                    "path": str(filepath),
+                    "columns": {"ra": ra, "dec": dec, "z": z},
+                }
                 inputfiles.append(_file)
 
             used_config["inputs"] = {
@@ -130,7 +134,9 @@ class ProcessViewSet(viewsets.ModelViewSet):
             orch_process = maestro.start(
                 pipeline=process.pipeline.name, config=used_config
             )
-            logger.debug(f"Process submitted: ORCH_ID {process.orchestration_process_id}")
+            logger.debug(
+                f"Process submitted: ORCH_ID {process.orchestration_process_id}"
+            )
 
             process.orchestration_process_id = orch_process.get("id")
             process.used_config = json.loads(orch_process.get("used_config", None))
