@@ -73,11 +73,11 @@ class ProcessViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            logger.debug(f"Create DB process: {request.data}")
+            logger.debug("Create DB process: %s", request.data)
             instance = self.perform_create(serializer)
             process = Process.objects.get(pk=instance.pk)
             process.save()
-            logger.debug(f"Process ID {instance.pk} inserted.")
+            logger.debug("Process ID %s inserted.", instance.pk)
         except Exception as err:
             content = {"error": str(err)}
             logger.error(err)
@@ -85,7 +85,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
         try:
             orch_url = settings.ORCHEST_URL
-            logger.debug(f"Instantiating maestro: {orch_url}")
+            logger.debug("Instantiating maestro: %s", orch_url)
             maestro = Maestro(url=orch_url)
 
             release_path = None
@@ -96,14 +96,14 @@ class ProcessViewSet(viewsets.ModelViewSet):
                     pathlib.Path(settings.DATASETS_DIR, process.release.name)
                 )
                 release_index_col = process.release.indexing_column
-                logger.debug(f"Release: {process.release}")
+                logger.debug("Release: %s", process.release)
 
             used_config = {}
 
             if process.used_config:
                 used_config = process.used_config
 
-            logger.debug(f"Config: {used_config}")
+            logger.debug("Config: %s", used_config)
 
             _inputs = process.inputs.all()
             inputfiles = []
@@ -129,15 +129,17 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 "specz": inputfiles,
             }
 
-            logger.debug(f"Inputs: {used_config.get('inputs')}")
+            logger.debug("Inputs: %s", used_config.get("inputs"))
 
             orch_process = maestro.start(
                 pipeline=process.pipeline.name, config=used_config
             )
-            logger.debug(
-                f"Process submitted: ORCH_ID {process.orchestration_process_id}"
 
-            process.orchestration_process_id = orch_process.get("id")
+            orch_process_id = orch_process.get("id")
+
+            logger.debug("Process submitted: ORCH_ID %s", orch_process_id)
+
+            process.orchestration_process_id = orch_process_id
             process.used_config = json.loads(orch_process.get("used_config", None))
             process.path = orch_process.get("path_str")
             process.save()
