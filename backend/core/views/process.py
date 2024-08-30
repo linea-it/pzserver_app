@@ -136,7 +136,6 @@ class ProcessViewSet(viewsets.ModelViewSet):
             )
             logger.debug(
                 f"Process submitted: ORCH_ID {process.orchestration_process_id}"
-            )
 
             process.orchestration_process_id = orch_process.get("id")
             process.used_config = json.loads(orch_process.get("used_config", None))
