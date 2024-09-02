@@ -411,7 +411,8 @@ if os.getenv("AUTH_SHIB_URL", None):
         },
         # Indica onde os metadados podem ser encontrados
         "metadata": {
-            "local": [os.getenv("IDP_METADATA")],
+            "remote": [{"url": os.getenv("IDP_METADATA"), "cert": None}],
+            # "local": [os.getenv("IDP_METADATA")],
         },
         "debug": os.getenv("DEBUG", 1),
         # Signature
