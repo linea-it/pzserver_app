@@ -364,6 +364,12 @@ if os.getenv("AUTH_SHIB_URL", None):
         "email": ("email",),
     }
 
+    METADATAS = str(os.getenv("IDP_METADATA")).split(",")
+    METADATA_URLS = []
+
+    for metadata in METADATAS:
+        METADATA_URLS.append({"url": metadata, "cert": None})
+
     SAML_CONFIG = {
         # Biblioteca usada para assinatura e criptografia
         "xmlsec_binary": "/usr/bin/xmlsec1",
@@ -411,10 +417,10 @@ if os.getenv("AUTH_SHIB_URL", None):
         },
         # Indica onde os metadados podem ser encontrados
         "metadata": {
-            "remote": [{"url": os.getenv("IDP_METADATA"), "cert": None}],
+            "remote": METADATA_URLS,
             # "local": [os.getenv("IDP_METADATA")],
         },
-        "debug": os.getenv("DEBUG", 1),
+        "debug": os.getenv("DEBUG", "1"),
         # Signature
         "key_file": SIG_KEY_PEM,  # private part
         "cert_file": SIG_CERT_PEM,  # public part
