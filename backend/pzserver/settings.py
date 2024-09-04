@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 
 import saml2
-import saml2.saml
+
+# import saml2.saml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +30,7 @@ LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.getenv("DEBUG", 1))
+DEBUG = int(os.getenv("DEBUG", "1"))
 
 # Application definition
 
