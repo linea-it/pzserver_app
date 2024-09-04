@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 
 import saml2
-import saml2.saml
+
+# import saml2.saml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +30,7 @@ LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.getenv("DEBUG", 1))
+DEBUG = int(os.getenv("DEBUG", "1"))
 
 # Application definition
 
@@ -364,6 +365,12 @@ if os.getenv("AUTH_SHIB_URL", None):
         "email": ("email",),
     }
 
+    METADATAS = str(os.getenv("IDP_METADATA")).split(",")
+    METADATA_URLS = []
+
+    for metadata in METADATAS:
+        METADATA_URLS.append({"url": metadata, "cert": None})
+
     SAML_CONFIG = {
         # Biblioteca usada para assinatura e criptografia
         "xmlsec_binary": "/usr/bin/xmlsec1",
@@ -411,9 +418,10 @@ if os.getenv("AUTH_SHIB_URL", None):
         },
         # Indica onde os metadados podem ser encontrados
         "metadata": {
-            "local": [os.getenv("IDP_METADATA")],
+            "remote": METADATA_URLS,
+            # "local": [os.getenv("IDP_METADATA")],
         },
-        "debug": os.getenv("DEBUG", 1),
+        "debug": os.getenv("DEBUG", "1"),
         # Signature
         "key_file": SIG_KEY_PEM,  # private part
         "cert_file": SIG_CERT_PEM,  # public part

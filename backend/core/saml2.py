@@ -10,8 +10,8 @@ class ModifiedSaml2Backend(Saml2Backend):
 
         log = logging.getLogger("saml")
 
-        log.debug("USER: ", user)
-        log.debug("ATTRIBUTES: ", attributes)
+        log.debug("USER: %s", user)
+        log.debug("ATTRIBUTES: %s", attributes)
 
         display_name = attributes.get('cn', [""])[0]
 
