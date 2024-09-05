@@ -19,6 +19,8 @@ class ModifiedSaml2Backend(Saml2Backend):
             names = display_name.split()
             user.first_name = names[0]
             user.last_name = names[-1]
+            user.save() # saving in case of new user, the profile is linked.
+
             user.profile.display_name = display_name
             user.save()
 

@@ -359,7 +359,7 @@ if os.getenv("AUTH_SHIB_URL", None):
     LOGIN_REDIRECT_URL = "/"
 
     SAML_ATTRIBUTE_MAPPING = {
-        "eduPersonPrincipalName": ("username",),
+        "eduPersonUniqueId": ("username",),
         "sn": ("name",),
         "cn": ("full_name",),
         "email": ("email",),
