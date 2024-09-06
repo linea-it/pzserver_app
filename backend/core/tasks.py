@@ -77,7 +77,7 @@ def check_processes_finish():
         logger.info(f"-> Process orchestration ID: {proc_orches_id}")
         logger.info(f"-> Status: {proc_orchest_status}")
 
-        if proc_orchest_status == "Running" and not proc.status:
+        if proc_orchest_status == "Running" and proc.status == "Pending":
             started_at = proc_orchest.get("started_at", str(proc.created_at))
             proc.started_at = dateparse.parse_datetime(started_at)
             proc.status = proc_orchest_status
