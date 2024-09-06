@@ -12,7 +12,6 @@ from django.conf import settings
 from django.utils import dateparse, timezone
 
 logger = logging.getLogger("beat")
-maestro = Maestro(settings.ORCHEST_URL)
 
 
 @shared_task()
@@ -35,6 +34,7 @@ def check_stopping():
             proc.save()
             continue
 
+        maestro = Maestro(settings.ORCHEST_URL)
         proc_orchest = maestro.status(proc_orches_id)
         proc_orchest_status = proc_orchest.get("status")  # type: ignore
 
@@ -70,6 +70,7 @@ def check_processes_finish():
             proc.save()
             continue
 
+        maestro = Maestro(settings.ORCHEST_URL)
         proc_orchest = maestro.status(proc_orches_id)
         proc_orchest_status = proc_orchest.get("status")  # type: ignore
 
@@ -79,6 +80,7 @@ def check_processes_finish():
         if proc_orchest_status == "Running" and not proc.status:
             started_at = proc_orchest.get("started_at", str(proc.created_at))
             proc.started_at = dateparse.parse_datetime(started_at)
+            proc.status = proc_orchest_status
             proc.save()
 
         if not proc_orchest_status in active_statuses:
