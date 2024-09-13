@@ -14,8 +14,6 @@ import os
 
 import saml2
 
-# import saml2.saml
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -156,8 +154,10 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
-MEDIA_URL = os.getenv("MEDIA_URL", "/archive/data/")
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/archive/data/")
+MEDIA_URL = "/archive/data/"
+MEDIA_ROOT = MEDIA_URL
+
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", MEDIA_URL)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
