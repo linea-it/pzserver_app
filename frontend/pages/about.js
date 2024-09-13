@@ -8,6 +8,7 @@ import CardContent from '@mui/material/CardContent'
 
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/about'
+import Partnersfooter from '../components/Partnersfooter'
 
 export default function About() {
   const classes = useStyles()
@@ -130,6 +131,7 @@ export default function About() {
               </Typography>
             </CardContent>
           </Card>
+      <Partnersfooter />
         </Grid>
       </Grid>
     </Container>
