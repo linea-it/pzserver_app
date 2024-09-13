@@ -78,10 +78,6 @@ PIPELINES_DIR=/pipelines
 # directory where it will contain the datasets.
 DATASETS_DIR=/datasets
 
-# Upload dir
-MEDIA_URL=/archive/data
-MEDIA_ROOT=/archive/data
-
 # Saml2 / Satosa Auth
 # URL to login using satosa
 # AUTH_SHIB_URL=${URI}/saml2/login/

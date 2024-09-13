@@ -111,8 +111,11 @@ class ProcessViewSet(viewsets.ModelViewSet):
             for _input in _inputs:
                 main_file = _input.files.get(role=0)
                 filepath = pathlib.Path(
-                    settings.MEDIA_ROOT, _input.path, main_file.name
+                    settings.UPLOAD_DIR, _input.path, main_file.name
                 )
+
+                if not filepath.is_file():
+                    raise FileNotFoundError(f"File not found: {str(filepath)}")
 
                 ra = self.__get_mapped_column(_input, "RA")
                 dec = self.__get_mapped_column(_input, "Dec")
