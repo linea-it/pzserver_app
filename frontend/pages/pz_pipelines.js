@@ -2,11 +2,8 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Link from '@mui/material/Link'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
-<<<<<<< HEAD
-=======
 import ArrowBackIos from '@mui/icons-material/ArrowBackIos'
 import IconButton from '@mui/material/IconButton'
->>>>>>> origin
 import React from 'react'
 import SpeczCatalogs from '../components/SpeczCatalogs'
 import TrainingSetMaker from '../components/TrainingSetMaker'
@@ -22,18 +19,12 @@ function PZPipelines() {
         mb={5}
         mr={55}
       >
-<<<<<<< HEAD
-        <Breadcrumbs aria-label="breadcrumb" sx={{ ml: -30 }}>
-=======
         <Breadcrumbs aria-label="breadcrumb" sx={{ mt: '25px' }}>
->>>>>>> origin
           <Link color="inherit" href="/">
             Home
           </Link>
           <Typography color="textPrimary">Pipelines</Typography>
         </Breadcrumbs>
-<<<<<<< HEAD
-=======
         <IconButton
           color="primary"
           edge="start"
@@ -42,7 +33,6 @@ function PZPipelines() {
         >
           <ArrowBackIos />
         </IconButton>
->>>>>>> origin
         Photo-z Server Pipelines
       </Typography>
 
