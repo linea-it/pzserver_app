@@ -13,6 +13,8 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
@@ -35,6 +37,18 @@ export default function Products() {
     official_product: true,
     status: 1 // Published
   })
+
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
 
   return (
     // Baseado neste template: https://mira.bootlab.io/dashboard/analytics
@@ -84,7 +98,7 @@ export default function Products() {
             <Button
               variant="contained"
               color="primary"
-              onClick={e => {
+              onClick={() => {
                 router.push('/product/new')
               }}
             >
@@ -130,11 +144,33 @@ export default function Products() {
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <ProductGrid query={search} filters={filters} />
+              <ProductGrid
+                query={search}
+                filters={filters}
+                onError={error => {
+                  console.error('Error loading products:', error)
+                  handleOpenErrorSnackbar(
+                    'Error loading products. Please try again.'
+                  )
+                }}
+              />
             </Grid>
           </Grid>
         </CardContent>
       </Card>
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   )
 }

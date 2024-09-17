@@ -10,7 +10,9 @@ import {
   FormControl,
   FormControlLabel,
   Button,
-  Box
+  Box,
+  Snackbar,
+  Alert
 } from '@mui/material'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
@@ -35,19 +37,23 @@ export default function Upload() {
     pz_code: '',
     description: ''
   }
-  // const [progress, setProgress] = React.useState(0)
+
   const [product, setProduct] = React.useState(defaultProductValues)
   const [isLoading, setLoading] = React.useState(false)
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
 
   const onUploadProgress = e => {
     const a = Math.round((100 * e.loaded) / e.total)
     console.log('onUploadProgress: %o', a)
-    // setProgress(Math.round((100 * e.loaded) / e.total))
   }
 
   const handleReset = () => {
     setProduct(defaultProductValues)
   }
+
   const handleSubmit = e => {
     e.preventDefault()
     setLoading(true)
@@ -55,11 +61,6 @@ export default function Upload() {
     createProduct(product, onUploadProgress)
       .then(res => {
         if (res.status === 201) {
-          // // limpar o formulário antes de enviar só por segurança
-          // handleReset()
-          // TODO: Mostrar mensagem de sucesso e só então direcionar para
-          // pagina de detalhe do produto.
-
           setLoading(false)
           const data = res.data
           router.push(`/product/${encodeURIComponent(data.internal_name)}`)
@@ -69,7 +70,22 @@ export default function Upload() {
         console.log('Error!')
         console.log(res.response.data)
         setLoading(false)
+        handleOpenErrorSnackbar('Error creating the product. Please try again.')
       })
+  }
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
+
+  const handleCloseErrorSnackbar = () => {
+    setErrorSnackbar({
+      open: false,
+      message: ''
+    })
   }
 
   return (
@@ -232,6 +248,19 @@ export default function Upload() {
                 Submit
               </Button>
             </Grid>
+            <Snackbar
+              open={errorSnackbar.open}
+              autoHideDuration={6000}
+              onClose={handleCloseErrorSnackbar}
+            >
+              <Alert
+                onClose={handleCloseErrorSnackbar}
+                severity="error"
+                sx={{ width: '100%' }}
+              >
+                {errorSnackbar.message}
+              </Alert>
+            </Snackbar>
           </Box>
         </Grid>
       </Grid>

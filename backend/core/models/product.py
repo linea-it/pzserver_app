@@ -76,3 +76,4 @@ class Product(models.Model):
         if self.user.id == user.id or user.profile.is_admin():
             return True
         return False
+    

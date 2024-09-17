@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.sites",
     # Third-party
     "corsheaders",
     "django_filters",
@@ -48,7 +47,6 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "social_django",
     "drf_social_oauth2",
-    "shibboleth",
     # Apps
     "core",
 ]
@@ -59,7 +57,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "core.shibboleth.ShibbolethMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -151,6 +148,13 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 # https://docs.djangoproject.com/en/4.1/ref/settings/#csrf-cookie-name
 CSRF_COOKIE_NAME = "pzserver.csrftoken"
 
+# Orchestration
+ORCHEST_URL = os.getenv("ORCHEST_URL", None)
+
+if ORCHEST_URL:
+    ORCHEST_CLIENT_ID = os.getenv("ORCHEST_CLIENT_ID")
+    ORCHEST_CLIENT_SECRET = os.getenv("ORCHEST_CLIENT_SECRET")
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -182,28 +186,10 @@ JSON_EDITOR = True
 AUTHENTICATION_BACKENDS = (
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "shibboleth.backends.ShibbolethRemoteUserBackend",
 )
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 LOGIN_REDIRECT_URL = "/"
-
-# Shibboleth Authentication
-SHIBBOLETH_ENABLED = False
-if os.getenv("AUTH_SHIB_URL", None) is not None:
-    # https://github.com/Brown-University-Library/django-shibboleth-remoteuser
-    SHIBBOLETH_ATTRIBUTE_MAP = {
-        "eppn": (True, "username"),
-        "cn": (True, "first_name"),
-        "sn": (True, "last_name"),
-        "Shib-inetOrgPerson-mail": (True, "email"),
-    }
-    SHIBBOLETH_GROUP_ATTRIBUTES = "Shibboleth"
-    # Including Shibboleth authentication:
-    AUTHENTICATION_BACKENDS += (
-        "shibboleth.backends.ShibbolethRemoteUserBackend",)
-
-    SHIBBOLETH_ENABLED = True
 
 OAUTH2_PROVIDER = {
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,

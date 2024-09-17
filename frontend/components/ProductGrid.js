@@ -6,6 +6,7 @@ import ShareIcon from '@mui/icons-material/Share'
 import Alert from '@mui/material/Alert'
 import Link from '@mui/material/Link'
 import Snackbar from '@mui/material/Snackbar'
+import { Box } from '@mui/material'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import moment from 'moment'
@@ -98,6 +99,7 @@ export default function ProductGrid(props) {
         headerName: 'Name',
         sortable: true,
         flex: 1,
+        minWidth: 150,
         renderCell: params => (
           <Link component="button" onClick={() => handleDownload(params.row)}>
             {params.value}
@@ -107,25 +109,27 @@ export default function ProductGrid(props) {
       {
         field: 'release_name',
         headerName: 'Release',
-        width: 200,
+        width: 150,
         sortable: false
       },
       {
         field: 'product_type_name',
         headerName: 'Product Type',
         flex: 1,
+        minWidth: 150,
         sortable: false
       },
       {
         field: 'uploaded_by',
         headerName: 'Uploaded By',
         flex: 1,
+        minWidth: 120,
         sortable: false
       },
       {
         field: 'created_at',
         headerName: 'Created at',
-        width: 200,
+        width: 150,
         sortable: true,
         valueFormatter: params => {
           if (!params.value) {
@@ -135,73 +139,63 @@ export default function ProductGrid(props) {
         }
       },
       {
-        field: 'actions_download',
-        headerName: 'Download',
-        width: 120,
-        sortable: false,
+        field: 'actions',
+        headerName: '',
+        type: 'actions',
+        width: 150,
         renderCell: params => (
-          <GridActionsCellItem
-            icon={<DownloadIcon />}
-            onClick={() => handleDownload(params.row)}
-          />
-        )
-      },
-      {
-        field: 'share',
-        headerName: 'Share',
-        width: 120,
-        sortable: false,
-        renderCell: params => (
-          <GridActionsCellItem
-            icon={<ShareIcon />}
-            onClick={() => handleShare(params.row)}
-          />
-        )
-      },
-      {
-        field: 'delete',
-        headerName: 'Delete',
-        width: 120,
-        sortable: false,
-        renderCell: params => (
-          <Tooltip
-            title={
-              !params.row.can_delete
-                ? 'You cannot delete this data product because it belongs to another user.'
-                : 'Delete this data product.'
-            }
-          >
-            <div>
-              <GridActionsCellItem
-                icon={<DeleteIcon />}
-                onClick={() => handleDelete(params.row)}
-                disabled={!params.row.can_delete}
-              />
-            </div>
-          </Tooltip>
-        )
-      },
-      {
-        field: 'can_update',
-        headerName: 'Edit',
-        width: 120,
-        sortable: false,
-        renderCell: params => (
-          <Tooltip
-            title={
-              !params.row.can_update
-                ? 'You cannot update this data product because it belongs to another user.'
-                : 'Edit this data product.'
-            }
-          >
-            <div>
-              <GridActionsCellItem
-                icon={<EditIcon />}
-                onClick={() => handleEdit(params.row)}
-                disabled={!params.row.can_update}
-              />
-            </div>
-          </Tooltip>
+          <>
+            <Tooltip title={'Download this product'}>
+              <Box>
+                <GridActionsCellItem
+                  icon={<DownloadIcon />}
+                  label="Download"
+                  onClick={() => handleDownload(params.row)}
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip title={'Share product'}>
+              <Box>
+                <GridActionsCellItem
+                  icon={<ShareIcon />}
+                  label="Share"
+                  onClick={() => handleShare(params.row)}
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip
+              title={
+                !params.row.can_delete
+                  ? 'You cannot delete this data product because it belongs to another user.'
+                  : 'Delete this data product.'
+              }
+            >
+              <Box>
+                <GridActionsCellItem
+                  icon={<DeleteIcon />}
+                  label="Delete"
+                  onClick={() => handleDelete(params.row)}
+                  disabled={!params.row.can_delete}
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip
+              title={
+                !params.row.can_update
+                  ? 'You cannot update this data product because it belongs to another user.'
+                  : 'Edit this data product.'
+              }
+            >
+              <Box>
+                <GridActionsCellItem
+                  icon={<EditIcon />}
+                  label="Edit"
+                  onClick={() => handleEdit(params.row)}
+                  disabled={!params.row.can_update}
+                />
+              </Box>
+            </Tooltip>
+          </>
         )
       }
     ]

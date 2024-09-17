@@ -1,4 +1,4 @@
-version: "3.9"
+name: "pz"
 
 services:
   database:
@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     expose:
-      # Deixa a porta do banco de dados acessivel 
+      # Deixa a porta do banco de dados acessivel
       # para ferramentas externas como o dbeaver por exemplo.
       - 5432
     volumes:
@@ -27,6 +27,7 @@ services:
       - ./backend:/app
       - ./archive/log/backend:/archive/log
       - ./archive/data:/archive/data
+      # - ./saml2:/saml2    # uncomment if authentication with github is required
     depends_on:
       - database
 

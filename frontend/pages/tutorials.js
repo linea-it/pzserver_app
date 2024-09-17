@@ -14,7 +14,7 @@ export default function Tutorials() {
   const classes = useStyles()
 
   return (
-    <Container className={classes.root}>
+    <Container className={classes.root} sx={{ overflowY: 'hidden' }}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
           <Breadcrumbs aria-label="breadcrumb">
@@ -37,7 +37,7 @@ export default function Tutorials() {
                   Observatory PZ Data Products&quot; (for official products
                   released by LSST DM Team) or &quot;User-generated Data
                   Products&quot; (for products uploaded by the members of LSST
-                  community. The download button is on the left side of each
+                  community). The download button is on the left side of each
                   data product (each row of the list).
                 </p>
               </Typography>
@@ -97,7 +97,15 @@ export default function Tutorials() {
                   >
                     API&apos;s documentation page
                   </Link>
-                  .
+                  . There, a{' '}
+                  <Link
+                    href="https://linea-it.github.io/pzserver/notebooks/intro_notebook.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Jupyter Notebook{' '}
+                  </Link>
+                  with instructions and use-case examples can be found.
                 </p>
                 <p>
                   <strong>Instalation via pip</strong>
@@ -129,10 +137,10 @@ export default function Tutorials() {
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  A Jupyter Notebook with instructions and use-case examples is
-                  available also in the{' '}
+                  The executable file with the notebook tutorial is available in
+                  the{' '}
                   <Link
-                    href="https://github.com/linea-it/pzserver/blob/main/notebooks/pz_server_tutorial.ipynb"
+                    href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/intro_notebook.ipynb"
                     target="_blank"
                     rel="noreferrer"
                   >

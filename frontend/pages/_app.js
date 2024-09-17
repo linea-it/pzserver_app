@@ -1,5 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
@@ -7,6 +8,8 @@ import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import Footer from '../components/Footer'
 import { AuthProvider } from '../contexts/AuthContext'
+import lightTheme from '../themes/light'
+import darkTheme from '../themes/dark'
 import '../styles/global.css'
 import Header from '../components/Header'
 
@@ -16,6 +19,7 @@ export default function MyApp(props) {
   const { Component, pageProps } = props
   const route = useRouter()
   const [darkMode, setDarkMode] = useState(false)
+  const [scrollNeeded, setScrollNeeded] = useState(false)
 
   useEffect(() => {
     const jssStyles = document.querySelector('#jss-server-side')
@@ -27,22 +31,21 @@ export default function MyApp(props) {
     if (darkModePreference) {
       setDarkMode(darkModePreference === '1')
     }
+
+    handleScroll()
   }, [])
 
-  const light = createTheme({
-    palette: {
-      mode: 'light',
-      background: {
-        default: '#f1f1f1'
-      }
-    }
-  })
+  useEffect(() => {
+    handleScroll()
+  }, [route.pathname])
 
-  const dark = createTheme({
-    palette: {
-      mode: 'dark'
-    }
-  })
+  const handleScroll = () => {
+    const contentHeight = document.body.scrollHeight
+    const windowHeight = window.innerHeight
+    const hasVerticalScrollbar = contentHeight > windowHeight
+
+    setScrollNeeded(hasVerticalScrollbar)
+  }
 
   return (
     <>
@@ -54,14 +57,15 @@ export default function MyApp(props) {
         />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={darkMode ? dark : light}>
+        <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
           <CssBaseline />
-          <div
-            style={{
+          <Box
+            sx={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              height: '100%'
+              minHeight: '100vh',
+              overflowY: scrollNeeded ? 'hidden' : 'hidden'
             }}
           >
             <AuthProvider>
@@ -75,7 +79,7 @@ export default function MyApp(props) {
               <Component {...pageProps} />
               {route.pathname !== '/login' && <Footer />}
             </AuthProvider>
-          </div>
+          </Box>
         </ThemeProvider>
       </QueryClientProvider>
     </>

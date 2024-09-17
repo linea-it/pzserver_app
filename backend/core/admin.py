@@ -1,9 +1,16 @@
-from core.models import (Product, ProductContent, ProductFile, ProductType,
-                         Profile, Release)
+from core.models import (Pipeline, Process, Product, ProductContent,
+                         ProductFile, ProductType, Profile, Release)
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+
+
+@admin.register(Process)
+class ProcessAdmin(admin.ModelAdmin):
+    list_display = ("id", "pipeline", "status", "user", "created_at")
+    exclude = ["path"]
+    search_fields = ("pipeline", "status")
 
 
 @admin.register(ProductType)
@@ -15,6 +22,13 @@ class ProductTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "display_name", "created_at")
+
+    search_fields = ("name", "display_name")
+
+
+@admin.register(Pipeline)
+class PipelineAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "display_name", "created_at")
 
     search_fields = ("name", "display_name")
@@ -44,7 +58,7 @@ class ProductAdmin(admin.ModelAdmin):
         "status",
     )
 
-    search_fields = ("name", "display_name")
+    search_fields = ("internal_name", "display_name")
 
     form = ProductAdminForm
 

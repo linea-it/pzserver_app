@@ -4,6 +4,7 @@ import uniqueId from 'lodash/uniqueId'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
+import Box from '@mui/material/Box'
 
 import { fetchProductData } from '../services/product'
 
@@ -11,46 +12,35 @@ export default function ProductDataGrid(props) {
   const { productId } = props
   const [rows, setRows] = React.useState([])
   const [columns, setColumns] = React.useState([])
-  const [rowCount, setRowCount] = React.useState(0)
+  const [, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
 
-  const { status, isLoading } = useQuery({
-    queryKey: ['productData', { productId, page, pageSize }],
-    queryFn: fetchProductData,
-    keepPreviousData: true,
-    refetchInterval: false,
-    retry: false,
-    onSuccess: data => {
-      if (!data) {
-        return
-      }
+  const { status, isLoading, data } = useQuery(
+    ['productData', { productId, page, pageSize }],
+    fetchProductData,
+    {
+      enabled: !!productId,
+      staleTime: Infinity,
+      refetchInterval: false,
+      retry: false
+    }
+  )
+
+  React.useEffect(() => {
+    if (status === 'success' && data) {
       setRowCount(data.count)
       setRows(data.results)
       makeColumns(data.columns)
-    },
-    onError: error => {
-      let msg = error.message
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        // console.log(error.response.data);
-        // console.log(error.response.status);
-        // console.log(error.response.headers);
-        msg = error.response.data.message
-      } else if (error.request) {
-        // The request was made but no response was received
-        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-        // http.ClientRequest in node.js
-        console.log(error.request)
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.log('Error', error.message)
-      }
-      setError(msg)
+    } else if (status === 'error') {
+      setError('Error loading data. Please try again.')
     }
-  })
+  }, [status, data])
+
+  if (isLoading) return <p>Loading...</p>
+  if (error !== null) return <Alert severity="error">{error}</Alert>
+  if (status !== 'success' || !data) return null
 
   function makeColumns(names) {
     const cols = names.map(name => {
@@ -64,17 +54,11 @@ export default function ProductDataGrid(props) {
     setColumns(cols)
   }
 
-  function handleError() {
-    return <Alert severity="error">{error}</Alert>
-  }
-
-  if (isLoading && rows.length === 0) return <p>Loading data...</p>
-  if (error !== null) return handleError()
   return (
     <>
       {status === 'success' && (
         <DataGrid
-          getRowId={row => uniqueId('id_')}
+          getRowId={() => uniqueId('id_')}
           rows={rows}
           columns={columns}
           disableSelectionOnClick
@@ -83,13 +67,14 @@ export default function ProductDataGrid(props) {
           // sortModel={sortModel}
           // onSortModelChange={handleSortModelChange}
           paginationMode="server"
-          rowCount={rowCount}
-          pagination
+          // rowCount={rowCount}
+          // pagination
           page={page}
           onPageChange={page => setPage(page)}
           pageSize={pageSize}
+          hideFooter
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-          rowsPerPageOptions={[10, 25, 50, 100]}
+          rowsPerPageOptions={[10]}
           loading={isLoading}
           disableColumnMenu
           disableColumnSelector
@@ -98,6 +83,16 @@ export default function ProductDataGrid(props) {
           }}
         />
       )}
+      <Box
+        sx={{
+          mt: 2,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          fontSize: '14px'
+        }}
+      >
+        10 First Rows
+      </Box>
     </>
   )
 }

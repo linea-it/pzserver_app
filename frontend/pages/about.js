@@ -111,7 +111,7 @@ export default function About() {
                   If you have comments or suggestions, be welcome to open an
                   issue on the{' '}
                   <Link
-                    href="https://github.com/linea-it/pz-server/issues"
+                    href="https://github.com/linea-it/pz-server/issues/new"
                     target="_blank"
                     rel="noreferrer"
                   >
