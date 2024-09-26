@@ -74,14 +74,14 @@ function SpeczCatalogs() {
       <CardContent>
         <Grid container spacing={3}>
           <Breadcrumbs aria-label="breadcrumb">
-          <Link color="inherit" href="/">
-            Home
-          </Link>
-          <Link color="inherit" href="pz_pipelines">
-            Pipelines
+            <Link color="inherit" href="/">
+              Home
             </Link>
-          <Typography color="textPrimary">Combine Spec-z Catalogs</Typography>
-        </Breadcrumbs>
+            <Link color="inherit" href="pz_pipelines">
+              Pipelines
+            </Link>
+            <Typography color="textPrimary">Combine Spec-z Catalogs</Typography>
+          </Breadcrumbs>
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign={'center'}>
               Combine Spec-z Catalogs
