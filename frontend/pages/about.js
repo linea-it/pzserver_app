@@ -131,7 +131,7 @@ export default function About() {
               </Typography>
             </CardContent>
           </Card>
-      <Partnersfooter />
+          <Partnersfooter />
         </Grid>
       </Grid>
     </Container>
