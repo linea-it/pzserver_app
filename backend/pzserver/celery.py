@@ -15,13 +15,9 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html
 app.conf.beat_schedule = {
-    "check-finish": {
-        "task": "core.tasks.check_processes_finish",
+    "check-processes": {
+        "task": "core.tasks.check_processes",
         "schedule": 60.0,
-    },
-    "check-stopping": {
-        "task": "core.tasks.check_stopping",
-        "schedule": 120.0,
     },
 }
 app.conf.timezone = "UTC"

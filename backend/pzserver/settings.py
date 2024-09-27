@@ -258,11 +258,6 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "standard",
         },
-        "beat": {
-            "level": LOGGING_LEVEL,
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOG_DIR, "celerybeat.log"),
-        },
         "saml": {
             "level": LOGGING_LEVEL,
             "class": "logging.handlers.RotatingFileHandler",
@@ -295,9 +290,6 @@ LOGGING = {
             "handlers": ["oauthlib"],
             "level": LOGGING_LEVEL,
             "propagate": True,
-        },
-        "beat": {
-            "handlers": ["beat"],
         },
         "saml": {
             "handlers": ["saml"],
