@@ -201,7 +201,7 @@ class RegistryProduct:
                 # Lista de Colunas no arquivo.
                 product_columns = df_product.columns.tolist()
             except NotTableError as err:
-                self.log.warn(err)
+                self.log.warning(err)
                 # Acontece com arquivos comprimidos .zip etc.
                 pass
 
