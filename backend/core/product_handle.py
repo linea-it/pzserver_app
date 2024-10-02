@@ -175,9 +175,13 @@ class TableIOHandle(BaseHandle):
 
         # Le o arquivo utilizando o metodo read da tables_io
         # O retorno é um astropy table.
-        tb_ap = tables_io.read(self.filepath)
+        df = tables_io.read(self.filepath, tables_io.types.AP_TABLE)
+
         # Converte o astropy table para pandas.Dataframe
-        df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
+        try:
+            df = df.to_pandas()
+        except ValueError as _:
+            df = tables_io.read(self.filepath, tables_io.types.PD_DATAFRAME)
 
         return df
 
