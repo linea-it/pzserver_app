@@ -18,6 +18,7 @@ import React, { useState } from 'react'
 import EmailField from '../components/EmailField'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
+import NNeighbors from '../components/NNeighbors'
 import TsmData from '../components/TsmData'
 import { useTheme } from '@mui/system'
 
@@ -25,9 +26,10 @@ function TrainingSetMaker() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
-  const [search, setSearch] = React.useState('')
-  const filters = React.useState()
+  const [search, setSearch] = useState('')
+  const filters = useState()
   const [searchRadius, setSearchRadius] = useState('1.0')
+  const [nNeighbors, setNNeighbors] = useState('1.0')
   const [selectedOption, setSelectedOption] = useState('pickOne')
   const [email, setEmail] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -42,6 +44,11 @@ function TrainingSetMaker() {
     setSearchRadius(isNaN(newValue) ? '' : newValue.toString())
   }
 
+  const handleNeighborsChange = event => {
+    const newValue = parseFloat(event.target.value)
+    setNNeighbors(isNaN(newValue) ? '' : newValue.toString())
+  }
+
   const handleLsstCatalogChange = event => {
     setSelectedLsstCatalog(event.target.value)
   }
@@ -53,6 +60,7 @@ function TrainingSetMaker() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSearchRadius('1.0')
+    setNNeighbors('1.0')
     setSelectedOption('pickOne')
     setEmail('')
     setSelectedLsstCatalog('DP0.2')
@@ -94,7 +102,7 @@ function TrainingSetMaker() {
               <IconButton
                 color="primary"
                 aria-label="info"
-                title="Creates a training set from the spatial cross-matching of a given Spec - z Catalog and the LSST Objects Catalogs.Training Set Maker"
+                title="Creates a training set from the spatial cross-matching of a given Spec - z Catalog and the LSST Objects Catalogs."
               >
                 <InfoIcon />
               </IconButton>
@@ -157,7 +165,7 @@ function TrainingSetMaker() {
                 <MenuItem value="DP2" disabled>
                   DP2
                 </MenuItem>
-                <MenuItem value="DP2" disabled>
+                <MenuItem value="DR1" disabled>
                   DR1
                 </MenuItem>
               </Select>
@@ -167,18 +175,22 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Typography variant="body1">
               4. Select the cross-matching configuration choices:
-              <Grid item xs={12}>
+              <Grid item xs={12} mt={2}>
+                {' '}
+                {/* Espaço adicionado */}
                 <span>Search Radius (arcsec):</span>{' '}
                 <SearchRadius
                   searchRadius={searchRadius}
                   onChange={handleSearchRadiusChange}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} mt={2}>
+                {' '}
+                {/* Espaço adicionado */}
                 <span>n neighbors:</span>{' '}
-                <SearchRadius
-                  searchRadius={searchRadius}
-                  onChange={handleSearchRadiusChange}
+                <NNeighbors
+                  nNeighbors={nNeighbors}
+                  onChange={handleNeighborsChange}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -189,10 +201,10 @@ function TrainingSetMaker() {
                   value={selectedOption}
                   onChange={event => setSelectedOption(event.target.value)}
                 >
-                  <MenuItem value="pickOne">Keep the closet only</MenuItem>
+                  <MenuItem value="pickOne">Keep the closest only</MenuItem>
                   <MenuItem value="keepAll">Keep all</MenuItem>
                   <MenuItem value="computeMean">
-                    Compute mean redshift all candidates
+                    Compute mean redshift for all candidates
                   </MenuItem>
                 </Select>
               </Grid>
@@ -202,7 +214,7 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Typography variant="body1">
               5. Enter an email address to be notified when the process is
-              complete (opcional):
+              complete (optional):
             </Typography>
             <EmailField
               initialValue={email}
