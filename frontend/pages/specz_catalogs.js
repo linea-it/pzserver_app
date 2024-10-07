@@ -15,7 +15,6 @@ import SnackbarContent from '@mui/material/SnackbarContent'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import React, { useState } from 'react'
-import EmailField from '../components/EmailField'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import SpeczData from '../components/SpeczData'
@@ -29,7 +28,6 @@ function SpeczCatalogs() {
   const filters = React.useState()
   const [searchRadius, setSearchRadius] = useState('1.0')
   const [selectedOption, setSelectedOption] = useState('keepAll')
-  const [email, setEmail] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
 
   const handleCatalogNameChange = event => {
@@ -41,15 +39,10 @@ function SpeczCatalogs() {
     setSearchRadius(isNaN(newValue) ? '' : newValue.toString())
   }
 
-  const handleEmailChange = newEmail => {
-    setEmail(newEmail)
-  }
-
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSearchRadius('1.0')
     setSelectedOption('keepAll')
-    setEmail('')
   }
 
   const handleRun = () => {
@@ -159,18 +152,6 @@ function SpeczCatalogs() {
               </MenuItem>
               <MenuItem value="computeMean">Compute mean redshift</MenuItem>
             </Select>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Typography variant="body1">
-              4. Enter an email address to be notified when the process is
-              complete (opcional):
-            </Typography>
-            <EmailField
-              initialValue={email}
-              onEmailChange={handleEmailChange}
-              onClearForm={handleClearForm}
-            />
           </Grid>
 
           <Grid item xs={12}>

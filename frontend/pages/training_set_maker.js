@@ -1,12 +1,12 @@
 import InfoIcon from '@mui/icons-material/Info'
 import Box from '@mui/material/Box'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
-import Link from '@mui/material/Link'
 import IconButton from '@mui/material/IconButton'
+import Link from '@mui/material/Link'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
@@ -14,55 +14,57 @@ import Snackbar from '@mui/material/Snackbar'
 import SnackbarContent from '@mui/material/SnackbarContent'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import React, { useState } from 'react'
-import EmailField from '../components/EmailField'
+import { useTheme } from '@mui/system'
+import React, { useEffect, useState } from 'react'
+import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
-import NNeighbors from '../components/NNeighbors'
 import TsmData from '../components/TsmData'
-import { useTheme } from '@mui/system'
 
 function TrainingSetMaker() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
-  const filters = useState()
-  const [searchRadius, setSearchRadius] = useState('1.0')
-  const [nNeighbors, setNNeighbors] = useState('1.0')
+  const [searchRadius, setSearchRadius] = useState(1.0)
+  const [nNeighbors, setNNeighbors] = useState(1.0)
   const [selectedOption, setSelectedOption] = useState('pickOne')
-  const [email, setEmail] = useState('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('DP0.2')
 
-  const handleCatalogNameChange = event => {
-    setCombinedCatalogName(event.target.value)
-  }
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const apiUrl =
+          process.env.REACT_APP_API_URL || 'http://localhost/api/pipelines/'
+        const response = await fetch(apiUrl)
+        const data = await response.json()
+        const pipelineData = data.results[0].system_config
 
-  const handleSearchRadiusChange = event => {
-    const newValue = parseFloat(event.target.value)
-    setSearchRadius(isNaN(newValue) ? '' : newValue.toString())
-  }
+        const defaultSearchRadius =
+          pipelineData.param.crossmatch.radius_arcsec || 1.0
+        const defaultNNeighbors =
+          pipelineData.param.crossmatch.n_neighbors || 1.0
 
-  const handleNeighborsChange = event => {
-    const newValue = parseFloat(event.target.value)
-    setNNeighbors(isNaN(newValue) ? '' : newValue.toString())
-  }
+        setSearchRadius(Math.min(defaultSearchRadius, 90))
+        setNNeighbors(Math.min(defaultNNeighbors, 90))
+        setCombinedCatalogName(
+          pipelineData.param.crossmatch.output_catalog_name || ''
+        )
+        setSelectedOption(pipelineData.param.duplicate_criteria || 'pickOne')
+      } catch (error) {
+        console.error('Erro ao buscar dados da API', error)
+      }
+    }
 
-  const handleLsstCatalogChange = event => {
-    setSelectedLsstCatalog(event.target.value)
-  }
-
-  const handleEmailChange = newEmail => {
-    setEmail(newEmail)
-  }
+    fetchData()
+  }, [])
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setSearchRadius('1.0')
-    setNNeighbors('1.0')
+    setSearchRadius(1.0)
+    setNNeighbors(1.0)
     setSelectedOption('pickOne')
-    setEmail('')
     setSelectedLsstCatalog('DP0.2')
   }
 
@@ -97,7 +99,7 @@ function TrainingSetMaker() {
             <Typography color="textPrimary">Training Set Maker</Typography>
           </Breadcrumbs>
           <Grid item xs={12}>
-            <Typography variant="h4" mb={3} textAlign={'center'}>
+            <Typography variant="h4" mb={3} textAlign="center">
               Training Set Maker
               <IconButton
                 color="primary"
@@ -108,51 +110,56 @@ function TrainingSetMaker() {
               </IconButton>
             </Typography>
           </Grid>
-
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
-              <Typography variant="body1" mr={'16px'}>
-                1. Combined catalog name:
+              <Typography variant="body1" mr="16px">
+                1. Training set name:
+                <Typography component="span" sx={{ color: 'red' }}>
+                  {' *'}
+                </Typography>
               </Typography>
               <TextField
                 id="combinedCatalogName"
                 variant="outlined"
                 value={combinedCatalogName}
-                onChange={handleCatalogNameChange}
+                onChange={event => setCombinedCatalogName(event.target.value)}
+                error={combinedCatalogName.trim() === ''}
+                helperText={
+                  combinedCatalogName.trim() === ''
+                    ? 'This field is required.'
+                    : ''
+                }
               />
               <IconButton
                 color="primary"
                 aria-label="info"
-                title="the product name of the catalog that will result from the process and be automatically registered as a new product on the PZ Server."
+                title="Name to be displayed on the products list"
               >
                 <InfoIcon />
               </IconButton>
             </Box>
           </Grid>
-
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
-                2. Select the Spec-z Catalogs to include in your sample:
+                2. Select the Spec-z Catalog for the cross-matching:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
           </Grid>
-
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <TsmData query={search} filters={filters} />
+                <TsmData query={search} />
               </CardContent>
             </Card>
           </Grid>
-
           <Grid item xs={12}>
             <Typography variant="body1">
-              3. Select the LSST objects catalog:
+              3. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
-                onChange={handleLsstCatalogChange}
+                onChange={event => setSelectedLsstCatalog(event.target.value)}
                 sx={{ marginLeft: '16px' }}
               >
                 <MenuItem value="DP0.2" disabled>
@@ -171,79 +178,85 @@ function TrainingSetMaker() {
               </Select>
             </Typography>
           </Grid>
-
-          <Grid item xs={12}>
+          <Grid item xs={12} mt={3}>
             <Typography variant="body1">
               4. Select the cross-matching configuration choices:
-              <Grid item xs={12} mt={2}>
-                {' '}
-                {/* Espaço adicionado */}
-                <span>Search Radius (arcsec):</span>{' '}
+            </Typography>
+            <Grid item xs={12} mt={2}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1" mr="16px">
+                  The threshold distance in arcseconds beyond which neighbors
+                  are not added:
+                </Typography>
                 <SearchRadius
                   searchRadius={searchRadius}
-                  onChange={handleSearchRadiusChange}
+                  onChange={setSearchRadius}
                 />
-              </Grid>
-              <Grid item xs={12} mt={2}>
-                {' '}
-                {/* Espaço adicionado */}
-                <span>n neighbors:</span>{' '}
-                <NNeighbors
-                  nNeighbors={nNeighbors}
-                  onChange={handleNeighborsChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <span>
-                  In case of multiple spec-z measurements for the same object:
-                </span>{' '}
+              </Box>
+            </Grid>
+            <Grid item xs={12} mt={3}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1" mr="16px">
+                  The number of neighbors to find within each point:
+                </Typography>
+                <NNeighbors nNeighbors={nNeighbors} onChange={setNNeighbors} />
+              </Box>
+            </Grid>
+            <Grid item xs={12} mt={3}>
+              <Box ml={4}>
+                In case of multiple spec-z measurements for the same object:
                 <Select
                   value={selectedOption}
                   onChange={event => setSelectedOption(event.target.value)}
+                  sx={{ ml: '16px' }}
                 >
                   <MenuItem value="pickOne">Keep the closest only</MenuItem>
                   <MenuItem value="keepAll">Keep all</MenuItem>
-                  <MenuItem value="computeMean">
-                    Compute mean redshift for all candidates
-                  </MenuItem>
                 </Select>
-              </Grid>
-            </Typography>
+              </Box>
+            </Grid>
           </Grid>
-
-          <Grid item xs={12}>
-            <Typography variant="body1">
-              5. Enter an email address to be notified when the process is
-              complete (optional):
-            </Typography>
-            <EmailField
-              initialValue={email}
-              onEmailChange={handleEmailChange}
-            />
-          </Grid>
-
           <Grid item xs={12}>
             <Box display="flex" justifyContent="center" mt={2}>
-              <Button
-                variant="outlined"
-                onClick={handleClearForm}
-                sx={{ marginRight: '12px' }}
-              >
+              <Button variant="outlined" onClick={handleClearForm}>
                 Clear form
               </Button>
-              <Button variant="contained" onClick={handleRun}>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ marginLeft: '16px' }}
+                onClick={handleRun}
+              >
                 Run
               </Button>
             </Box>
           </Grid>
+          <Grid item xs={12} mt={2}>
+            <Box display="flex" justifyContent="flex-start">
+              <Typography variant="body2">
+                This pipeline uses LSDB developed by LINCC. Please check out the
+                software documentation on{' '}
+                <Link
+                  href="https://lsdb.readthedocs.io/en/stable/"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  LSDB Read the Docs page
+                </Link>
+                .
+              </Typography>
+            </Box>
+          </Grid>
         </Grid>
         <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           open={snackbarOpen}
-          autoHideDuration={6000}
           onClose={handleSnackbarClose}
+          autoHideDuration={3000}
         >
           <SnackbarContent
-            message={`Your process has been submitted successfully. The combined spec-z catalog will be registered soon as: ${combinedCatalogName}`}
+            message="Your process has been submitted successfully."
+            sx={{ backgroundColor: theme.palette.success.main }}
           />
         </Snackbar>
       </CardContent>

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 
 const NNeighbors = ({ nNeighbors, onChange, reset }) => {
   const formatNNeighbors = value => {
-    if (/^\d+(\.\d+)?$/.test(value)) {
+    if (/^\d*\.?\d*$/.test(value)) {
       return value
     } else {
       return value.replace(/[^\d.]/g, '')
@@ -20,9 +20,10 @@ const NNeighbors = ({ nNeighbors, onChange, reset }) => {
   }, [reset, nNeighbors])
 
   const handleNeighborsChange = event => {
-    const inputValue = event.target.value
+    const inputValue = formatNNeighbors(event.target.value)
+    const newValue = Math.min(parseFloat(inputValue) || 0, 90)
     setLocalNNeighbors(inputValue)
-    onChange(event)
+    onChange(newValue)
   }
 
   return (
@@ -31,13 +32,14 @@ const NNeighbors = ({ nNeighbors, onChange, reset }) => {
       variant="outlined"
       value={localNNeighbors}
       onChange={handleNeighborsChange}
+      inputProps={{ inputMode: 'decimal', pattern: '[0-9]*\\.?[0-9]*' }}
     />
   )
 }
 
 NNeighbors.propTypes = {
   nNeighbors: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   reset: PropTypes.bool
 }
 

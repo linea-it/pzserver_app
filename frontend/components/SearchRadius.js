@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 
 const SearchRadius = ({ searchRadius, onChange, reset }) => {
   const formatSearchRadius = value => {
-    if (/^\d+\.\d*$/.test(value)) {
+    if (/^\d*\.?\d*$/.test(value)) {
       return value
     } else {
       return value.replace(/[^\d.]/g, '')
@@ -20,12 +20,10 @@ const SearchRadius = ({ searchRadius, onChange, reset }) => {
   }, [reset, searchRadius])
 
   const handleRadiusChange = event => {
-    const inputValue = event.target.value
-
-    if (/^\d+(\.\d*)?$/.test(inputValue)) {
-      setLocalSearchRadius(inputValue)
-      onChange(event)
-    }
+    const inputValue = formatSearchRadius(event.target.value)
+    const newValue = Math.min(parseFloat(inputValue) || 0, 90)
+    setLocalSearchRadius(inputValue)
+    onChange(newValue)
   }
 
   return (
@@ -34,13 +32,14 @@ const SearchRadius = ({ searchRadius, onChange, reset }) => {
       variant="outlined"
       value={localSearchRadius}
       onChange={handleRadiusChange}
+      inputProps={{ inputMode: 'decimal', pattern: '[0-9]*\\.?[0-9]*' }}
     />
   )
 }
 
 SearchRadius.propTypes = {
   searchRadius: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   reset: PropTypes.bool
 }
 
