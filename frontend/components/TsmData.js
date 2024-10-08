@@ -24,7 +24,7 @@ const columns = [
     headerName: 'Created at',
     sortable: true,
     width: 200,
-    valueFormatter: (params) => {
+    valueFormatter: params => {
       if (!params.value) {
         return ''
       }
@@ -37,15 +37,16 @@ export default function DataTableWrapper({ filters, query }) {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
 
-  const { data, status, error, isLoading } = useQuery(
+  const { data, error, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
-    () => getProducts({
-      filters,
-      page,
-      page_size: pageSize,
-      sort: [{ field: 'created_at', sort: 'desc' }],
-      search: query
-    }),
+    () =>
+      getProducts({
+        filters,
+        page,
+        page_size: pageSize,
+        sort: [{ field: 'created_at', sort: 'desc' }],
+        search: query
+      }),
     {
       staleTime: Infinity,
       refetchInterval: false,
@@ -53,27 +54,33 @@ export default function DataTableWrapper({ filters, query }) {
     }
   )
 
-  if (error) return <Alert severity="error">Error loading data. Please try again.</Alert>
+  if (error) {
+    return <Alert severity="error">Error loading data. Please try again.</Alert>
+  }
 
-  const filteredData = data?.results?.filter(product => product.product_type_name === 'Spec-z Catalog') || []
+  const filteredData =
+    data?.results?.filter(
+      product => product.product_type_name === 'Spec-z Catalog'
+    ) || []
 
   return (
     <>
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
+          getRowId={row => row.id || row.unique_key}
           rows={filteredData}
           columns={columns}
           paginationMode="server"
           page={page}
           pageSize={pageSize}
-          onPageChange={(newPage) => setPage(newPage)}
-          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          onPageChange={newPage => setPage(newPage)}
+          onPageSizeChange={newPageSize => setPageSize(newPageSize)}
           rowsPerPageOptions={[5, 10, 25]}
           disableColumnMenu
           disableColumnSelector
           loading={isLoading}
           localeText={{
-            noRowsLabel: filteredData.length === 0 && !isLoading ? 'No products found' : 'Loading...',
+            noRowsLabel: isLoading ? 'Loading...' : 'No products found'
           }}
         />
       </Box>
