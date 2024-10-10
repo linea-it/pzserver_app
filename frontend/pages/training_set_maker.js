@@ -20,40 +20,38 @@ import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import TsmData from '../components/TsmData'
+import { getPipeline } from '../services/pipeline'
 
 function TrainingSetMaker() {
   const theme = useTheme()
-
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [searchRadius, setSearchRadius] = useState(1.0)
-  const [nNeighbors, setNNeighbors] = useState(1.0)
-  const [selectedOption, setSelectedOption] = useState('pickOne')
+  const [nNeighbors, setNNeighbors] = useState(1)
+  const [selectedOption, setSelectedOption] = useState('closest')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('DP0.2')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarColor, setSnackbarColor] = useState(theme.palette.warning.main)
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        const apiUrl =
-          process.env.REACT_APP_API_URL || 'http://localhost/api/pipelines/'
-        const response = await fetch(apiUrl)
-        const data = await response.json()
-        const pipelineData = data.results[0].system_config
+        const response = await getPipeline()
+        const pipelineData = response.data.results[0].system_config
 
         const defaultSearchRadius =
-          pipelineData.param.crossmatch.radius_arcsec || 1.0
-        const defaultNNeighbors =
-          pipelineData.param.crossmatch.n_neighbors || 1.0
+          parseFloat(pipelineData.param.crossmatch.radius_arcsec) || 1.0
+        const defaultNNeighbors = pipelineData.param.crossmatch.n_neighbors || 1
+        const defaultDuplicateCriteria =
+          pipelineData.param.duplicate_criteria || 'closest'
 
         setSearchRadius(Math.min(defaultSearchRadius, 90))
         setNNeighbors(Math.min(defaultNNeighbors, 90))
-        setCombinedCatalogName(
-          pipelineData.param.crossmatch.output_catalog_name || ''
-        )
-        setSelectedOption(pipelineData.param.duplicate_criteria || 'pickOne')
+        setSelectedOption(defaultDuplicateCriteria)
       } catch (error) {
-        console.error('Erro ao buscar dados da API', error)
+        console.error('Error fetching data from API', error)
       }
     }
 
@@ -63,17 +61,32 @@ function TrainingSetMaker() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSearchRadius(1.0)
-    setNNeighbors(1.0)
-    setSelectedOption('pickOne')
+    setNNeighbors(1)
+    setSelectedOption('closest')
     setSelectedLsstCatalog('DP0.2')
+    setIsSubmitting(false)
   }
 
   const handleRun = () => {
+    setIsSubmitting(true)
+
+    if (combinedCatalogName.trim() === '') {
+      setSnackbarMessage(
+        'Your process has not been submitted. Please fill in the training set name.'
+      )
+      setSnackbarColor(theme.palette.warning.main)
+      setSnackbarOpen(true)
+      return
+    }
+
+    setSnackbarMessage('Your process has been submitted successfully.')
+    setSnackbarColor(theme.palette.success.main)
     setSnackbarOpen(true)
   }
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
+    setIsSubmitting(false)
   }
 
   const styles = {
@@ -98,6 +111,7 @@ function TrainingSetMaker() {
             </Link>
             <Typography color="textPrimary">Training Set Maker</Typography>
           </Breadcrumbs>
+
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign="center">
               Training Set Maker
@@ -110,6 +124,7 @@ function TrainingSetMaker() {
               </IconButton>
             </Typography>
           </Grid>
+
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mr="16px">
@@ -123,9 +138,9 @@ function TrainingSetMaker() {
                 variant="outlined"
                 value={combinedCatalogName}
                 onChange={event => setCombinedCatalogName(event.target.value)}
-                error={combinedCatalogName.trim() === ''}
+                error={isSubmitting && combinedCatalogName.trim() === ''}
                 helperText={
-                  combinedCatalogName.trim() === ''
+                  isSubmitting && combinedCatalogName.trim() === ''
                     ? 'This field is required.'
                     : ''
                 }
@@ -139,6 +154,7 @@ function TrainingSetMaker() {
               </IconButton>
             </Box>
           </Grid>
+
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
@@ -147,6 +163,7 @@ function TrainingSetMaker() {
               <SearchField onChange={query => setSearch(query)} />
             </Box>
           </Grid>
+
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -154,6 +171,7 @@ function TrainingSetMaker() {
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12}>
             <Typography variant="body1">
               3. Select the Objects catalog (photometric data):
@@ -178,6 +196,7 @@ function TrainingSetMaker() {
               </Select>
             </Typography>
           </Grid>
+
           <Grid item xs={12} mt={3}>
             <Typography variant="body1">
               4. Select the cross-matching configuration choices:
@@ -194,14 +213,20 @@ function TrainingSetMaker() {
                 />
               </Box>
             </Grid>
+
             <Grid item xs={12} mt={3}>
               <Box display="flex" alignItems="center" ml={4}>
                 <Typography variant="body1" mr="16px">
                   The number of neighbors to find within each point:
                 </Typography>
-                <NNeighbors nNeighbors={nNeighbors} onChange={setNNeighbors} />
+                <NNeighbors
+                  nNeighbors={nNeighbors}
+                  onChange={setNNeighbors}
+                  reset={false}
+                />
               </Box>
             </Grid>
+
             <Grid item xs={12} mt={3}>
               <Box ml={4}>
                 In case of multiple spec-z measurements for the same object:
@@ -210,44 +235,25 @@ function TrainingSetMaker() {
                   onChange={event => setSelectedOption(event.target.value)}
                   sx={{ ml: '16px' }}
                 >
-                  <MenuItem value="pickOne">Keep the closest only</MenuItem>
+                  <MenuItem value="closest">Keep the closest only</MenuItem>
                   <MenuItem value="keepAll">Keep all</MenuItem>
                 </Select>
               </Box>
             </Grid>
           </Grid>
+
           <Grid item xs={12}>
             <Box display="flex" justifyContent="center" mt={2}>
               <Button variant="outlined" onClick={handleClearForm}>
                 Clear form
               </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ marginLeft: '16px' }}
-                onClick={handleRun}
-              >
+              <Button variant="contained" onClick={handleRun} sx={{ ml: 2 }}>
                 Run
               </Button>
             </Box>
           </Grid>
-          <Grid item xs={12} mt={2}>
-            <Box display="flex" justifyContent="flex-start">
-              <Typography variant="body2">
-                This pipeline uses LSDB developed by LINCC. Please check out the
-                software documentation on{' '}
-                <Link
-                  href="https://lsdb.readthedocs.io/en/stable/"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  LSDB Read the Docs page
-                </Link>
-                .
-              </Typography>
-            </Box>
-          </Grid>
         </Grid>
+
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           open={snackbarOpen}
@@ -255,8 +261,9 @@ function TrainingSetMaker() {
           autoHideDuration={3000}
         >
           <SnackbarContent
-            message="Your process has been submitted successfully."
-            sx={{ backgroundColor: theme.palette.success.main }}
+            message={snackbarMessage}
+            onClose={handleSnackbarClose}
+            sx={{ backgroundColor: snackbarColor }}
           />
         </Snackbar>
       </CardContent>

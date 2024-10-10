@@ -1,4 +1,6 @@
-import { Alert, Box } from '@mui/material'
+import Alert from '@mui/material/Alert'
+import Radio from '@mui/material/Radio'
+import Box from '@mui/material/Box'
 import { DataGrid } from '@mui/x-data-grid'
 import PropTypes from 'prop-types'
 import * as React from 'react'
@@ -6,36 +8,10 @@ import { useQuery } from 'react-query'
 import moment from 'moment'
 import { getProducts } from '../services/product'
 
-const columns = [
-  {
-    field: 'display_name',
-    headerName: 'Name',
-    sortable: true,
-    flex: 1
-  },
-  {
-    field: 'uploaded_by',
-    headerName: 'Uploaded By',
-    flex: 1,
-    sortable: false
-  },
-  {
-    field: 'created_at',
-    headerName: 'Created at',
-    sortable: true,
-    width: 200,
-    valueFormatter: params => {
-      if (!params.value) {
-        return ''
-      }
-      return moment(params.value).format('YYYY-MM-DD')
-    }
-  }
-]
-
-export default function DataTableWrapper({ filters, query }) {
+const DataTableWrapper = ({ filters, query }) => {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
+  const [selectedRowId, setSelectedRowId] = React.useState(null)
 
   const { data, error, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
@@ -63,6 +39,44 @@ export default function DataTableWrapper({ filters, query }) {
       product => product.product_type_name === 'Spec-z Catalog'
     ) || []
 
+  const columns = [
+    {
+      field: 'select',
+      headerName: '',
+      renderCell: params => (
+        <Radio
+          checked={selectedRowId === params.row.id}
+          onChange={() => setSelectedRowId(params.row.id)}
+        />
+      ),
+      width: 50
+    },
+    {
+      field: 'display_name',
+      headerName: 'Name',
+      sortable: true,
+      flex: 1
+    },
+    {
+      field: 'uploaded_by',
+      headerName: 'Uploaded By',
+      flex: 1,
+      sortable: false
+    },
+    {
+      field: 'created_at',
+      headerName: 'Created at',
+      sortable: true,
+      width: 200,
+      valueFormatter: params => {
+        if (!params.value) {
+          return ''
+        }
+        return moment(params.value).format('YYYY-MM-DD')
+      }
+    }
+  ]
+
   return (
     <>
       <Box sx={{ height: 400, width: '100%' }}>
@@ -82,6 +96,7 @@ export default function DataTableWrapper({ filters, query }) {
           localeText={{
             noRowsLabel: isLoading ? 'Loading...' : 'No products found'
           }}
+          onRowClick={params => setSelectedRowId(params.row.id)}
         />
       </Box>
       <Box
@@ -107,3 +122,5 @@ DataTableWrapper.defaultProps = {
   filters: {},
   query: ''
 }
+
+export default DataTableWrapper

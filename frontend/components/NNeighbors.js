@@ -2,27 +2,17 @@ import React, { useState, useEffect } from 'react'
 import TextField from '@mui/material/TextField'
 import PropTypes from 'prop-types'
 
-const NNeighbors = ({ nNeighbors, onChange, reset }) => {
-  const formatNNeighbors = value => {
-    if (/^\d*\.?\d*$/.test(value)) {
-      return value
-    } else {
-      return value.replace(/[^\d.]/g, '')
-    }
-  }
-
-  const [localNNeighbors, setLocalNNeighbors] = useState(
-    formatNNeighbors(nNeighbors)
-  )
+const NNeighbors = ({ nNeighbors, onChange }) => {
+  const [localNNeighbors, setLocalNNeighbors] = useState(nNeighbors)
 
   useEffect(() => {
-    setLocalNNeighbors(formatNNeighbors(nNeighbors))
-  }, [reset, nNeighbors])
+    setLocalNNeighbors(nNeighbors)
+  }, [nNeighbors])
 
   const handleNeighborsChange = event => {
-    const inputValue = formatNNeighbors(event.target.value)
-    const newValue = Math.min(parseFloat(inputValue) || 0, 90)
-    setLocalNNeighbors(inputValue)
+    const inputValue = event.target.value.replace(/[^\d]/g, '')
+    const newValue = parseInt(inputValue, 10) || 1
+    setLocalNNeighbors(newValue)
     onChange(newValue)
   }
 
@@ -32,15 +22,15 @@ const NNeighbors = ({ nNeighbors, onChange, reset }) => {
       variant="outlined"
       value={localNNeighbors}
       onChange={handleNeighborsChange}
-      inputProps={{ inputMode: 'decimal', pattern: '[0-9]*\\.?[0-9]*' }}
+      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 1, step: 1 }}
     />
   )
 }
 
 NNeighbors.propTypes = {
-  nNeighbors: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  onChange: PropTypes.func.isRequired,
-  reset: PropTypes.bool
+  nNeighbors: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+    .isRequired,
+  onChange: PropTypes.func.isRequired
 }
 
 export default NNeighbors

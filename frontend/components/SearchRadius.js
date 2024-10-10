@@ -1,46 +1,27 @@
-import React, { useState, useEffect } from 'react'
-import TextField from '@mui/material/TextField'
+import React from 'react'
 import PropTypes from 'prop-types'
+import TextField from '@mui/material/TextField'
 
-const SearchRadius = ({ searchRadius, onChange, reset }) => {
-  const formatSearchRadius = value => {
-    if (/^\d*\.?\d*$/.test(value)) {
-      return value
-    } else {
-      return value.replace(/[^\d.]/g, '')
-    }
-  }
-
-  const [localSearchRadius, setLocalSearchRadius] = useState(
-    formatSearchRadius(searchRadius)
-  )
-
-  useEffect(() => {
-    setLocalSearchRadius(formatSearchRadius(searchRadius))
-  }, [reset, searchRadius])
+function SearchRadius({ searchRadius, onChange }) {
+  const formattedRadius = searchRadius.toFixed(1)
 
   const handleRadiusChange = event => {
-    const inputValue = formatSearchRadius(event.target.value)
-    const newValue = Math.min(parseFloat(inputValue) || 0, 90)
-    setLocalSearchRadius(inputValue)
-    onChange(newValue)
+    onChange(parseFloat(event.target.value))
   }
 
   return (
     <TextField
-      id="searchRadius"
-      variant="outlined"
-      value={localSearchRadius}
+      type="number"
+      value={formattedRadius}
       onChange={handleRadiusChange}
-      inputProps={{ inputMode: 'decimal', pattern: '[0-9]*\\.?[0-9]*' }}
+      inputProps={{ min: 0, max: 90, step: 0.1 }}
     />
   )
 }
 
 SearchRadius.propTypes = {
-  searchRadius: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  onChange: PropTypes.func.isRequired,
-  reset: PropTypes.bool
+  searchRadius: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired
 }
 
 export default SearchRadius
