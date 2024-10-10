@@ -3,10 +3,6 @@ import forIn from 'lodash/forIn'
 import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
-export const getReleases = ({ }) => {
-  return api.get('/api/releases/').then(res => res.data)
-}
-
 export const getProductTypes = ({ }) => {
   return api.get('/api/product-types/').then(res => res.data)
 }

@@ -1,85 +1,126 @@
+import Alert from '@mui/material/Alert'
+import Radio from '@mui/material/Radio'
+import Box from '@mui/material/Box'
 import { DataGrid } from '@mui/x-data-grid'
-import moment from 'moment'
-import { Box } from '@mui/material'
 import PropTypes from 'prop-types'
+import * as React from 'react'
+import { useQuery } from 'react-query'
+import moment from 'moment'
+import { getProducts } from '../services/product'
 
-const columns = [
-  {
-    field: 'display_name',
-    headerName: 'Name',
-    sortable: true,
-    flex: 1
-  },
-  {
-    field: 'uploaded_by',
-    headerName: 'Uploaded By',
-    flex: 1,
-    sortable: false
-  },
-  {
-    field: 'created_at',
-    headerName: 'Created at',
-    sortable: true,
-    width: 200,
-    valueFormatter: params => {
-      if (!params.value) {
-        return ''
-      }
-      return moment(params.value).format('YYYY-MM-DD')
+const DataTableWrapper = ({ filters, query }) => {
+  const [page, setPage] = React.useState(0)
+  const [pageSize, setPageSize] = React.useState(10)
+  const [selectedRowId, setSelectedRowId] = React.useState(null)
+
+  const { data, error, isLoading } = useQuery(
+    ['productData', { filters, query, page, pageSize }],
+    () =>
+      getProducts({
+        filters,
+        page,
+        page_size: pageSize,
+        sort: [{ field: 'created_at', sort: 'desc' }],
+        search: query
+      }),
+    {
+      staleTime: Infinity,
+      refetchInterval: false,
+      retry: false
     }
-  }
-]
+  )
 
-function DataTable({ rows }) {
+  if (error) {
+    return <Alert severity="error">Error loading data. Please try again.</Alert>
+  }
+
+  const filteredData =
+    data?.results?.filter(
+      product => product.product_type_name === 'Spec-z Catalog'
+    ) || []
+
+  const columns = [
+    {
+      field: 'select',
+      headerName: '',
+      renderCell: params => (
+        <Radio
+          checked={selectedRowId === params.row.id}
+          onChange={() => setSelectedRowId(params.row.id)}
+        />
+      ),
+      width: 50
+    },
+    {
+      field: 'display_name',
+      headerName: 'Name',
+      sortable: true,
+      flex: 1
+    },
+    {
+      field: 'uploaded_by',
+      headerName: 'Uploaded By',
+      flex: 1,
+      sortable: false
+    },
+    {
+      field: 'created_at',
+      headerName: 'Created at',
+      sortable: true,
+      width: 200,
+      valueFormatter: params => {
+        if (!params.value) {
+          return ''
+        }
+        return moment(params.value).format('YYYY-MM-DD')
+      }
+    }
+  ]
+
   return (
-    <Box style={{ height: 300, width: '100%' }}>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        // getRowId={row => row.id}
-        pageSizeOptions={[5, 10]}
-      />
-    </Box>
+    <>
+      <Box sx={{ height: 400, width: '100%' }}>
+        <DataGrid
+          getRowId={row => row.id || row.unique_key}
+          rows={filteredData}
+          columns={columns}
+          paginationMode="server"
+          page={page}
+          pageSize={pageSize}
+          onPageChange={newPage => setPage(newPage)}
+          onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+          rowsPerPageOptions={[5, 10, 25]}
+          disableColumnMenu
+          disableColumnSelector
+          loading={isLoading}
+          localeText={{
+            noRowsLabel: isLoading ? 'Loading...' : 'No products found'
+          }}
+          onRowClick={params => setSelectedRowId(params.row.id)}
+        />
+      </Box>
+      <Box
+        sx={{
+          mt: 2,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          fontSize: '14px'
+        }}
+      >
+        {`Showing ${filteredData.length} products`}
+      </Box>
+    </>
   )
 }
 
-DataTable.propTypes = {
-  rows: PropTypes.arrayOf(PropTypes.object).isRequired
+DataTableWrapper.propTypes = {
+  filters: PropTypes.object,
+  query: PropTypes.string
 }
 
-const rows = [
-  {
-    id: 1,
-    display_name: 'Jandson 1',
-    uploaded_by: 'User1',
-    created_at: '2023-01-01'
-  },
-  {
-    id: 2,
-    display_name: 'Jandson 2',
-    uploaded_by: 'User2',
-    created_at: '2023-02-15'
-  },
-  {
-    id: 3,
-    display_name: 'Jandson 3',
-    uploaded_by: 'User3',
-    created_at: '2023-03-22'
-  },
-  {
-    id: 4,
-    display_name: 'Jandson V',
-    uploaded_by: 'User1',
-    created_at: '2023-04-10'
-  },
-  {
-    id: 5,
-    display_name: 'Jandson Try',
-    uploaded_by: 'User2',
-    created_at: '2023-05-05'
-  }
-]
-
-export default function App() {
-  return <DataTable rows={rows} />
+DataTableWrapper.defaultProps = {
+  filters: {},
+  query: ''
 }
+
+export default DataTableWrapper
