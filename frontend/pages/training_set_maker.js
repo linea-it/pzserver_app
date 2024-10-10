@@ -21,6 +21,7 @@ import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import TsmData from '../components/TsmData'
 import { getPipeline } from '../services/pipeline'
+import { getReleases } from '../services/release'
 
 function TrainingSetMaker() {
   const theme = useTheme()
@@ -30,13 +31,14 @@ function TrainingSetMaker() {
   const [nNeighbors, setNNeighbors] = useState(1)
   const [selectedOption, setSelectedOption] = useState('closest')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('DP0.2')
+  const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState(theme.palette.warning.main)
+  const [releases, setReleases] = useState([])
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPipelineData = async () => {
       try {
         const response = await getPipeline()
         const pipelineData = response.data.results[0].system_config
@@ -51,11 +53,26 @@ function TrainingSetMaker() {
         setNNeighbors(Math.min(defaultNNeighbors, 90))
         setSelectedOption(defaultDuplicateCriteria)
       } catch (error) {
-        console.error('Error fetching data from API', error)
+        console.error('Error fetching pipeline data from API', error)
       }
     }
 
-    fetchData()
+    const fetchReleases = async () => {
+      try {
+        const response = await getReleases()
+        const fetchedReleases = response.data.results
+        setReleases(fetchedReleases)
+
+        if (fetchedReleases.length > 0) {
+          setSelectedLsstCatalog(fetchedReleases[0].name)
+        }
+      } catch (error) {
+        console.error('Error fetching releases from API', error)
+      }
+    }
+
+    fetchPipelineData()
+    fetchReleases()
   }, [])
 
   const handleClearForm = () => {
@@ -63,7 +80,7 @@ function TrainingSetMaker() {
     setSearchRadius(1.0)
     setNNeighbors(1)
     setSelectedOption('closest')
-    setSelectedLsstCatalog('DP0.2')
+    setSelectedLsstCatalog('')
     setIsSubmitting(false)
   }
 
@@ -130,7 +147,7 @@ function TrainingSetMaker() {
               <Typography variant="body1" mr="16px">
                 1. Training set name:
                 <Typography component="span" sx={{ color: 'red' }}>
-                  {' *'}
+                  *
                 </Typography>
               </Typography>
               <TextField
@@ -176,23 +193,15 @@ function TrainingSetMaker() {
             <Typography variant="body1">
               3. Select the Objects catalog (photometric data):
               <Select
-                value={selectedLsstCatalog}
+                value={selectedLsstCatalog} // Certifique-se de que isso está sendo atualizado corretamente
                 onChange={event => setSelectedLsstCatalog(event.target.value)}
                 sx={{ marginLeft: '16px' }}
               >
-                <MenuItem value="DP0.2" disabled>
-                  DP0.1
-                </MenuItem>
-                <MenuItem value="DP0.2">DP0.2</MenuItem>
-                <MenuItem value="DP1" disabled>
-                  DP1
-                </MenuItem>
-                <MenuItem value="DP2" disabled>
-                  DP2
-                </MenuItem>
-                <MenuItem value="DR1" disabled>
-                  DR1
-                </MenuItem>
+                {releases.map(release => (
+                  <MenuItem key={release.id} value={release.name}>
+                    {release.display_name} {/* Exibe o nome correto */}
+                  </MenuItem>
+                ))}
               </Select>
             </Typography>
           </Grid>
@@ -258,12 +267,10 @@ function TrainingSetMaker() {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           open={snackbarOpen}
           onClose={handleSnackbarClose}
-          autoHideDuration={3000}
         >
           <SnackbarContent
             message={snackbarMessage}
-            onClose={handleSnackbarClose}
-            sx={{ backgroundColor: snackbarColor }}
+            style={{ backgroundColor: snackbarColor }}
           />
         </Snackbar>
       </CardContent>

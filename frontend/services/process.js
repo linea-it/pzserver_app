@@ -17,11 +17,3 @@
         ]
 
 }
-
-
-// TSM só pode ter um input (criar uma regra para tratar)
-// O campo release é obrigatório
-
-
-// O Combine não tem release
-// o numero de um input terá que ser > 1 (se for < ou = a 1, cancela o submit)
