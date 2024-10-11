@@ -21,20 +21,22 @@ import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import TsmData from '../components/TsmData'
 import { getPipeline } from '../services/pipeline'
+import { submitProcess } from '../services/process'
 import { getReleases } from '../services/release'
 
 function TrainingSetMaker() {
   const theme = useTheme()
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
+  const [selectedProductId, setSelectedProductId] = useState(null)
   const [searchRadius, setSearchRadius] = useState(1.0)
   const [nNeighbors, setNNeighbors] = useState(1)
   const [selectedOption, setSelectedOption] = useState('closest')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState(theme.palette.warning.main)
+  const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [releases, setReleases] = useState([])
 
   useEffect(() => {
@@ -59,12 +61,17 @@ function TrainingSetMaker() {
 
     const fetchReleases = async () => {
       try {
-        const response = await getReleases()
-        const fetchedReleases = response.data.results
-        setReleases(fetchedReleases)
+        const releasesData = await getReleases()
 
-        if (fetchedReleases.length > 0) {
-          setSelectedLsstCatalog(fetchedReleases[0].name)
+        if (Array.isArray(releasesData.results)) {
+          const fetchedReleases = releasesData.results
+          setReleases(fetchedReleases)
+
+          if (fetchedReleases.length > 0) {
+            setSelectedLsstCatalog(fetchedReleases[0].name)
+          }
+        } else {
+          console.error('No results found in the API response')
         }
       } catch (error) {
         console.error('Error fetching releases from API', error)
@@ -96,9 +103,40 @@ function TrainingSetMaker() {
       return
     }
 
-    setSnackbarMessage('Your process has been submitted successfully.')
-    setSnackbarColor(theme.palette.success.main)
-    setSnackbarOpen(true)
+    const sanitizedCatalogName = combinedCatalogName.replace(/[^\w\s]/gi, '')
+
+    // Tentei criar o json
+    const processData = {
+      display_name: sanitizedCatalogName,
+      pipeline: '1',
+      used_config: {
+        param: {
+          crossmatch: {
+            n_neighbors: nNeighbors,
+            radius_arcsec: searchRadius,
+            output_catalog_name: sanitizedCatalogName
+          },
+          duplicate_criteria: selectedOption
+        }
+      },
+      release: '1',
+      inputs: [selectedProductId]
+    }
+    // tentativa de envio do json via POST
+    submitProcess(processData)
+      .then(response => {
+        console.log(response.status)
+        setSnackbarMessage('Your process has been submitted successfully.')
+        setSnackbarColor(theme.palette.success.main)
+      })
+      .catch(error => {
+        console.error('Error submitting the process:', error)
+        setSnackbarMessage('There was an error submitting your process.')
+        setSnackbarColor(theme.palette.error.main)
+      })
+      .finally(() => {
+        setSnackbarOpen(true)
+      })
   }
 
   const handleSnackbarClose = () => {
@@ -184,7 +222,10 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <TsmData query={search} />
+                <TsmData
+                  query={search}
+                  onProductSelect={setSelectedProductId}
+                />
               </CardContent>
             </Card>
           </Grid>
@@ -193,13 +234,13 @@ function TrainingSetMaker() {
             <Typography variant="body1">
               3. Select the Objects catalog (photometric data):
               <Select
-                value={selectedLsstCatalog} // Certifique-se de que isso está sendo atualizado corretamente
+                value={selectedLsstCatalog}
                 onChange={event => setSelectedLsstCatalog(event.target.value)}
                 sx={{ marginLeft: '16px' }}
               >
                 {releases.map(release => (
                   <MenuItem key={release.id} value={release.name}>
-                    {release.display_name} {/* Exibe o nome correto */}
+                    {release.display_name}
                   </MenuItem>
                 ))}
               </Select>

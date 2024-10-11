@@ -1,4 +1,3 @@
-import Alert from '@mui/material/Alert'
 import Radio from '@mui/material/Radio'
 import Box from '@mui/material/Box'
 import { DataGrid } from '@mui/x-data-grid'
@@ -8,12 +7,12 @@ import { useQuery } from 'react-query'
 import moment from 'moment'
 import { getProducts } from '../services/product'
 
-const DataTableWrapper = ({ filters, query }) => {
+const DataTableWrapper = ({ filters, query, onProductSelect }) => {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [selectedRowId, setSelectedRowId] = React.useState(null)
 
-  const { data, error, isLoading } = useQuery(
+  const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
     () =>
       getProducts({
@@ -30,13 +29,17 @@ const DataTableWrapper = ({ filters, query }) => {
     }
   )
 
-  if (error) {
-    return <Alert severity="error">Error loading data. Please try again.</Alert>
+  const handleRowSelection = rowId => {
+    setSelectedRowId(rowId)
+    if (onProductSelect) {
+      onProductSelect(rowId)
+    }
   }
 
   const filteredData =
     data?.results?.filter(
-      product => product.product_type_name === 'Spec-z Catalog'
+      product =>
+        product.product_type_name === 'Spec-z Catalog' && product.status === 1
     ) || []
 
   const columns = [
@@ -46,7 +49,7 @@ const DataTableWrapper = ({ filters, query }) => {
       renderCell: params => (
         <Radio
           checked={selectedRowId === params.row.id}
-          onChange={() => setSelectedRowId(params.row.id)}
+          onChange={() => handleRowSelection(params.row.id)}
         />
       ),
       width: 50
@@ -96,7 +99,7 @@ const DataTableWrapper = ({ filters, query }) => {
           localeText={{
             noRowsLabel: isLoading ? 'Loading...' : 'No products found'
           }}
-          onRowClick={params => setSelectedRowId(params.row.id)}
+          onRowClick={params => handleRowSelection(params.row.id)}
         />
       </Box>
       <Box
@@ -115,7 +118,8 @@ const DataTableWrapper = ({ filters, query }) => {
 
 DataTableWrapper.propTypes = {
   filters: PropTypes.object,
-  query: PropTypes.string
+  query: PropTypes.string,
+  onProductSelect: PropTypes.func
 }
 
 DataTableWrapper.defaultProps = {
