@@ -1,11 +1,11 @@
-import Radio from '@mui/material/Radio'
 import Box from '@mui/material/Box'
+import Radio from '@mui/material/Radio'
 import { DataGrid } from '@mui/x-data-grid'
+import moment from 'moment'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
-import moment from 'moment'
-import { getProducts } from '../services/product'
+import { getProductsSpecz } from '../services/product'
 
 const DataTableWrapper = ({ filters, query, onProductSelect }) => {
   const [page, setPage] = React.useState(0)
@@ -15,7 +15,7 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
     () =>
-      getProducts({
+      getProductsSpecz({
         filters,
         page,
         page_size: pageSize,
@@ -35,12 +35,6 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
       onProductSelect(rowId)
     }
   }
-
-  const filteredData =
-    data?.results?.filter(
-      product =>
-        product.product_type_name === 'Spec-z Catalog' && product.status === 1
-    ) || []
 
   const columns = [
     {
@@ -85,14 +79,15 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
           getRowId={row => row.id || row.unique_key}
-          rows={filteredData}
+          rows={data?.results || []}
           columns={columns}
           paginationMode="server"
           page={page}
           pageSize={pageSize}
+          rowCount={data?.count || 0}
           onPageChange={newPage => setPage(newPage)}
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10]}
           disableColumnMenu
           disableColumnSelector
           loading={isLoading}
@@ -101,16 +96,6 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
           }}
           onRowClick={params => handleRowSelection(params.row.id)}
         />
-      </Box>
-      <Box
-        sx={{
-          mt: 2,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          fontSize: '14px'
-        }}
-      >
-        {`Showing ${filteredData.length} products`}
       </Box>
     </>
   )

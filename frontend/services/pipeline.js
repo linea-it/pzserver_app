@@ -1,5 +1,5 @@
 import { api } from './api'
 
-export const getPipeline = ({ }) => {
-    return api.get('/api/pipelines/')
+export const getPipelineByName = ({ name }) => {
+    return api.get(`/api/pipelines/?name=${name}`)
 }

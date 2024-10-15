@@ -18,7 +18,7 @@ from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
                         OrchestrationInfoView, OrchestrationPipelinesView,
                         PipelineViewSet, ProcessViewSet, ProductContentViewSet,
                         ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
-                        ReleaseViewSet, UserViewSet)
+                        ProductSpeczViewSet, ReleaseViewSet, UserViewSet)
 from django.conf import settings
 
 from django.contrib import admin
@@ -33,6 +33,7 @@ route.register(r"users", UserViewSet, basename="users")
 route.register(r"releases", ReleaseViewSet, basename="releases")
 route.register(r"product-types", ProductTypeViewSet, basename="product_types")
 route.register(r"products", ProductViewSet, basename="products")
+route.register(r"products-specz", ProductSpeczViewSet, basename="products_specz")
 route.register(r"product-contents", ProductContentViewSet, basename="product_contents")
 route.register(r"product-files", ProductFileViewSet, basename="product_files")
 

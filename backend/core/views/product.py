@@ -66,6 +66,25 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(query)
 
 
+class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Esse endpoint retorna apenas os produtos cujo o product type é = a 'spec-z' e o status é = a 1
+    """
+    queryset = Product.objects.filter(product_type__name = 'specz_catalog', status = 1)
+    serializer_class = ProductSerializer
+    search_fields = [
+        "display_name",
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+    ]
+    filterset_class = ProductFilter
+    ordering_fields = [
+        "id",
+        "display_name",
+        "product_type",
+        "created_at",
+    ]
+    ordering = ["-created_at"]
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

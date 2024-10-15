@@ -1,9 +1,11 @@
 import InfoIcon from '@mui/icons-material/Info'
+import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
@@ -20,7 +22,7 @@ import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import TsmData from '../components/TsmData'
-import { getPipeline } from '../services/pipeline'
+import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
 import { getReleases } from '../services/release'
 
@@ -29,31 +31,33 @@ function TrainingSetMaker() {
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
-  const [searchRadius, setSearchRadius] = useState(1.0)
-  const [nNeighbors, setNNeighbors] = useState(1)
-  const [selectedOption, setSelectedOption] = useState('closest')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState(theme.palette.warning.main)
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [releases, setReleases] = useState([])
+  const [initialData, setInitialData] = useState({
+    param: {
+      crossmatch: {
+        n_neighbors: 1,
+        radius_arcsec: 1,
+        output_catalog_name: 'tsm_cross_001'
+      },
+      duplicate_criteria: 'closest'
+    }
+  })
+  const [data, setData] = useState(initialData)
 
   useEffect(() => {
     const fetchPipelineData = async () => {
       try {
-        const response = await getPipeline()
-        const pipelineData = response.data.results[0].system_config
+        const response = await getPipelineByName({ name: 'training_set_maker' })
+        const pipelineData = response.data.results[0]
 
-        const defaultSearchRadius =
-          parseFloat(pipelineData.param.crossmatch.radius_arcsec) || 1.0
-        const defaultNNeighbors = pipelineData.param.crossmatch.n_neighbors || 1
-        const defaultDuplicateCriteria =
-          pipelineData.param.duplicate_criteria || 'closest'
-
-        setSearchRadius(Math.min(defaultSearchRadius, 90))
-        setNNeighbors(Math.min(defaultNNeighbors, 90))
-        setSelectedOption(defaultDuplicateCriteria)
+        setInitialData(pipelineData)
+        setData(pipelineData.system_config)
       } catch (error) {
         console.error('Error fetching pipeline data from API', error)
       }
@@ -84,14 +88,12 @@ function TrainingSetMaker() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setSearchRadius(1.0)
-    setNNeighbors(1)
-    setSelectedOption('closest')
+    setData(initialData.system_config)
     setSelectedLsstCatalog('')
     setIsSubmitting(false)
   }
 
-  const handleRun = () => {
+  const handleRun = async () => {
     setIsSubmitting(true)
 
     if (combinedCatalogName.trim() === '') {
@@ -103,40 +105,57 @@ function TrainingSetMaker() {
       return
     }
 
-    const sanitizedCatalogName = combinedCatalogName.replace(/[^\w\s]/gi, '')
+    const sanitizedCatalogName = combinedCatalogName
+      .trim()
+      .replace(/[\s*,\-*]+/g, '_')
 
-    // Tentei criar o json
-    const processData = {
-      display_name: sanitizedCatalogName,
-      pipeline: '1',
-      used_config: {
-        param: {
-          crossmatch: {
-            n_neighbors: nNeighbors,
-            radius_arcsec: searchRadius,
-            output_catalog_name: sanitizedCatalogName
-          },
-          duplicate_criteria: selectedOption
-        }
-      },
-      release: '1',
-      inputs: [selectedProductId]
-    }
-    // tentativa de envio do json via POST
-    submitProcess(processData)
-      .then(response => {
-        console.log(response.status)
-        setSnackbarMessage('Your process has been submitted successfully.')
-        setSnackbarColor(theme.palette.success.main)
-      })
-      .catch(error => {
-        console.error('Error submitting the process:', error)
-        setSnackbarMessage('There was an error submitting your process.')
+    try {
+      const pipelineId = initialData.id
+
+      const selectedRelease = releases.find(
+        release => release.name === selectedLsstCatalog
+      )
+      const releaseId = selectedRelease ? selectedRelease.id : null
+
+      if (!releaseId) {
+        setSnackbarMessage('No valid release selected.')
         setSnackbarColor(theme.palette.error.main)
-      })
-      .finally(() => {
         setSnackbarOpen(true)
-      })
+        return
+      }
+
+      // Create the JSON object
+      const processData = {
+        display_name: sanitizedCatalogName,
+        pipeline: pipelineId,
+        used_config: {
+          param: {
+            crossmatch: {
+              n_neighbors: data.param.crossmatch.n_neighbors,
+              radius_arcsec: data.param.crossmatch.radius_arcsec,
+              output_catalog_name: sanitizedCatalogName
+            },
+            duplicate_criteria: data.param.duplicate_criteria
+          }
+        },
+        release: releaseId,
+        inputs: [selectedProductId]
+      }
+
+      // tentativa de envio do json via POST
+      setIsLoading(true)
+      await submitProcess(processData)
+      setSnackbarMessage('Your process has been submitted successfully.')
+      setSnackbarColor(theme.palette.success.main)
+      handleClearForm()
+    } catch (error) {
+      console.error('Error submitting the process:', error)
+      setSnackbarMessage('There was an error submitting your process.')
+      setSnackbarColor(theme.palette.error.main)
+    } finally {
+      setIsLoading(false)
+      setSnackbarOpen(true)
+    }
   }
 
   const handleSnackbarClose = () => {
@@ -152,6 +171,8 @@ function TrainingSetMaker() {
       flex: '1 1 0%'
     }
   }
+
+  console.log(data)
 
   return (
     <Paper style={styles.root}>
@@ -258,8 +279,19 @@ function TrainingSetMaker() {
                   are not added:
                 </Typography>
                 <SearchRadius
-                  searchRadius={searchRadius}
-                  onChange={setSearchRadius}
+                  searchRadius={data.param.crossmatch.radius_arcsec}
+                  onChange={value => {
+                    setData({
+                      ...data,
+                      param: {
+                        ...data.param,
+                        crossmatch: {
+                          ...data.param.crossmatch,
+                          radius_arcsec: value
+                        }
+                      }
+                    })
+                  }}
                 />
               </Box>
             </Grid>
@@ -270,8 +302,19 @@ function TrainingSetMaker() {
                   The number of neighbors to find within each point:
                 </Typography>
                 <NNeighbors
-                  nNeighbors={nNeighbors}
-                  onChange={setNNeighbors}
+                  nNeighbors={data.param.crossmatch.n_neighbors}
+                  onChange={value => {
+                    setData({
+                      ...data,
+                      param: {
+                        ...data.param,
+                        crossmatch: {
+                          ...data.param.crossmatch,
+                          n_neighbors: value
+                        }
+                      }
+                    })
+                  }}
                   reset={false}
                 />
               </Box>
@@ -281,12 +324,20 @@ function TrainingSetMaker() {
               <Box ml={4}>
                 In case of multiple spec-z measurements for the same object:
                 <Select
-                  value={selectedOption}
-                  onChange={event => setSelectedOption(event.target.value)}
+                  value={data.param.duplicate_criteria}
+                  onChange={e => {
+                    setData({
+                      ...data,
+                      param: {
+                        ...data.param,
+                        duplicate_criteria: e.target.value
+                      }
+                    })
+                  }}
                   sx={{ ml: '16px' }}
                 >
                   <MenuItem value="closest">Keep the closest only</MenuItem>
-                  <MenuItem value="keepAll">Keep all</MenuItem>
+                  <MenuItem value="all">Keep all</MenuItem>
                 </Select>
               </Box>
             </Grid>
@@ -303,6 +354,13 @@ function TrainingSetMaker() {
             </Box>
           </Grid>
         </Grid>
+
+        <Backdrop
+          sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
 
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
