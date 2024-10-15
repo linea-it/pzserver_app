@@ -57,19 +57,23 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(query)
 
     def filter_type_name(self, queryset, name, value):
-        query = format_query_to_char(name, value, ["product_type__display_name", "product_type__name"])
+        query = format_query_to_char(
+            name, value, ["product_type__display_name", "product_type__name"]
+        )
 
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = format_query_to_char(name, value, ["release__display_name", "release__name"])
+        query = format_query_to_char(
+            name, value, ["release__display_name", "release__name"]
+        )
         return queryset.filter(query)
 
 
 class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
-    """ Esse endpoint retorna apenas os produtos cujo o product type é = a 'spec-z' e o status é = a 1
-    """
-    queryset = Product.objects.filter(product_type__name = 'specz_catalog', status = 1)
+    """Esse endpoint retorna apenas os produtos cujo o product type é = a 'spec-z' e o status é = a 1"""
+
+    queryset = Product.objects.filter(product_type__name="specz_catalog", status=1)
     serializer_class = ProductSerializer
     search_fields = [
         "display_name",
@@ -85,6 +89,8 @@ class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
         "created_at",
     ]
     ordering = ["-created_at"]
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
