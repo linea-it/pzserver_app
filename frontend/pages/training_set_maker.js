@@ -106,8 +106,10 @@ function TrainingSetMaker() {
     }
 
     const sanitizedCatalogName = combinedCatalogName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .trim()
-      .replace(/[\s*,\-*]+/g, '_')
+      .replace(/[\s*,\-*/]+/g, '_')
 
     try {
       const pipelineId = initialData.id

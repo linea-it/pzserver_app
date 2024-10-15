@@ -1,9 +1,12 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import TextField from '@mui/material/TextField'
+import PropTypes from 'prop-types'
+import React from 'react'
 
 function SearchRadius({ searchRadius, onChange }) {
-  const formattedRadius = searchRadius.toFixed(1)
+  const formattedRadius = searchRadius.toLocaleString('en-US', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  })
 
   const handleRadiusChange = event => {
     onChange(parseFloat(event.target.value))
