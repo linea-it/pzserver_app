@@ -172,8 +172,6 @@ function TrainingSetMaker() {
     }
   }
 
-  console.log(data)
-
   return (
     <Paper style={styles.root}>
       <CardContent>
