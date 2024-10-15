@@ -3,10 +3,6 @@ import forIn from 'lodash/forIn'
 import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
-export const getReleases = ({ }) => {
-  return api.get('/api/releases/').then(res => res.data)
-}
-
 export const getProductTypes = ({ }) => {
   return api.get('/api/product-types/').then(res => res.data)
 }
@@ -211,4 +207,55 @@ export const createProductFile = (product_id, file, role, onUploadProgress) => {
     },
     onUploadProgress: onUploadProgress
   })
+}
+
+
+export const getProductsSpecz = ({
+  filters = {},
+  search = '',
+  page = 0,
+  page_size = 25,
+  sort = []
+}) => {
+  // Esse endpoint retorna apenas os catalogos cujo o product type é = 'spec-z' e status = 1
+  let ordering = null
+
+  // Ordenação no DRF
+  // https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter
+  if (sort.length === 1) {
+    ordering = sort[0].field
+
+    if (sort[0].sort === 'desc') {
+      ordering = '-' + ordering
+    }
+  }
+  // Paginação no DRF
+  // https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+  // Django não aceita pagina 0 por isso é somado 1 ao numero da página.
+  page += 1
+
+  // Todos os Query Params
+  const params = { page, page_size, ordering, search }
+
+  // Filtros no DRF
+  // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
+  // cada filtro que tiver valor deve virar uma propriedade no objeto params
+  // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
+  // o filtro official_product deve ser enviado no search também.
+  if (search === '') {
+    forIn(filters, function (value, key) {
+      if (key === 'release' && value === '0') {
+        params.release__isnull = true
+        params.release = null
+      } else {
+        if (value != null) {
+          params[key] = value
+        }
+      }
+    })
+  }
+
+  params.official_product = filters.official_product
+
+  return api.get('/api/products-specz/', { params }).then(res => res.data)
 }

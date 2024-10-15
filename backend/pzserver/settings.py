@@ -159,6 +159,9 @@ MEDIA_ROOT = MEDIA_URL
 
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", MEDIA_URL)
 
+# Criando VA APPEND
+APPEND_SLASH=False
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
