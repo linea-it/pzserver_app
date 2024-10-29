@@ -6,6 +6,10 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
@@ -17,6 +21,7 @@ import SnackbarContent from '@mui/material/SnackbarContent'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
+import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
@@ -28,6 +33,8 @@ import { getReleases } from '../services/release'
 
 function TrainingSetMaker() {
   const theme = useTheme()
+  const [openDialog, setOpenDialog] = useState(false)
+  const router = useRouter()
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
@@ -93,6 +100,11 @@ function TrainingSetMaker() {
     setIsSubmitting(false)
   }
 
+  const handleDialogClose = () => {
+    setOpenDialog(false)
+    router.push('/user_products')
+  }
+
   const handleRun = async () => {
     setIsSubmitting(true)
 
@@ -147,16 +159,17 @@ function TrainingSetMaker() {
       // tentativa de envio do json via POST
       setIsLoading(true)
       await submitProcess(processData)
-      setSnackbarMessage('Your process has been submitted successfully.')
-      setSnackbarColor(theme.palette.success.main)
+      setSnackbarMessage('')
       handleClearForm()
+      setOpenDialog(true)
     } catch (error) {
       console.error('Error submitting the process:', error)
       setSnackbarMessage('There was an error submitting your process.')
       setSnackbarColor(theme.palette.error.main)
-    } finally {
-      setIsLoading(false)
       setSnackbarOpen(true)
+    } finally {
+      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -361,6 +374,19 @@ function TrainingSetMaker() {
         >
           <CircularProgress color="inherit" />
         </Backdrop>
+
+        <Dialog open={openDialog} onClose={handleDialogClose}>
+          <DialogContent>
+            <DialogContentText>
+              Your process has been submitted successfully.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDialogClose} autoFocus>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
