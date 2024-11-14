@@ -1,8 +1,0 @@
-{
-    "catalog_name": "mini_dataset",
-    "catalog_type": "object",
-    "total_rows": 40,
-    "epoch": "J2000",
-    "ra_column": "ra",
-    "dec_column": "dec"
-}
