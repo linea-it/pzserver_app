@@ -357,7 +357,7 @@ if os.getenv("AUTH_SHIB_URL", None):
         "eduPersonUniqueId": ("username",),
         "sn": ("full_name",),
         # "cn": ("full_name",),
-        "isMemberOf":("name"), 
+        "isMemberOf":("name",), 
         "email": ("email",),
     }
 
