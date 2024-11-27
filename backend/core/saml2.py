@@ -12,8 +12,9 @@ class ModifiedSaml2Backend(Saml2Backend):
 
         log.debug("USER: %s", user)
         log.debug("ATTRIBUTES: %s", attributes)
+        log.debug("MAP ATTRIBUTES: %s", attribute_mapping)
 
-        display_name = attributes.get('cn', [""])[0]
+        display_name = attributes.get('sn', [""])[0]
 
         if display_name:
             names = display_name.split()
