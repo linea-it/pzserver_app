@@ -23,15 +23,7 @@ const GitHubButton = styled(Button)(({ theme }) => ({
   }
 }))
 
-const DisabledButton = styled(Button)(({ theme }) => ({
-  backgroundColor: theme.palette.action.disabledBackground,
-  color: theme.palette.action.disabled,
-  '&:hover': {
-    backgroundColor: theme.palette.action.disabledBackground
-  }
-}))
-
-function Login({ shibLoginUrl }) {
+function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
   const [isLocalhost, setIsLocalhost] = useState(false)
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
@@ -90,15 +82,21 @@ function Login({ shibLoginUrl }) {
           md={6}
           sx={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'left',
             alignItems: 'center'
           }}
         >
           <Image
             src="https://identity.linea.org.br/eds/images/linea-logo.png"
             alt="LIneA Logo"
-            width={300}
-            height={247}
+            width={120}
+            height={100}
+          />
+          <Image
+            src="/vc-rubin.png"
+            alt="Rubin Logo"
+            width={170}
+            height={175}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -110,76 +108,79 @@ function Login({ shibLoginUrl }) {
             color="#283661"
             mt={4}
           >
-            Welcome to LIneA
-            <br /> PZ Server
+            Welcome to PZ Server
           </Typography>
           <Grid container spacing={2} mt={4}>
-            {isLocalhost
-              ? (
-                <>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Username"
-                      variant="outlined"
-                      value={username}
-                      onChange={e => setUsername(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Password"
-                      type="password"
-                      variant="outlined"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      onClick={handleSignIn}
-                    >
-                      Sign In
-                    </Button>
-                  </Grid>
-                </>
-              )
-              : (
-                <>
-                  <Grid item xs={12}>
-                    <DisabledButton
-                      fullWidth
-                      disabled
-                      variant="contained"
-                      startIcon={
-                        <Image
-                          src="https://identity.linea.org.br/eds/images/cilogon_logo.png"
-                          alt="CILogon Logo"
-                          width={20}
-                          height={20}
-                        />
+            {isLocalhost ? (
+              <>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Username"
+                    variant="outlined"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    type="password"
+                    variant="outlined"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSignIn}
+                  >
+                    Sign In
+                  </Button>
+                </Grid>
+              </>
+            ) : (
+              <>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={
+                      <Image
+                        src="https://identity.linea.org.br/eds/images/cilogon_logo.png"
+                        alt="CILogon Logo"
+                        width={20}
+                        height={20}
+                      />
+                    }
+                    href={CILogonUrl || shibLoginUrl}
+                    sx={{
+                      backgroundColor: '#283663',
+                      color: '#fff',
+                      '&:hover': {
+                        backgroundColor: '#3b4a8c'
                       }
-                      href={shibLoginUrl}
-                    >
-                      LOGIN WITH CILOGON (RSP ACCOUNT)
-                    </DisabledButton>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <GitHubButton
-                      fullWidth
-                      variant="contained"
-                      startIcon={<GitHubIcon />}
-                      href={shibLoginUrl}
-                    >
-                      Login with GitHub
-                    </GitHubButton>
-                  </Grid>
-                </>
-              )}
+                    }}
+                  >
+                    LOGIN WITH CILOGON (RSP ACCOUNT)
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <GitHubButton
+                    fullWidth
+                    variant="contained"
+                    startIcon={<GitHubIcon />}
+                    href={GithubUrl || shibLoginUrl}
+                  >
+                    Login with GitHub
+                  </GitHubButton>
+                </Grid>
+              </>
+            )}
           </Grid>
           <Typography textAlign="center" color="#283661" mt={2}>
             New user? Register here:{' '}
@@ -243,11 +244,15 @@ function Login({ shibLoginUrl }) {
 }
 
 Login.propTypes = {
-  shibLoginUrl: PropTypes.string
+  shibLoginUrl: PropTypes.string,
+  CILogonUrl: PropTypes.string,
+  GithubUrl: PropTypes.string
 }
 
 Login.defaultProps = {
-  shibLoginUrl: null
+  shibLoginUrl: null,
+  CILogonUrl: null,
+  GithubUrl: null
 }
 
 export default Login
