@@ -16,9 +16,9 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import PropTypes from 'prop-types'
 import {
-  GitHub,
-  Twitter,
-  YouTube,
+  // GitHub,
+  // Twitter,
+  // YouTube,
   Brightness4,
   Brightness7,
   Logout
@@ -171,7 +171,7 @@ function Header({ darkMode, setDarkMode }) {
               </Typography>
             </Grid>
           </Grid>
-          <div className={classes.socialWrapper}>
+          {/* <div className={classes.socialWrapper}>
             <MuiLink
               className={classes.social}
               href="https://www.youtube.com/user/lineamcti"
@@ -199,7 +199,7 @@ function Header({ darkMode, setDarkMode }) {
             >
               <GitHub />
             </MuiLink>
-          </div>
+          </div> */}
         </Grid>
       )}
       <TokenDialog open={open} onClose={handleTokenClose}></TokenDialog>

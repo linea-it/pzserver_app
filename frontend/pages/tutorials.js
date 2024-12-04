@@ -9,6 +9,7 @@ import Divider from '@mui/material/Divider'
 
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/tutorials'
+import Partnersfooter from '../components/Partnersfooter'
 
 export default function Tutorials() {
   const classes = useStyles()
@@ -153,6 +154,7 @@ export default function Tutorials() {
           </Card>
         </Grid>
       </Grid>
+      <Partnersfooter />
     </Container>
   )
 }
