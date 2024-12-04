@@ -356,7 +356,6 @@ if os.getenv("AUTH_SHIB_URL", None):
     SAML_ATTRIBUTE_MAPPING = {
         "eduPersonUniqueId": ("username",),
         "sn": ("full_name",),
-        # "cn": ("full_name",),
         "isMemberOf":("name",), 
         "email": ("email",),
     }
