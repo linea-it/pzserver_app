@@ -11,6 +11,7 @@
   fields:
     name: specz_catalog
     display_name: Spec-z Catalog
+    order: 1
     description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
 - model: core.producttype
@@ -18,6 +19,7 @@
   fields:
     name: training_set
     display_name: Training Set
+    order: 2
     description: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
     created_at: 2022-05-18 15:37:55.565131+00:00
 - model: core.producttype
@@ -25,6 +27,7 @@
   fields:
     name: validation_results
     display_name: Validation Results
+    order: 4
     description: Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.
     created_at: 2022-05-18 15:36:59.830913+00:00
 - model: core.producttype
@@ -32,8 +35,17 @@
   fields:
     name: photoz_table
     display_name: Photo-z Table
+    order: 5
     description: Results of a photo-z estimation procedure. If the data is larger than the file upload limit (200MB), the product entry stores only the metadata (instructions on accessing the data should be provided in the description field.
     created_at: 2022-05-18 15:37:55.565131+00:00
+- model: core.producttype
+  pk: 5
+  fields:
+    name: training_results
+    display_name: Training Results
+    order: 3
+    description: Results of a training.
+    created_at: 2023-12-04 15:36:59.830913+00:00
 - model: auth.group
   pk: 1
   fields:
