@@ -1,5 +1,6 @@
 import abc
 import csv
+import pickle
 from pathlib import Path
 from typing import List
 
@@ -46,6 +47,8 @@ class FileHandle(object):
                 self.handle = TableIOHandle(fp)
             case ".zip" | ".tar" | ".gz":
                 self.handle = CompressedHandle(fp)
+            case ".pickle" | ".pkl" | ".pcl" | ".pckl":
+                self.handle = PickleHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
                 # Try TxtHandle
@@ -190,6 +193,20 @@ class CompressedHandle(BaseHandle):
         raise NotTableError(
             "It is not possible to return a dataframe from this file type."
         )
+
+
+class PickleHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        raise NotTableError(
+            "It is not possible to return a dataframe from this file type."
+        )
+    
+    def data(self):
+        with open(str(self.filepath), "rb") as _file:
+            return pickle.load(_file)
 
 
 class TxtHandle(BaseHandle):
