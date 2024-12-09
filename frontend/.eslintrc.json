@@ -23,6 +23,7 @@
     "prettier/prettier": "error",
     "space-before-function-paren": "off",
     // Disable errors for missing 'import React' in files:
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "multiline-ternary": "off"
   }
 }
