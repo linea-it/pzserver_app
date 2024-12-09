@@ -55,7 +55,7 @@ Shut down the backend service to change one of the Django variables.
 
 To terminate use `CTRL + C` or `docker compose stop`.
 
-With the services turned off, let's run a command in the backend container to generate a SECRET for Django.
+With the services turned off, let's run a command in the backend container to generate a SECRET_KEY for Django.
 
 ```bash
 docker compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
