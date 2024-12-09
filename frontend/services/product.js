@@ -4,7 +4,7 @@ import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
 export const getProductTypes = ({ }) => {
-  return api.get('/api/product-types/').then(res => res.data)
+  return api.get('/api/product-types/?ordering=order').then(res => res.data)
 }
 
 export const downloadProduct = (id, internalName) => {

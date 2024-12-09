@@ -130,6 +130,7 @@ class CreateProduct:
         # Pzcode is only allowed in Validations Results and Photo-z Table
         if self.__data.pz_code and self.__data.product_type.name in (
             "training_set",
+            "training_results",
             "specz_catalog",
         ):
             dn = self.__data.product_type.display_name
