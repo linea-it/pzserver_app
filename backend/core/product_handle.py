@@ -1,8 +1,8 @@
 import abc
 import csv
-from collections import OrderedDict
 from pathlib import Path
 from typing import List
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -47,6 +47,8 @@ class FileHandle(object):
                 self.handle = TableIOHandle(fp)
             case ".zip" | ".tar" | ".gz":
                 self.handle = CompressedHandle(fp)
+            case ".pickle" | ".pkl" | ".pcl" | ".pckl":
+                self.handle = PickleHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
                 # Try TxtHandle
@@ -190,6 +192,16 @@ class TableIOHandle(BaseHandle):
 
 
 class CompressedHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        raise NotTableError(
+            "It is not possible to return a dataframe from this file type."
+        )
+
+
+class PickleHandle(BaseHandle):
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
 
