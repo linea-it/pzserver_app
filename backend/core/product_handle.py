@@ -1,5 +1,6 @@
 import abc
 import csv
+from collections import OrderedDict
 from pathlib import Path
 from typing import List
 
@@ -171,13 +172,19 @@ class TableIOHandle(BaseHandle):
         super().__init__(filepath)
 
     def to_df(self, **kwargs) -> pd.DataFrame:
-        # TODO: Tratar arquivos com mais de uma tabela.
-
         # Le o arquivo utilizando o metodo read da tables_io
         # O retorno é um astropy table.
-        tb_ap = tables_io.read(self.filepath)
+        df = tables_io.read(self.filepath, tables_io.types.AP_TABLE)
+
+        # TODO: Tratar arquivos com mais de uma tabela.
+        if isinstance(df, OrderedDict):
+            df = df[list(df.keys())[0]]
+
         # Converte o astropy table para pandas.Dataframe
-        df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
+        try:
+            df = df.to_pandas()
+        except ValueError as _:
+            df = tables_io.read(self.filepath, tables_io.types.PD_DATAFRAME)
 
         return df
 
