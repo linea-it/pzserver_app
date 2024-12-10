@@ -80,7 +80,8 @@ DATASETS_DIR=/datasets
 
 # Saml2 / Satosa Auth
 # URL to login using satosa
-# AUTH_SHIB_URL=${URI}/saml2/login/
+# AUTH_GITHUB_URL=${URI}/saml2/login/?idp=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cDovL2dpdGh1Yi5jb20vbG9naW4vb2F1dGgvYXV0aG9yaXpl&next=/
+# AUTH_CILOGON_URL=${URI}/saml2/login/?idp=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cHM6Ly9kYXRhLmxzc3QuY2xvdWQ=&next=/
 
 # Keys and Certificates
 # SIG_KEY_PEM=

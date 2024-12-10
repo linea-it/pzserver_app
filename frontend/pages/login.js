@@ -11,8 +11,9 @@ import {
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Image from 'next/image'
+import { parseCookies } from 'nookies'
 import PropTypes from 'prop-types'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
 const GitHubButton = styled(Button)(({ theme }) => ({
@@ -24,15 +25,10 @@ const GitHubButton = styled(Button)(({ theme }) => ({
 }))
 
 function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
-  const [isLocalhost, setIsLocalhost] = useState(false)
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
-  useEffect(() => {
-    setIsLocalhost(window.location.hostname === 'localhost')
-  }, [])
 
   const handleSnackbarErrorClose = (_, reason) => {
     if (reason === 'clickaway') return
@@ -111,7 +107,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
             Welcome to PZ Server
           </Typography>
           <Grid container spacing={2} mt={4}>
-            {isLocalhost ? (
+            {!CILogonUrl ? (
               <>
                 <Grid item xs={12}>
                   <TextField
@@ -241,6 +237,37 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
       </Snackbar>
     </Container>
   )
+}
+
+export async function getServerSideProps({ ctx }) {
+  const { 'pzserver.access_token': token } = parseCookies(ctx)
+
+  // A better way to validate this is to have
+  // an endpoint to verify the validity of the token:
+  if (token) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
+  const CILogonLoginUrl = process.env.AUTH_CILOGON_URL
+    ? process.env.AUTH_CILOGON_URL
+    : null
+
+  const GithubLoginUrl = process.env.AUTH_GITHUB_URL
+    ? process.env.AUTH_GITHUB_URL
+    : null
+
+  return {
+    props: {
+      shibLoginUrl: null,
+      CILogonUrl: CILogonLoginUrl,
+      GithubUrl: GithubLoginUrl
+    }
+  }
 }
 
 Login.propTypes = {
