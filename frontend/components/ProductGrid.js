@@ -3,10 +3,10 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
 import EditIcon from '@mui/icons-material/Edit'
 import ShareIcon from '@mui/icons-material/Share'
+import { Box } from '@mui/material'
 import Alert from '@mui/material/Alert'
 import Link from '@mui/material/Link'
 import Snackbar from '@mui/material/Snackbar'
-import { Box } from '@mui/material'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import moment from 'moment'
@@ -101,9 +101,11 @@ export default function ProductGrid(props) {
         flex: 1,
         minWidth: 150,
         renderCell: params => (
-          <Link component="button" onClick={() => handleDownload(params.row)}>
-            {params.value}
-          </Link>
+          <Tooltip title={params.row.description || 'No description available'}>
+            <Link component="button" onClick={() => handleDownload(params.row)}>
+              {params.value}
+            </Link>
+          </Tooltip>
         )
       },
       {
