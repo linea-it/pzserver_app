@@ -83,10 +83,10 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
           }}
         >
           <Image
-            src="https://identity.linea.org.br/eds/images/linea-logo.png"
+            src="/logo_idac.png"
             alt="LIneA Logo"
-            width={120}
-            height={100}
+            width={140}
+            height={130}
           />
           <Image
             src="/vc-rubin.png"
@@ -147,7 +147,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     variant="contained"
                     startIcon={
                       <Image
-                        src="https://identity.linea.org.br/eds/images/cilogon_logo.png"
+                        src="/cilogon_logo.png"
                         alt="CILogon Logo"
                         width={20}
                         height={20}
