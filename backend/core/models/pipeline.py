@@ -10,7 +10,7 @@ class Pipeline(models.Model):
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     system_config = models.JSONField(null=True, blank=True)
-    product_types_accepted= models.ManyToManyField(
+    product_types_accepted=models.ManyToManyField(
         ProductType, related_name="pipelines"
     )
     output_product_type = models.ForeignKey(
