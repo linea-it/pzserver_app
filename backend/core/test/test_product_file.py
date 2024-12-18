@@ -218,6 +218,7 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
                 0
             ],
             "size": self.product_file.file.size,
+            "n_rows": None,
             "extension": os.path.splitext(self.product_file.file.name)[1],
             "created": self.product_file.created.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "updated": self.product_file.updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),

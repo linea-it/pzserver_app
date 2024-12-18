@@ -5,7 +5,6 @@ from core.models import Product, ProductContent, ProductFile
 from core.product_handle import NotTableError, ProductHandle
 from core.serializers import ProductSerializer
 from django.conf import settings
-from rest_framework.reverse import reverse
 
 
 class NonAdminError(ValueError):
@@ -198,9 +197,14 @@ class RegistryProduct:
             product_columns = list()
             try:
                 # Le o arquivo principal e converte para pandas.Dataframe
-                df_product = ProductHandle().df_from_file(self.main_file, nrows=5)
+                df_product = ProductHandle().df_from_file(self.main_file)
+
                 # Lista de Colunas no arquivo.
                 product_columns = df_product.columns.tolist()
+                
+                # Record number of lines of the main product
+                mf.n_rows = len(df_product)
+                mf.save()
             except NotTableError as err:
                 self.log.warning(err)
                 # Acontece com arquivos comprimidos .zip etc.

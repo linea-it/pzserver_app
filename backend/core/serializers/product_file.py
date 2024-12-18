@@ -1,5 +1,5 @@
+from core.models import Product, ProductFile
 from rest_framework import serializers
-from core.models import ProductFile, Product
 
 
 class ProductFileSerializer(serializers.ModelSerializer):
@@ -15,6 +15,7 @@ class ProductFileSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "name",
             "size",
+            "n_rows",
             "extension",
         )
         fields = "__all__"
