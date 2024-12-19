@@ -83,8 +83,8 @@ class ProductContentAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "file", "role",
-                    "type", "size", "extension", "created", "updated")
+    list_display = ("id", "product", "file", "role", "type", "size",
+                    "n_rows", "extension", "created", "updated")
 
     def has_add_permission(self, request):
         return False
