@@ -139,7 +139,15 @@ export default function ProductDetail({ productId, internalName }) {
             lowerName.endsWith('.csv') ||
             lowerName.endsWith('.xls') ||
             lowerName.endsWith('.xlsx') ||
+            lowerName.endsWith('.txt') ||
+            lowerName.endsWith('.fit') ||
+            lowerName.endsWith('.fits') ||
+            lowerName.endsWith('.h5') ||
+            lowerName.endsWith('.hf5') ||
+            lowerName.endsWith('.hdf') ||
+            lowerName.endsWith('.hdf5') ||
             lowerName.endsWith('.pq') ||
+            lowerName.endsWith('.parq') ||
             lowerName.endsWith('.parquet')
           )
         })
