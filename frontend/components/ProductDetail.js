@@ -57,6 +57,7 @@ export default function ProductDetail({ productId, internalName }) {
 
   const [activeTab, setActiveTab] = React.useState(0)
   const [hasHtmlFile, setHasHtmlFile] = React.useState(false)
+  const [isTabular, setIsTabular] = React.useState(false)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -131,6 +132,18 @@ export default function ProductDetail({ productId, internalName }) {
         setHasHtmlFile(hasHtmlFile)
 
         setActiveTab(hasHtmlFile ? 1 : 0)
+
+        const isTabularData = res.results.some(file => {
+          const lowerName = file.name.toLowerCase()
+          return (
+            lowerName.endsWith('.csv') ||
+            lowerName.endsWith('.xls') ||
+            lowerName.endsWith('.xlsx') ||
+            lowerName.endsWith('.pq') ||
+            lowerName.endsWith('.parquet')
+          )
+        })
+        setIsTabular(isTabularData)
 
         setLoading(false)
 
@@ -349,38 +362,42 @@ export default function ProductDetail({ productId, internalName }) {
               </Stack>
             </Paper>
           </Grid>
-          <Grid item xs={12}>
-            <Card elevation={2}>
-              <CardContent>
-                <Tabs
-                  value={activeTab}
-                  onChange={(event, newValue) => setActiveTab(newValue)}
-                >
-                  {hasHtmlFile && <Tab label="Description File" value={1} />}
-                  <Tab label="Table Preview" value={0} />
-                </Tabs>
-                {activeTab === 0 && <ProductDataGrid productId={product.id} />}
-                {activeTab === 1 && hasHtmlFile && (
-                  <div>
-                    {files.map(file => {
-                      if (file.name.toLowerCase().endsWith('.html')) {
-                        return (
-                          <CardMedia
-                            component="iframe"
-                            src={file.file}
-                            height="800"
-                            key={file.id}
-                            sx={{ border: 'none' }}
-                          />
-                        )
-                      }
-                      return null
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+          {isTabular && (
+            <Grid item xs={12}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Tabs
+                    value={activeTab}
+                    onChange={(event, newValue) => setActiveTab(newValue)}
+                  >
+                    {hasHtmlFile && <Tab label="Description File" value={1} />}
+                    <Tab label="Table Preview" value={0} />
+                  </Tabs>
+                  {activeTab === 0 && (
+                    <ProductDataGrid productId={product.id} />
+                  )}
+                  {activeTab === 1 && hasHtmlFile && (
+                    <Box>
+                      {files.map(file => {
+                        if (file.name.toLowerCase().endsWith('.html')) {
+                          return (
+                            <CardMedia
+                              component="iframe"
+                              src={file.file}
+                              height="800"
+                              key={file.id}
+                              sx={{ border: 'none' }}
+                            />
+                          )
+                        }
+                        return null
+                      })}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
         </Grid>
       </Box>
     </React.Fragment>
