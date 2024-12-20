@@ -244,6 +244,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             main_file["type"] = product_file.type
             main_file["extension"] = product_file.extension
             main_file["size"] = product_file.size
+            main_file["n_rows"] = product_file.n_rows
 
             if product_file.extension == ".csv":
                 product_content = FileHandle(product_path)
