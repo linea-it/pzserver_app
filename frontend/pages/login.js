@@ -157,6 +157,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     sx={{
                       backgroundColor: '#283663',
                       color: '#fff',
+                      bottom: 20,
                       '&:hover': {
                         backgroundColor: '#3b4a8c'
                       }
@@ -171,6 +172,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     variant="contained"
                     startIcon={<GitHubIcon />}
                     href={GithubUrl || shibLoginUrl}
+                    sx={{ bottom: 20 }}
                   >
                     Login with GitHub
                   </GitHubButton>
@@ -178,24 +180,6 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
               </>
             )}
           </Grid>
-          <Typography textAlign="center" color="#283661" mt={2}>
-            New user? Register here:{' '}
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSdpPhOpFnb4zS-DwMEgYG-n6RWoBWpxKfRvzUnIr_v5ZSYmaA/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              English
-            </a>{' '}
-            or{' '}
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLScQuUTV7Wc-C10gWNcznorbW5mOQlGkFAXUikd0R7JzsdgSfQ/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Português
-            </a>
-          </Typography>
         </Grid>
         <Typography
           textAlign="center"
