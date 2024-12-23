@@ -157,6 +157,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     sx={{
                       backgroundColor: '#283663',
                       color: '#fff',
+                      bottom: 20,
                       '&:hover': {
                         backgroundColor: '#3b4a8c'
                       }
@@ -171,6 +172,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     variant="contained"
                     startIcon={<GitHubIcon />}
                     href={GithubUrl || shibLoginUrl}
+                    sx={{ bottom: 20 }}
                   >
                     Login with GitHub
                   </GitHubButton>
