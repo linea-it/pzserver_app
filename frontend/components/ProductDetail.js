@@ -275,7 +275,10 @@ export default function ProductDetail({ productId, internalName }) {
           >
             <ArrowBackIosIcon
               onClick={() => {
-                router.push('/user_products')
+                const returnPath = product.official_product
+                  ? '/oficial_products'
+                  : '/user_products'
+                router.push(returnPath)
               }}
               color="primary"
               cursor="pointer"
