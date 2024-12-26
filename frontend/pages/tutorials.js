@@ -51,7 +51,7 @@ export default function Tutorials() {
                   the <strong>&quot;User-generated Data Products&quot;</strong>{' '}
                   page and fill in the Upload Form with relevant metadata.
                 </p>
-	      </Typography>
+              </Typography>
               <Typography variant="h6">Data Products</Typography>
               <Divider />
               <Typography variant="body1" component="span">
@@ -70,16 +70,15 @@ export default function Tutorials() {
                     errors, and spectroscopic (or true) redshifts.
                   </li>
                   <li>
-                    <strong>Training Results</strong>: Results of a
-                    photo-z training procedure (free format). Usually a pickle 
-                    file created by RAIL Inform submodule.
+                    <strong>Training Results</strong>: Results of a photo-z
+                    training procedure (free format). Usually a pickle file
+                    created by RAIL Inform submodule.
                   </li>
                   <li>
-                    <strong>Validation Results</strong>: Results of a
-                    photo-z validation procedure (free format). Usually contains
-                    photo-z estimates (single estimates and/or pdf) of a
-                    validation set, photo-z validation metrics, validation
-                    plots, etc.
+                    <strong>Validation Results</strong>: Results of a photo-z
+                    validation procedure (free format). Usually contains photo-z
+                    estimates (single estimates and/or pdf) of a validation set,
+                    photo-z validation metrics, validation plots, etc.
                   </li>
                   <li>
                     <strong>Photo-z Table</strong>: Results of a photo-z
@@ -97,9 +96,9 @@ export default function Tutorials() {
               <Typography variant="body1" component="span">
                 <p>
                   The registered data products can also be accessed directly
-                  from Python code using the PZ Server&apos;s library.
-                  The internal documentation of the API functions is available
-                  on the{' '}
+                  from Python code using the PZ Server&apos;s library. The
+                  internal documentation of the API functions is available on
+                  the{' '}
                   <Link
                     href="https://linea-it.github.io/pzserver"
                     target="_blank"
@@ -108,7 +107,7 @@ export default function Tutorials() {
                     API&apos;s documentation page
                   </Link>
                   .
-		</p>
+                </p>
                 <p>
                   <strong>Instalation via pip</strong>
                 </p>
