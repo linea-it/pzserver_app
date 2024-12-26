@@ -51,6 +51,10 @@ export default function Tutorials() {
                   the <strong>&quot;User-generated Data Products&quot;</strong>{' '}
                   page and fill in the Upload Form with relevant metadata.
                 </p>
+	      </Typography>
+              <Typography variant="h6">Data Products</Typography>
+              <Divider />
+              <Typography variant="body1" component="span">
                 <p>
                   The photo-z-related products are organized into four
                   categories (product types):
@@ -63,10 +67,15 @@ export default function Tutorials() {
                   <li>
                     <strong>Training Set</strong>: Training set for photo-z
                     algorithms (tabular data). It usually contains magnitudes,
-                    errors, and true redshifts.
+                    errors, and spectroscopic (or true) redshifts.
                   </li>
                   <li>
-                    <strong>Photo-z Validation Results</strong>: Results of a
+                    <strong>Training Results</strong>: Results of a
+                    photo-z training procedure (free format). Usually a pickle 
+                    file created by RAIL Inform submodule.
+                  </li>
+                  <li>
+                    <strong>Validation Results</strong>: Results of a
                     photo-z validation procedure (free format). Usually contains
                     photo-z estimates (single estimates and/or pdf) of a
                     validation set, photo-z validation metrics, validation
@@ -88,7 +97,7 @@ export default function Tutorials() {
               <Typography variant="body1" component="span">
                 <p>
                   The registered data products can also be accessed directly
-                  from Python code using the PZ Server&apos;s data access API.
+                  from Python code using the PZ Server&apos;s library.
                   The internal documentation of the API functions is available
                   on the{' '}
                   <Link
@@ -98,16 +107,8 @@ export default function Tutorials() {
                   >
                     API&apos;s documentation page
                   </Link>
-                  . There, a{' '}
-                  <Link
-                    href="https://linea-it.github.io/pzserver/notebooks/intro_notebook.html"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Jupyter Notebook{' '}
-                  </Link>
-                  with instructions and use-case examples can be found.
-                </p>
+                  .
+		</p>
                 <p>
                   <strong>Instalation via pip</strong>
                 </p>
@@ -119,19 +120,6 @@ export default function Tutorials() {
                 <pre className={classes.codeBlock}>
                   <code>$ pip install pzserver </code>
                 </pre>
-                <p>
-                  <strong>Repository clone</strong>
-                </p>
-                <p>Alternatively, if you have cloned the repository with:</p>
-                <pre className={classes.codeBlock}>
-                  <code>
-                    $ git clone https://github.com/linea-it/pzserver.git
-                  </code>
-                </pre>
-                <p>To install the API and its dependencies, type:</p>
-                <pre className={classes.codeBlock}>
-                  <code>$ python setup.py install</code>
-                </pre>
                 <p></p>
               </Typography>
               <Typography variant="h6">Tutorial notebook</Typography>
@@ -141,7 +129,7 @@ export default function Tutorials() {
                   The executable file with the notebook tutorial is available in
                   the{' '}
                   <Link
-                    href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/intro_notebook.ipynb"
+                    href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/pzserver_tutorial.ipynb"
                     target="_blank"
                     rel="noreferrer"
                   >
