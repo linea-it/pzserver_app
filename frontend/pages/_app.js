@@ -1,17 +1,19 @@
+import Box from '@mui/material/Box'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
-import Box from '@mui/material/Box'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import AlertEnvironment from '../components/AlertEnvironment'
 import Footer from '../components/Footer'
-import { AuthProvider } from '../contexts/AuthContext'
-import lightTheme from '../themes/light'
-import darkTheme from '../themes/dark'
-import '../styles/global.css'
 import Header from '../components/Header'
+import { AuthProvider } from '../contexts/AuthContext'
+import { whichEnvironment } from '../services/api'
+import '../styles/global.css'
+import darkTheme from '../themes/dark'
+import lightTheme from '../themes/light'
 
 const queryClient = new QueryClient()
 
@@ -20,6 +22,17 @@ export default function MyApp(props) {
   const route = useRouter()
   const [darkMode, setDarkMode] = useState(false)
   const [scrollNeeded, setScrollNeeded] = useState(false)
+  const [isDev, setIsDev] = useState(false)
+
+  useEffect(() => {
+    whichEnvironment()
+      .then(res => {
+        setIsDev(res.is_dev)
+      })
+      .catch(() => {
+        // TODO: Aviso de erro
+      })
+  }, [])
 
   useEffect(() => {
     const jssStyles = document.querySelector('#jss-server-side')
@@ -76,6 +89,7 @@ export default function MyApp(props) {
                   route={route}
                 />
               )}
+              {isDev && <AlertEnvironment />}
               <Component {...pageProps} />
               {route.pathname !== '/login' && <Footer />}
             </AuthProvider>
