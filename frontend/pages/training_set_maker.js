@@ -10,6 +10,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
@@ -56,6 +57,7 @@ function TrainingSetMaker() {
     }
   })
   const [data, setData] = useState(initialData)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -178,6 +180,17 @@ function TrainingSetMaker() {
     setIsSubmitting(false)
   }
 
+  const handleInputValue = event => {
+    const { name, value } = event.target
+    setData(prevData => ({
+      ...prevData,
+      param: {
+        ...prevData.param,
+        [name]: value
+      }
+    }))
+  }
+
   const styles = {
     root: {
       transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
@@ -245,9 +258,33 @@ function TrainingSetMaker() {
           </Grid>
 
           <Grid item xs={12}>
+            <Typography variant="body1" mr={'16px'} mb={1}>
+              2. Description (optional):
+            </Typography>
+            <FormControl sx={{ width: '60%' }}>
+              <TextField
+                name="description"
+                label="Description"
+                multiline
+                minRows={3}
+                value={data.param.description}
+                onChange={handleInputValue}
+                onBlur={handleInputValue}
+                error={!!fieldErrors.description}
+                helperText={fieldErrors.description}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: 'auto'
+                  }
+                }}
+              />
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
-                2. Select the Spec-z Catalog for the cross-matching:
+                3. Select the Spec-z Catalog for the cross-matching:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
@@ -266,7 +303,7 @@ function TrainingSetMaker() {
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              3. Select the Objects catalog (photometric data):
+              4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
                 onChange={event => setSelectedLsstCatalog(event.target.value)}
@@ -283,7 +320,7 @@ function TrainingSetMaker() {
 
           <Grid item xs={12} mt={3}>
             <Typography variant="body1">
-              4. Select the cross-matching configuration choices:
+              5. Select the cross-matching configuration choices:
             </Typography>
             <Grid item xs={12} mt={2}>
               <Box display="flex" alignItems="center" ml={4}>
