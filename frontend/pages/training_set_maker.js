@@ -57,7 +57,7 @@ function TrainingSetMaker() {
     }
   })
   const [data, setData] = useState(initialData)
-  const [fieldErrors, setFieldErrors] = useState({})
+  const [fieldErrors] = useState({})
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -155,6 +155,7 @@ function TrainingSetMaker() {
           }
         },
         release: releaseId,
+        description: data.param.description,
         inputs: [selectedProductId]
       }
 

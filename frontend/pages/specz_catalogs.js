@@ -1,40 +1,68 @@
-import React, { useState } from 'react'
 import InfoIcon from '@mui/icons-material/Info'
+import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
+import { useRouter } from 'next/router'
 import SnackbarContent from '@mui/material/SnackbarContent'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
+import React, { useEffect, useState } from 'react'
 import SearchField from '../components/SearchField'
 import SpeczData from '../components/SpeczData'
+import { getPipelineByName } from '../services/pipeline'
+import { submitProcess } from '../services/process'
 
 function SpeczCatalogs() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
+  const router = useRouter()
   const filters = useState()
   const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [openDialog, setOpenDialog] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarColor, setSnackbarColor] = useState('')
   const [initialData, setInitialData] = useState({
     param: {
-      crossmatch: {
-        output_catalog_name: 'tsm_cross_001'
-      },
-      description: ''
+      debug: true
     }
   })
   const [data, setData] = useState(initialData)
-  const [fieldErrors, setFieldErrors] = useState({})
+  const [fieldErrors] = useState({})
+  const [selectedProducts, setSelectedProducts] = useState([])
+
+  useEffect(() => {
+    const fetchPipelineData = async () => {
+      try {
+        const response = await getPipelineByName({ name: 'combine_specz' })
+        const pipelineData = response.data.results[0]
+
+        setInitialData(pipelineData)
+        setData(pipelineData.system_config)
+      } catch (error) {
+        console.error('Error fetching pipeline data from API', error)
+      }
+    }
+    fetchPipelineData()
+  }, [])
 
   const handleCatalogNameChange = event => {
     setCombinedCatalogName(event.target.value)
@@ -42,6 +70,12 @@ function SpeczCatalogs() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
+    setSelectedProducts([])
+  }
+
+  const handleDialogClose = () => {
+    setOpenDialog(false)
+    router.push('/user_products')
   }
 
   const handleRun = async () => {
@@ -49,10 +83,19 @@ function SpeczCatalogs() {
 
     if (combinedCatalogName.trim() === '') {
       setSnackbarMessage(
-        'Your process has not been submitted. Please fill in the training set name.'
+        'Your process has not been submitted. Please fill in the combine spec-z name.'
       )
       setSnackbarColor(theme.palette.warning.main)
       setSnackbarOpen(true)
+      setIsSubmitting(false)
+      return
+    }
+
+    if (selectedProducts.length < 2) {
+      setSnackbarMessage('Please select at least 2 products.')
+      setSnackbarColor(theme.palette.warning.main)
+      setSnackbarOpen(true)
+      setIsSubmitting(false)
       return
     }
 
@@ -65,33 +108,19 @@ function SpeczCatalogs() {
     try {
       const pipelineId = initialData.id
 
-      const selectedRelease = releases.find(
-        release => release.name === selectedLsstCatalog
-      )
-      const releaseId = selectedRelease ? selectedRelease.id : null
-
-      if (!releaseId) {
-        setSnackbarMessage('No valid release selected.')
-        setSnackbarColor(theme.palette.error.main)
-        setSnackbarOpen(true)
-        return
-      }
-
       // Create the JSON object
       const processData = {
         display_name: sanitizedCatalogName,
         pipeline: pipelineId,
         used_config: {
           param: {
-            crossmatch: {
-              output_catalog_name: sanitizedCatalogName
-            },
-            description: ''
+            debug: true
           }
         },
-        release: releaseId,
-        inputs: [selectedProductId]
+        description: data.param.description,
+        inputs: selectedProducts.map(product => product.id)
       }
+      console.log('Process data:', processData)
 
       // tentativa de envio do json via POST
       setIsLoading(true)
@@ -126,6 +155,10 @@ function SpeczCatalogs() {
     }))
   }
 
+  const handleProductSelection = selectedProducts => {
+    setSelectedProducts(selectedProducts)
+  }
+
   const styles = {
     root: {
       transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
@@ -154,7 +187,7 @@ function SpeczCatalogs() {
               <IconButton
                 color="primary"
                 aria-label="info"
-                title="Creates a single spec-z sample from the multiple spatial cross-matching (all-to-all) of a list of pre-registered individual Spec-z Catalogs."
+                title="Creates a single spec-z sample from the concatenation of multiple pre-registered individual Spec-z Catalogs."
               >
                 <InfoIcon />
               </IconButton>
@@ -174,7 +207,7 @@ function SpeczCatalogs() {
               <IconButton
                 color="primary"
                 aria-label="info"
-                title="the product name of the training set that will result from the process and be automatically registered as a new product on the PZ Server."
+                title="the product name of the spec-z catalog that will result from the process and be automatically registered as a new product on the PZ Server."
               >
                 <InfoIcon />
               </IconButton>
@@ -214,7 +247,11 @@ function SpeczCatalogs() {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <SpeczData query={search} filters={filters} />
+                <SpeczData
+                  query={search}
+                  filters={filters}
+                  onSelectionChange={handleProductSelection}
+                />
               </CardContent>
             </Card>
           </Grid>
@@ -234,13 +271,34 @@ function SpeczCatalogs() {
             </Box>
           </Grid>
         </Grid>
+        <Backdrop
+          sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        <Dialog open={openDialog} onClose={handleDialogClose}>
+          <DialogContent>
+            <DialogContentText>
+              Your process has been submitted successfully.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDialogClose} autoFocus>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           open={snackbarOpen}
-          autoHideDuration={6000}
           onClose={handleSnackbarClose}
         >
           <SnackbarContent
-            message={`Your process has been submitted successfully. The combined spec-z catalog will be registered soon as: ${combinedCatalogName}`}
+            message={snackbarMessage}
+            style={{ backgroundColor: snackbarColor }}
           />
         </Snackbar>
       </CardContent>

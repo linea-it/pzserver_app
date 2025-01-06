@@ -88,8 +88,6 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
           onPageChange={newPage => setPage(newPage)}
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
           rowsPerPageOptions={[10]}
-          disableColumnMenu
-          disableColumnSelector
           loading={isLoading}
           localeText={{
             noRowsLabel: isLoading ? 'Loading...' : 'No products found'
