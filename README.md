@@ -69,7 +69,7 @@ Creating pzserver_backend_run ... done
 6klbHhaeA6J2imKt9AVVgS5yl9mCWoiQqrfUV469DLA
 ```
 
-Copy the generated key and replace the `SECRET` variable value in the `.env` file.
+Copy the generated key and replace the `SECRET_KEY` variable value in the `.env` file.
 
 Create the Django superuser.
 
@@ -395,9 +395,9 @@ docker compose up backend
 Shutdown the backend service and change the Django variables.
 Edit the `.env` file
 
-In production it is **MANDATORY** to turn off Debug `DEBUG=0`. and change the `SECRET` variable which must be unique for each environment.
+In production it is **MANDATORY** to turn off Debug `DEBUG=0`. and change the `SECRET_KEY` variable which must be unique for each environment.
 
-With the service turned off, run the command below to generate a SECRET, copy and paste it into the `.env`
+With the service turned off, run the command below to generate a SECRET_KEY, copy and paste it into the `.env`
 
 ```bash
 docker compose run backend python -c "import secrets; print(secrets.token_urlsafe())"
