@@ -169,6 +169,9 @@ cd /pipelines
 
 Exit the container and start orchestration services:
 ``` bash
+exit
+```
+```
 docker compose up orchestrator
 ```
 
