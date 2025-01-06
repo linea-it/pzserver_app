@@ -9,7 +9,7 @@ import { getProductsSpecz } from '../services/product'
 const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
-  const [setSelectedRows] = React.useState([])
+  const [selectedRows, setSelectedRows] = React.useState([])
 
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
@@ -28,10 +28,8 @@ const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
     }
   )
 
-  const handleSelectionChange = selection => {
-    const selectedProducts = selection.map(id =>
-      data.results.find(product => product.id === id)
-    )
+  const handleSelectionChange = (selection) => {
+    const selectedProducts = selection.map((id) => data?.results?.find((product) => product.id === id) || {})
     setSelectedRows(selectedProducts)
     onSelectionChange(selectedProducts)
   }
@@ -79,7 +77,7 @@ const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
         onPageSizeChange={newPageSize => setPageSize(newPageSize)}
         rowsPerPageOptions={[10]}
         loading={isLoading}
-        onSelectionModelChange={handleSelectionChange}
+        onSelectionModelChange={(newSelection) => handleSelectionChange(newSelection)}
         localeText={{
           noRowsLabel: isLoading ? 'Loading...' : 'No products found'
         }}
@@ -97,7 +95,7 @@ DataTableWrapper.propTypes = {
 DataTableWrapper.defaultProps = {
   filters: {},
   query: '',
-  onSelectionChange: () => {}
+  onSelectionChange: () => { }
 }
 
 export default DataTableWrapper

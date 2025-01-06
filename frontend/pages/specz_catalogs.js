@@ -35,19 +35,20 @@ function SpeczCatalogs() {
   const router = useRouter()
   const filters = useState()
   const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [openDialog, setOpenDialog] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
   const [initialData, setInitialData] = useState({
     param: {
-      debug: true
-    }
+      debug: true,
+    },
   })
   const [data, setData] = useState(initialData)
-  const [fieldErrors] = useState({})
+  const [fieldErrors, setFieldErrors] = useState({})
   const [selectedProducts, setSelectedProducts] = useState([])
+
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -64,7 +65,7 @@ function SpeczCatalogs() {
     fetchPipelineData()
   }, [])
 
-  const handleCatalogNameChange = event => {
+  const handleCatalogNameChange = (event) => {
     setCombinedCatalogName(event.target.value)
   }
 
@@ -82,9 +83,7 @@ function SpeczCatalogs() {
     setIsSubmitting(true)
 
     if (combinedCatalogName.trim() === '') {
-      setSnackbarMessage(
-        'Your process has not been submitted. Please fill in the combine spec-z name.'
-      )
+      setSnackbarMessage('Your process has not been submitted. Please fill in the combine spec-z name.')
       setSnackbarColor(theme.palette.warning.main)
       setSnackbarOpen(true)
       setIsSubmitting(false)
@@ -114,11 +113,11 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            debug: true
-          }
+            debug: true,
+          },
         },
         description: data.param.description,
-        inputs: selectedProducts.map(product => product.id)
+        inputs: selectedProducts.map((product) => product.id),
       }
       console.log('Process data:', processData)
 
@@ -144,18 +143,18 @@ function SpeczCatalogs() {
     setIsSubmitting(false)
   }
 
-  const handleInputValue = event => {
+  const handleInputValue = (event) => {
     const { name, value } = event.target
-    setData(prevData => ({
+    setData((prevData) => ({
       ...prevData,
       param: {
         ...prevData.param,
-        [name]: value
-      }
+        [name]: value,
+      },
     }))
   }
 
-  const handleProductSelection = selectedProducts => {
+  const handleProductSelection = (selectedProducts) => {
     setSelectedProducts(selectedProducts)
   }
 
@@ -164,8 +163,8 @@ function SpeczCatalogs() {
       transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
       borderRadius: '4px',
       padding: theme.spacing(3),
-      flex: '1 1 0%'
-    }
+      flex: '1 1 0%',
+    },
   }
 
   return (
@@ -230,8 +229,8 @@ function SpeczCatalogs() {
                 helperText={fieldErrors.description}
                 sx={{
                   '& .MuiInputBase-root': {
-                    height: 'auto'
-                  }
+                    height: 'auto',
+                  },
                 }}
               />
             </FormControl>
@@ -241,17 +240,13 @@ function SpeczCatalogs() {
               <Typography variant="body1" mb={1}>
                 3. Select the Spec-z Catalogs to include in your sample:
               </Typography>
-              <SearchField onChange={query => setSearch(query)} />
+              <SearchField onChange={(query) => setSearch(query)} />
             </Box>
           </Grid>
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <SpeczData
-                  query={search}
-                  filters={filters}
-                  onSelectionChange={handleProductSelection}
-                />
+                <SpeczData query={search} filters={filters} onSelectionChange={handleProductSelection} />
               </CardContent>
             </Card>
           </Grid>
@@ -272,7 +267,7 @@ function SpeczCatalogs() {
           </Grid>
         </Grid>
         <Backdrop
-          sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+          sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
           open={isLoading}
         >
           <CircularProgress color="inherit" />
