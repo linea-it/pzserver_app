@@ -8,7 +8,7 @@ import { refreshToken } from './auth'
 // Outro Exemplo de Refresh Token Usando Hook: https://dev.to/arianhamdi/react-hooks-in-axios-interceptors-3e1h
 
 export function whichEnvironment() {
-  return api.get('/which_environment').then((res) => {
+  return api.get('/api/which_environment/').then((res) => {
     const result = res.data
     return result
   })

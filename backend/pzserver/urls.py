@@ -18,7 +18,7 @@ from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
                         OrchestrationInfoView, OrchestrationPipelinesView,
                         PipelineViewSet, ProcessViewSet, ProductContentViewSet,
                         ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
-                        ProductSpeczViewSet, ReleaseViewSet, UserViewSet)
+                        ProductSpeczViewSet, ReleaseViewSet, UserViewSet, which_environment)
 from django.conf import settings
 
 from django.contrib import admin
@@ -46,6 +46,7 @@ from rest_framework.authtoken import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(route.urls)),
+    path("api/which_environment/", which_environment),
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),

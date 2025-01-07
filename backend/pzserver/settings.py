@@ -28,6 +28,7 @@ LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+ENVIRONMENT_NAME = os.getenv("DJANGO_ENVIRONMENT_NAME", "Development")
 DEBUG = int(os.getenv("DEBUG", "1"))
 
 # Application definition

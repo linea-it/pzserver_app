@@ -10,10 +10,24 @@ from core.views.release import ReleaseViewSet
 from core.views.user import (CsrfToOauth, GetToken, LoggedUserView, Logout,
                              UserViewSet)
 from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def which_environment(request):
+
+    if request.method == "GET":
+        env_name = settings.ENVIRONMENT_NAME
+
+        dev_env = ["Development", "development", "dev", "Staging", "Homolog"]
+        is_dev = True if env_name in dev_env else False
+        result = {"enviroment_name": settings.ENVIRONMENT_NAME, "is_dev": is_dev}
+        return Response(result)
 
 class OrchestrationInfoView(APIView):
 

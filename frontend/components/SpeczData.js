@@ -5,11 +5,17 @@ import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
 import { getProductsSpecz } from '../services/product'
+import { useEffect } from 'react'
 
-const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
+const DataTableWrapper = ({
+  filters,
+  query,
+  onSelectionChange,
+  clearSelection
+}) => {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
-  const setSelectedRows = React.useState([])[1]
+  const [selectedRows, setSelectedRows] = React.useState([])
 
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
@@ -35,6 +41,12 @@ const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
     setSelectedRows(selectedProducts)
     onSelectionChange(selectedProducts)
   }
+
+  useEffect(() => {
+    if (clearSelection) {
+      setSelectedRows([])
+    }
+  }, [clearSelection])
 
   const columns = [
     {
@@ -85,6 +97,7 @@ const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
         localeText={{
           noRowsLabel: isLoading ? 'Loading...' : 'No products found'
         }}
+        selectionModel={selectedRows.map(row => row.id)}
       />
     </Box>
   )
@@ -93,13 +106,15 @@ const DataTableWrapper = ({ filters, query, onSelectionChange }) => {
 DataTableWrapper.propTypes = {
   filters: PropTypes.object,
   query: PropTypes.string,
-  onSelectionChange: PropTypes.func
+  onSelectionChange: PropTypes.func,
+  clearSelection: PropTypes.bool
 }
 
 DataTableWrapper.defaultProps = {
   filters: {},
   query: '',
-  onSelectionChange: () => {}
+  onSelectionChange: () => {},
+  clearSelection: false
 }
 
 export default DataTableWrapper
