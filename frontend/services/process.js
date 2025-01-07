@@ -11,6 +11,9 @@ export const submitProcess = (processData) => {
         })
         .catch(error => {
             console.error('Error response:', error.response || error.message)
+            if (error.response) {
+                console.error('Error details:', error.response.data)
+            }
             throw error
         })
 }

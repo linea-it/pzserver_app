@@ -69,6 +69,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
+        logger.debug(f"Create process: {request.data}")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
