@@ -17,7 +17,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.conf.beat_schedule = {
     "check-processes": {
         "task": "core.tasks.check_processes",
-        "schedule": 60.0,
+        "schedule": 10.0,
     },
 }
 app.conf.timezone = "UTC"

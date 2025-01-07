@@ -68,6 +68,10 @@ function SpeczCatalogs() {
     setCombinedCatalogName('')
     setSelectedProducts([])
   }
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+    setIsSubmitting(false)
+  }
 
   const handleDialogClose = () => {
     setOpenDialog(false)
@@ -132,11 +136,6 @@ function SpeczCatalogs() {
       setIsSubmitting(false)
       setIsLoading(false)
     }
-  }
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false)
-    setIsSubmitting(false)
   }
 
   const handleInputValue = event => {
@@ -252,6 +251,7 @@ function SpeczCatalogs() {
                   query={search}
                   filters={filters}
                   onSelectionChange={handleProductSelection}
+                  clearSelection={selectedProducts.length === 0}
                 />
               </CardContent>
             </Card>

@@ -10,6 +10,8 @@ POSTGRES_DB=pzdev
 # export GROUPID=1000      # gid
 # export USERNAME=pzapp    # container user
 
+DJANGO_ENVIRONMENT_NAME=Development
+
 # Backend/Django
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
