@@ -45,8 +45,8 @@ from rest_framework.authtoken import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("which_environment/", which_environment),
     path("api/", include(route.urls)),
-    path("api/which_environment/", which_environment),
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),
