@@ -33,7 +33,7 @@ function SpeczCatalogs() {
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const router = useRouter()
-  const filters = useState()
+  const [filters] = useState({})
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -46,7 +46,7 @@ function SpeczCatalogs() {
     }
   })
   const [data, setData] = useState(initialData)
-  const fieldErrors = useState({})
+  const [fieldErrors] = useState({})
   const [selectedProducts, setSelectedProducts] = useState([])
 
   useEffect(() => {
@@ -68,6 +68,7 @@ function SpeczCatalogs() {
     setCombinedCatalogName('')
     setSelectedProducts([])
   }
+
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
     setIsSubmitting(false)
