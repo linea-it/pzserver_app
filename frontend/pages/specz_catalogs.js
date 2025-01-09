@@ -281,11 +281,12 @@ function SpeczCatalogs() {
 
         <Dialog open={openDialog} onClose={handleDialogClose}>
           <DialogContent>
-            <DialogContentText>
-              Your process has been submitted successfully.
+            <DialogContentText sx={{ textAlign: 'center' }}>
+              Your process has been submitted successfully. <br />
+              The results will appear as a new product on the list soon.
             </DialogContentText>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={{ justifyContent: 'center' }}>
             <Button onClick={handleDialogClose} autoFocus>
               OK
             </Button>
