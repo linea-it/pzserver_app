@@ -10,6 +10,7 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { deleteProduct } from '../services/product'
 export default function ProductRemove({
   recordId,
+  productName,
   onRemoveSuccess,
   onClose,
   onError
@@ -37,7 +38,7 @@ export default function ProductRemove({
       <DialogTitle>{'Delete this Product?'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {'Are you sure you want to delete this record?'}
+          {`Are you sure you want to delete the product "${productName}"?`}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
@@ -56,6 +57,7 @@ export default function ProductRemove({
 
 ProductRemove.propTypes = {
   recordId: PropTypes.number,
+  productName: PropTypes.string,
   onRemoveSuccess: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   onError: PropTypes.func.isRequired
