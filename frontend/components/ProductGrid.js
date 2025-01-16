@@ -28,7 +28,7 @@ export default function ProductGrid(props) {
     { field: 'created_at', sort: 'desc' }
   ])
   const [loading, setLoading] = React.useState(false)
-  const [delRecordId, setDelRecordId] = React.useState(null)
+  const [delRecord, setDelRecord] = React.useState(null)
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
   const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
   const [snackbarOpen, setSnackbarOpen] = React.useState(false)
@@ -77,7 +77,7 @@ export default function ProductGrid(props) {
     }
 
     const handleDelete = row => {
-      setDelRecordId(row.id)
+      setDelRecord(row)
     }
 
     const handleShare = row => {
@@ -223,6 +223,14 @@ export default function ProductGrid(props) {
         loading={loading}
         autoHeight
         hideFooterSelectedRowCount
+        getRowClassName={params =>
+          params.id === delRecord?.id ? 'highlight-row' : ''
+        }
+        sx={{
+          '& .highlight-row': {
+            backgroundColor: '#ffe6e6 !important'
+          }
+        }}
       />
 
       <ProductShare
@@ -232,11 +240,12 @@ export default function ProductGrid(props) {
         setParentSnackbarOpen={setCopySnackbarOpen}
         productShareRef={productShareRef}
       />
-      {delRecordId && (
+      {delRecord && (
         <ProductRemove
-          open={Boolean(delRecordId)}
-          onClose={() => setDelRecordId(null)}
-          recordId={delRecordId}
+          open={Boolean(delRecord)}
+          onClose={() => setDelRecord(null)}
+          recordId={delRecord.id}
+          productName={delRecord.display_name}
           onRemoveSuccess={loadProducts}
           onError={handleError}
         />
