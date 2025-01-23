@@ -20,13 +20,17 @@ class ProductSerializer(serializers.ModelSerializer):
 
     is_owner = serializers.SerializerMethodField()
 
+    origin = serializers.SerializerMethodField()
+
+    process_status = serializers.SerializerMethodField()
+
     can_delete = serializers.SerializerMethodField()
 
     can_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        read_only_fields = ("internal_name", "is_owner")
+        read_only_fields = ("internal_name", "is_owner", "origin", "process_status")
         exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
@@ -47,6 +51,12 @@ class ProductSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
+
+    def get_origin(self, obj):
+        return obj.upload.pipeline.display_name if hasattr(obj, 'upload') else "Upload"
+    
+    def get_process_status(self, obj):
+        return obj.upload.status if hasattr(obj, 'upload') else None
 
     def get_can_delete(self, obj):
         current_user = self.context["request"].user

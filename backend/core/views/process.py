@@ -3,7 +3,7 @@ import logging
 import pathlib
 
 from core.maestro import Maestro
-from core.models import Pipeline, Process
+from core.models import Pipeline, Process, ProductStatus
 from core.product_steps import CreateProduct
 from core.serializers import ProcessSerializer
 from core.utils import format_query_to_char
@@ -187,7 +187,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
         return serializer.save(user=owned_by, upload=upload)
 
     def create_initial_upload(self, serializer, user):
-        """_summary_"""
+        """ Creates the upload with initial data before starting processing. """
+
         data = serializer.initial_data
         pipeline = Pipeline.objects.get(pk=data.get("pipeline"))
         upload_data = {
@@ -204,6 +205,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
         if not check_prodtype.get("success"):
             raise ValueError(check_prodtype.get("message"))
 
+        product.status = ProductStatus.PROCESSING  # type: ignore
         product.save()
         return product.data
 
