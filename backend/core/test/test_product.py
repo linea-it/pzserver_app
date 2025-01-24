@@ -288,6 +288,8 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "product_type_name": self.product_type.display_name,
             "uploaded_by": self.user.username,
             "is_owner": True,
+            "origin": "Upload",
+            "process_status": None,
             "can_delete": True,
             "can_update": True,
             "internal_name": self.product.internal_name,
