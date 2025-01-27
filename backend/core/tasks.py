@@ -23,7 +23,7 @@ def check_processes():
         bool: True, if an update was made. False, if no update was made.
     """
     
-    monitoring_statuses = ["Stopping", "Pending", "Running"]
+    monitoring_statuses = ["Stopping", "Pending", "Running", "Queued"]
     logger.info(f"Monitoring the following statuses: {monitoring_statuses}")
 
     processes = Process.objects.filter(status__in=monitoring_statuses)

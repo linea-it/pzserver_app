@@ -1,4 +1,3 @@
-import logging
 import pathlib
 import shutil
 
@@ -7,13 +6,12 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 
-# def upload_product_files(instance, filename):
-#     return f"{instance.product_type.name}/{instance.internal_name}/{filename}"
-
 
 class ProductStatus(models.IntegerChoices):
     REGISTERING = 0, "Registering"
     PUBLISHED = 1, "Published"
+    DELETED = 2, "Deleted"
+    PROCESSING = 3, "Processing"
     FAILED = 9, "Failed"
 
 
@@ -60,12 +58,13 @@ class Product(models.Model):
         product_path = pathlib.Path(settings.MEDIA_ROOT, self.path)
         if product_path.exists():
             # TODO: mover esta exception para uma funcao separada para que possa ser executado o test.
-            # try:
-            shutil.rmtree(product_path)
-            # except OSError as e:
-            # raise OSError("Failed to remove directory: [ %s ] %s" % (product_path, e))
-
-        super().delete(*args, **kwargs)
+            try:
+                shutil.rmtree(product_path)
+            except OSError as e:
+                raise OSError("Failed to remove directory: [ %s ] %s" % (product_path, e))
+        
+            self.status = ProductStatus.DELETED
+            self.save()
 
     def can_delete(self, user) -> bool:
         if self.user.id == user.id or user.profile.is_admin():

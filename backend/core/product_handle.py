@@ -21,10 +21,10 @@ class ProductHandle:
         descritos aqui: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
 
         Args:
-            filepath (PathLike): _description_
+            filepath (PathLike): product filepath
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame
         """
         return FileHandle(filepath).to_df(**kwargs)
 

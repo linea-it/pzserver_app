@@ -18,7 +18,7 @@ class ProductFile(models.Model):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="files")
 
-    file = models.FileField(upload_to=upload_product_files)
+    file = models.FileField(upload_to=upload_product_files, null=True, blank=True)
 
     role = models.IntegerField(
         verbose_name="Role",
@@ -40,8 +40,3 @@ class ProductFile(models.Model):
 
     def __str__(self):
         return f"{self.product.display_name} - {os.path.basename(self.file.name)}"
-
-    def delete(self, *args, **kwargs):
-        if self.file:
-            self.file.delete()
-        super().delete(*args, **kwargs)
