@@ -99,7 +99,7 @@ export default function ProductGrid(props) {
         headerName: 'Name',
         sortable: true,
         flex: 1,
-        minWidth: 150,
+        minWidth: 130,
         renderCell: params => (
           <Tooltip title={params.row.description || 'No description available'}>
             <Link component="button" onClick={() => handleDownload(params.row)}>
@@ -111,27 +111,48 @@ export default function ProductGrid(props) {
       {
         field: 'release_name',
         headerName: 'Release',
-        width: 150,
+        flex: 1,
+        minWidth: 130,
         sortable: false
       },
       {
         field: 'product_type_name',
         headerName: 'Product Type',
         flex: 1,
-        minWidth: 150,
+        minWidth: 130,
         sortable: false
       },
       {
         field: 'uploaded_by',
-        headerName: 'Uploaded By',
+        headerName: 'Owner',
         flex: 1,
-        minWidth: 120,
+        maxWidth: 130,
+        sortable: false
+      },
+      {
+        field: 'product_status',
+        headerName: 'Status',
+        flex: 1,
+        maxWidth: 130,
+        sortable: false,
+        valueFormatter: ({ value }) => {
+          if (value) {
+            return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+          }
+          return value
+        }
+      },
+      {
+        field: 'process_status',
+        headerName: 'Process Status',
+        flex: 1,
+        maxWidth: 130,
         sortable: false
       },
       {
         field: 'created_at',
         headerName: 'Created at',
-        width: 150,
+        width: 130,
         sortable: true,
         valueFormatter: params => {
           if (!params.value) {

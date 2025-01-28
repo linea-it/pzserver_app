@@ -1,4 +1,4 @@
-from core.models import Product, ProductType, Release
+from core.models import Product, ProductStatus, ProductType, Release
 from pkg_resources import require
 from rest_framework import serializers
 
@@ -24,13 +24,15 @@ class ProductSerializer(serializers.ModelSerializer):
 
     process_status = serializers.SerializerMethodField()
 
+    product_status = serializers.SerializerMethodField()
+
     can_delete = serializers.SerializerMethodField()
 
     can_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        read_only_fields = ("internal_name", "is_owner", "origin", "process_status")
+        read_only_fields = ("internal_name", "is_owner", "origin", "process_status", "product_status")
         exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
@@ -57,6 +59,10 @@ class ProductSerializer(serializers.ModelSerializer):
     
     def get_process_status(self, obj):
         return obj.upload.status if hasattr(obj, 'upload') else None
+    
+    def get_product_status(self, obj):
+        pr = ProductStatus(obj.status)
+        return pr.name
 
     def get_can_delete(self, obj):
         current_user = self.context["request"].user
