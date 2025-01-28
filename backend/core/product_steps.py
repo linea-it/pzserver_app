@@ -6,25 +6,27 @@ from core.product_handle import NotTableError, ProductHandle
 from core.serializers import ProductSerializer
 from django.conf import settings
 
+LOGGER = logging.getLogger("products")
+
 
 class NonAdminError(ValueError):
     def __init__(self, message):
-        self.log = logging.getLogger("products")
-        self.log.debug('Debug: %s', message)
+        self.log = LOGGER
+        self.log.debug("Debug: %s", message)
         super().__init__(message)
 
 
 class CreateProduct:
     def __init__(self, data, user):
-        """ Create a product with initial information
+        """Create a product with initial information
 
         Args:
-            data (django.http.request.QueryDict): Initial information coming 
+            data (django.http.request.QueryDict): Initial information coming
                 from an http request
-            user (django.contrib.auth.models.User): User 
+            user (django.contrib.auth.models.User): User
         """
 
-        self.__log = logging.getLogger("products")
+        self.__log = LOGGER
         self.__log.debug(f"Creating product: {data}")
 
         serializer = ProductSerializer(data=data)
@@ -45,7 +47,7 @@ class CreateProduct:
         self.__log.debug(f"Product ID {self.__data.pk} created")
 
     def __check_official_product(self, user):
-        """Checks if the product is official and if the user has permission 
+        """Checks if the product is official and if the user has permission
         to save an official product.
 
         Args:
@@ -67,7 +69,7 @@ class CreateProduct:
                     "Not allowed. Only users with admin permissions "
                     "can create official products."
                 )
-            
+
         return True
 
     @property
@@ -108,22 +110,23 @@ class CreateProduct:
         """Checks product types by applying a certain business rule.
 
         Returns:
-            dict: {'message': {'entity':list(str)}, 'status': bool} 
+            dict: {'message': {'entity':list(str)}, 'status': bool}
         """
 
         if not self.__data:
-            return {"message": {"product": ["No data."]}, "success": False,}
+            return {
+                "message": {"product": ["No data."]},
+                "success": False,
+            }
 
         # Release is not allowed in Spec-z Catalog
-        if (
-            self.__data.release
-            and self.__data.product_type.name == "specz_catalog"
-        ):
+        if self.__data.release and self.__data.product_type.name == "specz_catalog":
             self.__delete()
             return {
-                "message": {"release": [
-                    "Release must be null on Spec-z Catalogs products."
-                ]}, "success": False,
+                "message": {
+                    "release": ["Release must be null on Spec-z Catalogs products."]
+                },
+                "success": False,
             }
 
         # Pzcode is only allowed in Validations Results and Photo-z Table
@@ -136,19 +139,23 @@ class CreateProduct:
             pzc = self.__data.pz_code
             self.__delete()
             return {
-                "message": {"pz_code": [
-                    f"Pz Code must be null on {dn} products. '{pzc}'"
-                ]}, "success": False,
+                "message": {
+                    "pz_code": [f"Pz Code must be null on {dn} products. '{pzc}'"]
+                },
+                "success": False,
             }
-        
-        return {"message": {"product_type": ["Success!"]}, "success": True,}
+
+        return {
+            "message": {"product_type": ["Success!"]},
+            "success": True,
+        }
 
     def __perform_create(self, serializer, user) -> ProductSerializer:
         """Add user"""
 
         uploaded_by = user
         return serializer.save(user=uploaded_by)
-    
+
     def __delete(self):
         """Delete product"""
 
@@ -159,22 +166,15 @@ class CreateProduct:
 
 
 class RegistryProduct:
-    log = None
 
     def __init__(self, product_id):
-        self.log = self.get_log()
+        self.log = LOGGER
         self.main_file = None
 
         self.log.info("----------------------------")
         self.log.info("Product ID: [%s]" % product_id)
         self.product = Product.objects.get(pk=product_id)
         self.log.info("Internal Name: [%s]" % self.product.internal_name)
-
-    def get_log(self):
-        if not self.log:
-            # Get an instance of a logger
-            self.log = logging.getLogger("products")
-        return self.log
 
     def registry(self):
         try:
@@ -188,8 +188,7 @@ class RegistryProduct:
                     "Internal Name Updated to: [%s]" % self.product.internal_name
                 )
 
-            # Recupera informação do arquivo principal
-            # pela tabela productFile
+            # Recupera informação do arquivo principal pela tabela productFile
             mf = self.product.files.get(role=0)
             self.main_file = pathlib.Path(mf.file.path)
             self.log.info("Main File: [%s]" % self.main_file)
@@ -201,7 +200,7 @@ class RegistryProduct:
 
                 # Lista de Colunas no arquivo.
                 product_columns = df_product.columns.tolist()
-                
+
                 # Record number of lines of the main product
                 mf.n_rows = len(df_product)
                 mf.save()
@@ -269,14 +268,14 @@ class RegistryProduct:
             raise Exception(message)
 
     def create_product_file(self, filepath, role=0):
-        """ Create product file
+        """Create product file
 
         Args:
             filepath (str): Product path
         """
 
         _file = pathlib.Path(filepath)
-        
+
         fileobj = ProductFile(
             name=_file.name,
             role=role,
@@ -284,8 +283,7 @@ class RegistryProduct:
             size=_file.stat().st_size,
             file=str(_file),
             product_id=self.product.pk,
-            extension=_file.suffix
+            extension=_file.suffix,
         )
 
         return fileobj.save()
-        

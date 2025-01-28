@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import os
 import pathlib
@@ -7,7 +8,7 @@ import zipfile
 from json import loads
 from pathlib import Path
 
-from core.models import Product
+from core.models import Product, ProductContent, ProductStatus
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
@@ -19,6 +20,8 @@ from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+logger = logging.getLogger("django")
 
 
 class ProductFilter(filters.FilterSet):
@@ -111,11 +114,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
 
-        print("PRODUCT -> ", request.data)
-        print("PRODUCT (type) -> ", type(request.data))
-
-        print("USER -> ", request.user)
-        print("USER (type) -> ", type(request.user))
+        logger.debug("PRODUCT -> %s", request.data)
 
         try:
             product = CreateProduct(request.data, request.user)
@@ -335,3 +334,35 @@ class ProductViewSet(viewsets.ModelViewSet):
             return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)
         else:
             raise exceptions.PermissionDenied()
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data
+
+        check_columns = {"Dec": False, "RA": False, "z": False}
+
+        prodstatus = int(data.get("status", 0))
+        is_spec = instance.product_type.name == "specz_catalog"
+        is_published = ProductStatus(prodstatus).name == "PUBLISHED"
+
+        logger.debug(f"Status: {prodstatus}")
+        logger.debug(f"IsSpec: {is_spec}")
+        logger.debug(f"IsPubl: {is_published}")
+
+        if is_spec and prodstatus and is_published:
+            for prodcont in ProductContent.objects.filter(product=instance.pk):
+                if prodcont.alias in check_columns:
+                    check_columns[prodcont.alias] = True
+
+            for key, value in check_columns.items():
+                if not value:
+                    content = {"message": f"The {key} column was not filled."}
+                    logger.info(f"MESSAGE: {content}")
+                    return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        instance.status = prodstatus
+        instance.save()
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data)
