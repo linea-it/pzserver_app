@@ -1,12 +1,14 @@
 import React from 'react'
 
-import ShareIcon from '@mui/icons-material/Share'
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
-import VerifiedIcon from '@mui/icons-material/Verified'
 import EditIcon from '@mui/icons-material/Edit'
+import ShareIcon from '@mui/icons-material/Share'
+import VerifiedIcon from '@mui/icons-material/Verified'
 
 import LoadingButton from '@mui/lab/LoadingButton'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
@@ -14,6 +16,7 @@ import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
+import Link from '@mui/material/Link'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
@@ -23,16 +26,12 @@ import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import Link from '@mui/material/Link'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
-import Alert from '@mui/material/Alert'
 
 import moment from 'moment'
 import { useRouter } from 'next/router'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import Loading from '../components/Loading'
-import ProductShare from './ProductShare'
 import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
 import {
@@ -42,6 +41,7 @@ import {
   getProducts
 } from '../services/product'
 import useStyles from '../styles/pages/product'
+import ProductShare from './ProductShare'
 export default function ProductDetail({ productId, internalName }) {
   const router = useRouter()
   const classes = useStyles()
@@ -340,7 +340,10 @@ export default function ProductDetail({ productId, internalName }) {
                   {moment(product.created_at).format('L LTS')}
                 </Typography>
                 <Typography variant="subtitle1" color="textSecondary">
-                  <strong>Uploaded by:</strong> {product.uploaded_by}
+                  <strong>Owner:</strong> {product.uploaded_by}
+                </Typography>
+                <Typography variant="subtitle1" color="textSecondary">
+                  <strong>Origin:</strong> {product.origin}
                 </Typography>
               </Stack>
               <Box sx={{ m: 2 }}></Box>
