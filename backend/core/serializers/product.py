@@ -62,7 +62,7 @@ class ProductSerializer(serializers.ModelSerializer):
     
     def get_product_status(self, obj):
         pr = ProductStatus(obj.status)
-        return pr.name
+        return pr.label
 
     def get_can_delete(self, obj):
         current_user = self.context["request"].user

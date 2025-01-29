@@ -134,13 +134,7 @@ export default function ProductGrid(props) {
         headerName: 'Status',
         flex: 1,
         maxWidth: 130,
-        sortable: false,
-        valueFormatter: ({ value }) => {
-          if (value) {
-            return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
-          }
-          return value
-        }
+        sortable: false
       },
       {
         field: 'process_status',

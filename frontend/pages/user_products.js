@@ -2,19 +2,19 @@ import * as React from 'react'
 
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Paper from '@mui/material/Paper'
-import Link from '@mui/material/Link'
-import Stack from '@mui/material/Stack'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
+import Link from '@mui/material/Link'
+import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
 import ProductGrid from '../components/ProductGrid'
@@ -32,7 +32,7 @@ export default function Products() {
     release: '',
     product_type: '',
     official_product: false,
-    status: 1 // Published
+    status__in: '0, 1, 3, 9'
   })
 
   const [errorSnackbar, setErrorSnackbar] = React.useState({

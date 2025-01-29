@@ -57,6 +57,9 @@ def check_processes():
 
         if process_orch_status == "Successful":
             register_outputs(process.pk)
+        elif process_orch_status == "Failed":
+            process.upload.status = 9  # Failed status
+            process.upload.save()
             
         if process_orch_status != process.status:
             process = update_process_info(
