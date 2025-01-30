@@ -5,7 +5,7 @@ import shutil
 from unittest import mock
 
 import pytest
-from core.models import Product, ProductType, Release
+from core.models import Product, ProductStatus, ProductType, Release
 from core.serializers import ProductSerializer
 from core.views import ProductViewSet
 from django.conf import settings
@@ -290,6 +290,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "is_owner": True,
             "origin": "Upload",
             "process_status": None,
+            "product_status": ProductStatus(self.product.status).label,
             "can_delete": True,
             "can_update": True,
             "internal_name": self.product.internal_name,
