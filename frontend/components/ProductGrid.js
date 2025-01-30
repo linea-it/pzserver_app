@@ -101,11 +101,22 @@ export default function ProductGrid(props) {
         flex: 1,
         minWidth: 130,
         renderCell: params => (
-          <Tooltip title={params.row.description || 'No description available'}>
-            <Link component="button" onClick={() => handleDownload(params.row)}>
-              {params.value}
-            </Link>
-          </Tooltip>
+          <>
+            {params.row.product_status !== 'Published' ? (
+              params.value
+            ) : (
+              <Tooltip
+                title={params.row.description || 'No description available'}
+              >
+                <Link
+                  component="button"
+                  onClick={() => handleDownload(params.row)}
+                >
+                  {params.value}
+                </Link>
+              </Tooltip>
+            )}
+          </>
         )
       },
       {
@@ -167,6 +178,7 @@ export default function ProductGrid(props) {
                 <GridActionsCellItem
                   icon={<DownloadIcon />}
                   label="Download"
+                  disabled={params.row.product_status !== 'Published'}
                   onClick={() => handleDownload(params.row)}
                 />
               </Box>
@@ -176,6 +188,7 @@ export default function ProductGrid(props) {
                 <GridActionsCellItem
                   icon={<ShareIcon />}
                   label="Share"
+                  disabled={params.row.product_status !== 'Published'}
                   onClick={() => handleShare(params.row)}
                 />
               </Box>
@@ -192,7 +205,12 @@ export default function ProductGrid(props) {
                   icon={<DeleteIcon />}
                   label="Delete"
                   onClick={() => handleDelete(params.row)}
-                  disabled={!params.row.can_delete}
+                  disabled={
+                    !(
+                      params.row.product_status === 'Published' &&
+                      params.row.can_delete === true
+                    )
+                  }
                 />
               </Box>
             </Tooltip>
@@ -208,7 +226,12 @@ export default function ProductGrid(props) {
                   icon={<EditIcon />}
                   label="Edit"
                   onClick={() => handleEdit(params.row)}
-                  disabled={!params.row.can_update}
+                  disabled={
+                    !(
+                      params.row.product_status === 'Published' &&
+                      params.row.can_update === true
+                    )
+                  }
                 />
               </Box>
             </Tooltip>
