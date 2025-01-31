@@ -38,5 +38,10 @@ class ProductFile(models.Model):
     created = models.DateTimeField(auto_now_add=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def delete(self, *args, **kwargs):
+        if self.file:
+            self.file.delete()
+        super().delete(*args, **kwargs)
+
     def __str__(self):
         return f"{self.product.display_name} - {os.path.basename(self.file.name)}"
