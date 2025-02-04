@@ -6,17 +6,18 @@ from core.product_handle import NotTableError, ProductHandle
 from core.serializers import ProductSerializer
 from django.conf import settings
 
+LOGGER = logging.getLogger("products")
+
 
 class NonAdminError(ValueError):
     def __init__(self, message):
-        self.log = logging.getLogger("products")
-        self.log.debug('Debug: %s', message)
+        LOGGER.debug('Debug: %s', message)
         super().__init__(message)
 
 
 class CreateProduct:
     def __init__(self, data, user):
-        """ Create a product with initial information
+        """Create a product with initial information
 
         Args:
             data (django.http.request.QueryDict): Initial information coming 
@@ -24,25 +25,37 @@ class CreateProduct:
             user (django.contrib.auth.models.User): User 
         """
 
-        self.__log = logging.getLogger("products")
-        self.__log.debug(f"Creating product: {data}")
+        LOGGER.debug(f"Creating product: {data}")
 
         serializer = ProductSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
+        # initializing product in database
         self.__data = self.__perform_create(serializer, user)
+
+        # checks if the product is official and if the user has permission to add it.
         self.__check_official_product(user)
 
     def save(self):
+        """Save product
+
+        Returns:
+            tuple: first position of the tuple reflects the save status, 
+                second position is the final message
+        """
+
+        # checks if the product fits the business rules of the product type.
         can_save = self.check_product_types()
 
         if not can_save.get("success"):
-            return can_save.get("message")
+            return (False, can_save.get("message"))
 
         self.__set_internal_name()
         self.__create_product_path()
 
-        self.__log.debug(f"Product ID {self.__data.pk} created")
+        LOGGER.debug(f"Product ID {self.__data.pk} created")
+
+        return (True, can_save.get("message"))
 
     def __check_official_product(self, user):
         """Checks if the product is official and if the user has permission 
@@ -72,6 +85,7 @@ class CreateProduct:
 
     @property
     def data(self):
+        """Product data"""
         return self.__data
 
     def get(self):
@@ -159,24 +173,22 @@ class CreateProduct:
 
 
 class RegistryProduct:
-    log = None
 
     def __init__(self, product_id):
-        self.log = self.get_log()
         self.main_file = None
 
-        self.log.info("----------------------------")
-        self.log.info("Product ID: [%s]" % product_id)
+        LOGGER.debug("Product ID: [%s]" % product_id)
         self.product = Product.objects.get(pk=product_id)
-        self.log.info("Internal Name: [%s]" % self.product.internal_name)
+        LOGGER.debug("Internal Name: [%s]" % self.product.internal_name)
 
-    def get_log(self):
-        if not self.log:
-            # Get an instance of a logger
-            self.log = logging.getLogger("products")
-        return self.log
 
     def registry(self):
+        """Registry product
+
+        Raises:
+            Exception: NotTableError
+        """
+
         try:
             # Alterar o Internal name
             if self.product.internal_name is None:
@@ -184,7 +196,7 @@ class RegistryProduct:
                     f"{self.product.pk}_{self.product.internal_name}"
                 )
                 self.product.save()
-                self.log.info(
+                LOGGER.debug(
                     "Internal Name Updated to: [%s]" % self.product.internal_name
                 )
 
@@ -192,7 +204,7 @@ class RegistryProduct:
             # pela tabela productFile
             mf = self.product.files.get(role=0)
             self.main_file = pathlib.Path(mf.file.path)
-            self.log.info("Main File: [%s]" % self.main_file)
+            LOGGER.debug("Main File: [%s]" % self.main_file)
 
             product_columns = list()
             try:
@@ -205,8 +217,9 @@ class RegistryProduct:
                 # Record number of lines of the main product
                 mf.n_rows = len(df_product)
                 mf.save()
+                LOGGER.debug(f"Number of rows: {str(mf.n_rows)}")
             except NotTableError as err:
-                self.log.warning(err)
+                LOGGER.warning(err)
                 # Acontece com arquivos comprimidos .zip etc.
                 pass
 
@@ -215,20 +228,23 @@ class RegistryProduct:
             # Para os demais produtos é opicional.
             if self.product.product_type.name == "specz_catalog":
                 if len(product_columns) == 0:
-                    raise Exception(
-                        "It was not possible to identify the product columns. for Spec-z Catalogs this is mandatory. Please check the file format."
-                    )
+                    raise Exception((
+                        "It was not possible to identify the product columns. "
+                        "For Spec-z Catalogs this is mandatory. "
+                        "Please check the file format."
+                    ))
 
             # Registra as colunas do produto no banco de dados.
             # é possivel ter produtos sem nenhum registro de coluna
             # Essa regra será tratada no frontend.
             self.create_product_contents(product_columns)
+            LOGGER.debug("Created product contents.")
 
             # Salva as alterações feitas no model product
             self.product.save()
 
         except Exception as e:
-            self.log.error(e)
+            LOGGER.error(e)
             raise Exception(e)
 
     def create_product_contents(self, columns):
@@ -261,11 +277,11 @@ class RegistryProduct:
                     alias=alias,
                 )
 
-            self.log.info(f"{len(columns)} product contents have been registered")
+            LOGGER.debug(f"{len(columns)} product contents have been registered")
 
         except Exception as e:
             message = f"Failed to register product content. {e}"
-            self.log.error(message)
+            LOGGER.error(message)
             raise Exception(message)
 
     def create_product_file(self, filepath, role=0):
@@ -288,4 +304,3 @@ class RegistryProduct:
         )
 
         return fileobj.save()
-        

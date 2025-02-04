@@ -11,7 +11,7 @@ from core.utils import load_yaml
 from django.conf import settings
 from django.utils import dateparse, timezone
 
-logger = logging.getLogger()
+LOGGER = logging.getLogger()
 
 
 @shared_task()
@@ -24,7 +24,7 @@ def check_processes():
     """
     
     monitoring_statuses = ["Stopping", "Pending", "Running", "Queued"]
-    logger.info(f"Monitoring the following statuses: {monitoring_statuses}")
+    LOGGER.debug(f"Monitoring the following statuses: {monitoring_statuses}")
 
     processes = Process.objects.filter(status__in=monitoring_statuses)
 
@@ -34,20 +34,20 @@ def check_processes():
     maestro = Maestro(settings.ORCHEST_URL)
     
     for process in processes:
-        logger.info(f"Consulting the {process} process status.")
+        LOGGER.debug(f"Consulting the {process} process status.")
         process_orch_id = process.orchestration_process_id  # type: ignore
 
         if not process_orch_id:
             message = f"Process {str(process.pk)} without Orchestration ID."
-            logger.error(message)
+            LOGGER.error(message)
             process = update_process_info(process, "Failed", {})
             continue
 
         process_orch = maestro.status(process_orch_id)
         process_orch_status = process_orch.get("status")  # type: ignore
 
-        logger.debug(f"-> Process orchestration ID: {process_orch_id}")
-        logger.debug(f"-> Status: {process_orch_status}")
+        LOGGER.debug(f"-> Process orchestration ID: {process_orch_id}")
+        LOGGER.debug(f"-> Status: {process_orch_status}")
 
         if process_orch_status == "Running" and process.status == "Pending":
             started_at = process_orch.get("started_at", str(process.created_at))
@@ -64,11 +64,10 @@ def check_processes():
                 process_orch_status=process_orch_status,
                 data=process_orch
             )
-            logger.info(
+            LOGGER.debug(
                 f"{process} has been updated (new status: {process.status})"
             )
 
-    
     return True
 
 
@@ -103,7 +102,7 @@ def register_outputs(process_id):
         process_id (int): process ID
     """
 
-    logger.info(f"[process {process_id}]: starting upload registration...")
+    LOGGER.info(f"[process {process_id}]: starting upload registration...")
 
     file_roles = dict(FileRoles.choices)
     file_roles = {str(v).lower(): k for k, v in file_roles.items()}
@@ -112,7 +111,7 @@ def register_outputs(process_id):
     process_dir = pathlib.Path(settings.PROCESSING_DIR, process.path)
     process_file = process_dir.joinpath("process.yml")
 
-    logger.debug(f"[process {process_id}]: info filepath {process_file}")
+    LOGGER.debug(f"[process {process_id}]: info filepath {process_file}")
 
     reg_product = RegistryProduct(process.upload.pk)
 
@@ -121,7 +120,7 @@ def register_outputs(process_id):
 
     try:
         for output in outputs:
-            logger.debug("-> output: %s", output)
+            LOGGER.debug("-> output: %s", output)
             filepath = output.get("path")
             rolename = output.get("role")
             role_id = file_roles.get(rolename, file_roles.get("description"))
@@ -133,12 +132,12 @@ def register_outputs(process_id):
         process.upload.status = 1  # Published status
         process.upload.save()
         process.save()
-        logger.info(f"[process {process_id}]: registration completed!")
+        LOGGER.info(f"[process {process_id}]: registration completed!")
     except Exception as _:
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.save()
-        logger.exception(f"[process {process_id}]: Failed to upload register!")
+        LOGGER.exception(f"[process {process_id}]: Failed to upload register!")
 
 
 def copy_upload(filepath, upload_dir):
@@ -146,7 +145,3 @@ def copy_upload(filepath, upload_dir):
     new_filepath = pathlib.Path(settings.MEDIA_ROOT, upload_dir, filepath.name)
     shutil.copyfile(str(filepath), str(new_filepath))
     return str(new_filepath)
-
-
-if __name__ == "__main__":
-    register_outputs(5)
