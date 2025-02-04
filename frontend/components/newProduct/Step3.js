@@ -380,8 +380,12 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
       <Typography paragraph variant="body">
-        Please associate the column names of your file with those expected by
-        the tool.
+        Please associate the column names from your file (left) with those
+        expected by the tool (right).
+      </Typography>
+      <Typography paragraph variant="body">
+        The redshift (z) is mandatory for Training Sets, and also, coordinates
+        (RA, Dec) for Spec-z Catalogs.
       </Typography>
       <Typography paragraph variant="body">
         It is okay to leave columns unassociated.
