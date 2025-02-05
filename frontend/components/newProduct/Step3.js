@@ -69,14 +69,14 @@ export function InputReadOnly({ name, value, onClear }) {
         InputProps={
           onClear !== undefined
             ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={onClear}>
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={onClear}>
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
             : null
         }
       />
@@ -193,6 +193,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const [inputsType] = useState([])
   const [productType, setProductType] = useState(null)
   const [isValid, setIsValid] = useState(false)
+  const [isValidTrainingSet, setIsValidTrainingSet] = useState(false)
 
   const loadProductById = useCallback(async () => {
     setLoading(true)
@@ -270,6 +271,11 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   useEffect(() => {
     const checkValid = mandatoryUcds.every(ucd => usedUcds.includes(ucd))
     setIsValid(checkValid)
+  }, [usedUcds])
+
+  useEffect(() => {
+    const checkValidTrainingSet = usedUcds.includes('src.redshift')
+    setIsValidTrainingSet(checkValidTrainingSet)
   }, [usedUcds])
 
   const handleSubmit = () => {
@@ -430,7 +436,10 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           variant="contained"
           color="primary"
           onClick={handleSubmit}
-          disabled={productType === 'Spec-z Catalog' && !isValid}
+          disabled={
+            (productType === 'Spec-z Catalog' && !isValid) ||
+            (productType === 'Training Set' && !isValidTrainingSet)
+          }
         >
           Next
         </Button>
