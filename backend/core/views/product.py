@@ -199,7 +199,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         main_file_path = Path(product_file.file.path)
 
         try:
-            df = FileHandle(main_file_path).to_df()
+            df = FileHandle(main_file_path).to_df(nrows=page_size)
             records = loads(df.to_json(orient="records"))
             paginator = Paginator(records, page_size)
             records = paginator.get_page(page)
