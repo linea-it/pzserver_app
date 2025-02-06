@@ -24,31 +24,31 @@ import Loading from '../Loading'
 
 const ucds = [
   {
-    name: 'ID',
+    name: 'ID (meta.id;meta.main)',
     value: 'meta.id;meta.main'
   },
   {
-    name: 'RA',
+    name: 'RA (pos.eq.ra;meta.main)',
     value: 'pos.eq.ra;meta.main'
   },
   {
-    name: 'Dec',
+    name: 'Dec (pos.eq.dec;meta.main)',
     value: 'pos.eq.dec;meta.main'
   },
   {
-    name: 'z',
+    name: 'z (src.redshift)',
     value: 'src.redshift'
   },
   {
-    name: 'z_err',
+    name: 'z_err (stat.error;src.redshift)',
     value: 'stat.error;src.redshift'
   },
   {
-    name: 'z_flag',
+    name: 'z_flag (stat.rank)',
     value: 'stat.rank'
   },
   {
-    name: 'survey',
+    name: 'survey (meta.curation)',
     value: 'meta.curation'
   }
 ]
