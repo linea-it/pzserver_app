@@ -128,8 +128,11 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 dec = self.__get_mapped_column(_input, "Dec")
                 z = self.__get_mapped_column(_input, "z")
 
+                ext = main_file.extension
+
                 _file = {
                     "path": str(filepath),
+                    "format": ext.replace('.',''),
                     "columns": {"ra": ra, "dec": dec, "z": z},
                 }
                 inputfiles.append(_file)
