@@ -20,9 +20,9 @@ class CreateProduct:
         """Create a product with initial information
 
         Args:
-            data (django.http.request.QueryDict): Initial information coming 
+            data (django.http.request.QueryDict): Initial information coming
                 from an http request
-            user (django.contrib.auth.models.User): User 
+            user (django.contrib.auth.models.User): User
         """
 
         LOGGER.debug(f"Creating product: {data}")
@@ -58,7 +58,7 @@ class CreateProduct:
         return (True, can_save.get("message"))
 
     def __check_official_product(self, user):
-        """Checks if the product is official and if the user has permission 
+        """Checks if the product is official and if the user has permission
         to save an official product.
 
         Args:
@@ -80,7 +80,7 @@ class CreateProduct:
                     "Not allowed. Only users with admin permissions "
                     "can create official products."
                 )
-            
+
         return True
 
     @property
@@ -122,22 +122,23 @@ class CreateProduct:
         """Checks product types by applying a certain business rule.
 
         Returns:
-            dict: {'message': {'entity':list(str)}, 'status': bool} 
+            dict: {'message': {'entity':list(str)}, 'status': bool}
         """
 
         if not self.__data:
-            return {"message": {"product": ["No data."]}, "success": False,}
+            return {
+                "message": {"product": ["No data."]},
+                "success": False,
+            }
 
         # Release is not allowed in Spec-z Catalog
-        if (
-            self.__data.release
-            and self.__data.product_type.name == "specz_catalog"
-        ):
+        if self.__data.release and self.__data.product_type.name == "specz_catalog":
             self.__delete()
             return {
-                "message": {"release": [
-                    "Release must be null on Spec-z Catalogs products."
-                ]}, "success": False,
+                "message": {
+                    "release": ["Release must be null on Spec-z Catalogs products."]
+                },
+                "success": False,
             }
 
         # Pzcode is only allowed in Validations Results and Photo-z Table
@@ -150,19 +151,23 @@ class CreateProduct:
             pzc = self.__data.pz_code
             self.__delete()
             return {
-                "message": {"pz_code": [
-                    f"Pz Code must be null on {dn} products. '{pzc}'"
-                ]}, "success": False,
+                "message": {
+                    "pz_code": [f"Pz Code must be null on {dn} products. '{pzc}'"]
+                },
+                "success": False,
             }
-        
-        return {"message": {"product_type": ["Success!"]}, "success": True,}
+
+        return {
+            "message": {"product_type": ["Success!"]},
+            "success": True,
+        }
 
     def __perform_create(self, serializer, user) -> ProductSerializer:
         """Add user"""
 
         uploaded_by = user
         return serializer.save(user=uploaded_by)
-    
+
     def __delete(self):
         """Delete product"""
 
@@ -180,7 +185,6 @@ class RegistryProduct:
         LOGGER.debug("Product ID: [%s]" % product_id)
         self.product = Product.objects.get(pk=product_id)
         LOGGER.debug("Internal Name: [%s]" % self.product.internal_name)
-
 
     def registry(self):
         """Registry product
@@ -200,8 +204,7 @@ class RegistryProduct:
                     "Internal Name Updated to: [%s]" % self.product.internal_name
                 )
 
-            # Recupera informação do arquivo principal
-            # pela tabela productFile
+            # Recupera informação do arquivo principal pela tabela productFile
             mf = self.product.files.get(role=0)
             self.main_file = pathlib.Path(mf.file.path)
             LOGGER.debug("Main File: [%s]" % self.main_file)
@@ -213,7 +216,7 @@ class RegistryProduct:
 
                 # Lista de Colunas no arquivo.
                 product_columns = df_product.columns.tolist()
-                
+
                 # Record number of lines of the main product
                 mf.n_rows = len(df_product)
                 mf.save()
@@ -285,14 +288,14 @@ class RegistryProduct:
             raise Exception(message)
 
     def create_product_file(self, filepath, role=0):
-        """ Create product file
+        """Create product file
 
         Args:
             filepath (str): Product path
         """
 
         _file = pathlib.Path(filepath)
-        
+
         fileobj = ProductFile(
             name=_file.name,
             role=role,
@@ -300,7 +303,7 @@ class RegistryProduct:
             size=_file.stat().st_size,
             file=str(_file),
             product_id=self.product.pk,
-            extension=_file.suffix
+            extension=_file.suffix,
         )
 
         return fileobj.save()

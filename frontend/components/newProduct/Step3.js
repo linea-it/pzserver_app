@@ -15,7 +15,11 @@ import InputAdornment from '@mui/material/InputAdornment'
 import debounce from 'lodash/debounce'
 import PropTypes from 'prop-types'
 import React, { useCallback, useEffect, useState } from 'react'
-import { contentAssociation, getProductContents } from '../../services/product'
+import {
+  contentAssociation,
+  getProduct,
+  getProductContents
+} from '../../services/product'
 import Loading from '../Loading'
 
 const ucds = [
@@ -48,6 +52,13 @@ const ucds = [
     value: 'meta.curation'
   }
 ]
+
+const mandatoryUcds = [
+  'src.redshift',
+  'pos.eq.ra;meta.main',
+  'pos.eq.dec;meta.main'
+]
+
 export function InputReadOnly({ name, value, onClear }) {
   return (
     <FormControl>
@@ -175,13 +186,32 @@ InputAlias.propTypes = {
 }
 
 export default function NewProductStep3({ productId, onNext, onPrev }) {
-  const [productColumns, setProductColumns] = React.useState([])
-  const [usedUcds, setUsedUcds] = React.useState([])
+  const [productColumns, setProductColumns] = useState([])
+  const [usedUcds, setUsedUcds] = useState([])
   const [isLoading, setLoading] = useState(false)
-  const [formError, setFormError] = React.useState('')
+  const [formError, setFormError] = useState('')
   const [inputsType] = useState([])
+  const [productType, setProductType] = useState(null)
+  const [isValid, setIsValid] = useState(false)
+  const [isValidTrainingSet, setIsValidTrainingSet] = useState(false)
 
-  const loadContents = React.useCallback(async () => {
+  const loadProductById = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await getProduct(productId)
+      setProductType(res.product_type_name)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      if (error.response && error.response.status === 500) {
+        console.error('Internal Server Error:', error.response.data)
+      } else {
+        console.error('Error loading product by ID:', error.message)
+      }
+    }
+  }, [productId])
+
+  const loadContents = useCallback(async () => {
     setLoading(true)
     try {
       const response = await getProductContents(productId)
@@ -224,8 +254,9 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   }
 
   useEffect(() => {
+    loadProductById()
     loadContents()
-  }, [loadContents])
+  }, [loadProductById, loadContents])
 
   useEffect(() => {
     const useducds = []
@@ -236,6 +267,16 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     })
     setUsedUcds(useducds)
   }, [productColumns])
+
+  useEffect(() => {
+    const checkValid = mandatoryUcds.every(ucd => usedUcds.includes(ucd))
+    setIsValid(checkValid)
+  }, [usedUcds])
+
+  useEffect(() => {
+    const checkValidTrainingSet = usedUcds.includes('src.redshift')
+    setIsValidTrainingSet(checkValidTrainingSet)
+  }, [usedUcds])
 
   const handleSubmit = () => {
     onNext(productId)
@@ -345,8 +386,12 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
       <Typography paragraph variant="body">
-        Please associate the column names of your file with those expected by
-        the tool.
+        Please associate the column names from your file (left) with those
+        expected by the tool (right).
+      </Typography>
+      <Typography paragraph variant="body">
+        The redshift (z) is mandatory for Training Sets, and also, coordinates
+        (RA, Dec) for Spec-z Catalogs.
       </Typography>
       <Typography paragraph variant="body">
         It is okay to leave columns unassociated.
@@ -387,7 +432,15 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           Prev
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={
+            (productType === 'Spec-z Catalog' && !isValid) ||
+            (productType === 'Training Set' && !isValidTrainingSet)
+          }
+        >
           Next
         </Button>
       </Box>
