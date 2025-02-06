@@ -13,7 +13,7 @@ from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-logger = logging.getLogger("django")
+LOGGER = logging.getLogger("django")
 
 
 class ProcessFilter(filters.FilterSet):
@@ -69,42 +69,48 @@ class ProcessViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
-        logger.debug(f"Create process: {request.data}")
+        LOGGER.debug(f"Create process: {request.data}")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
-            logger.debug("Create DB process: %s", request.data)
+            LOGGER.debug("Create DB process: %s", request.data)
             instance = self.perform_create(serializer)
             process = Process.objects.get(pk=instance.pk)
             process.save()
-            logger.debug("Process ID %s inserted.", instance.pk)
+            LOGGER.debug("Process ID %s inserted.", instance.pk)
         except Exception as err:
             content = {"error": str(err)}
-            logger.error(err)
+            LOGGER.error(err)
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
-            orch_url = settings.ORCHEST_URL
-            logger.debug("Instantiating maestro: %s", orch_url)
-            maestro = Maestro(url=orch_url)
-
-            release_path = None
-            release_index_col = None
-
-            if process.release:
-                release_path = str(
-                    pathlib.Path(settings.DATASETS_DIR, process.release.name)
-                )
-                release_index_col = process.release.indexing_column
-                logger.debug("Release: %s", process.release)
-
-            used_config = {}
+            LOGGER.debug("Instantiating maestro: %s", settings.ORCHEST_URL)
+            maestro = Maestro(url=settings.ORCHEST_URL)
 
             if process.used_config:
                 used_config = process.used_config
 
-            logger.debug("Config: %s", used_config)
+            used_config["inputs"] = {}
+
+            if process.release:
+                release_path = pathlib.Path(
+                    settings.DATASETS_DIR, process.release.name
+                )
+
+                LOGGER.debug("Used release: %s", process.release)
+
+                if not release_path.exists():
+                    raise ValueError(
+                        f"Release path not found: {str(release_path)}"
+                    )
+
+                used_config["inputs"]["dataset"] = {
+                    "path": str(release_path),
+                    "columns": {"id": process.release.indexing_column}
+                }
+
+            LOGGER.debug("Used configuration: %s", used_config)
 
             _inputs = process.inputs.all()
             inputfiles = []
@@ -116,7 +122,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 )
 
                 if not filepath.is_file():
-                    raise FileNotFoundError(f"File not found: {str(filepath)}")
+                    raise FileNotFoundError(f"file not found: {str(filepath)}")
 
                 ra = self.__get_mapped_column(_input, "RA")
                 dec = self.__get_mapped_column(_input, "Dec")
@@ -128,12 +134,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 }
                 inputfiles.append(_file)
 
-            used_config["inputs"] = {
-                "dataset": {"path": release_path, "columns": {"id": release_index_col}},
-                "specz": inputfiles,
-            }
-
-            logger.debug("Inputs: %s", used_config.get("inputs"))
+            used_config["inputs"]["specz"] = inputfiles
+            LOGGER.debug("Used inputs: %s", used_config.get("inputs"))
 
             orch_process = maestro.start(
                 pipeline=process.pipeline.name, config=used_config
@@ -141,10 +143,12 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
             orch_process_id = orch_process.get("id")
 
-            logger.debug("Process submitted: ORCH_ID %s", orch_process_id)
+            LOGGER.debug("Process submitted: OrchID %s", orch_process_id)
 
             process.orchestration_process_id = orch_process_id
-            process.used_config = json.loads(orch_process.get("used_config", None))
+            process.used_config = json.loads(
+                orch_process.get("used_config", None)
+            )
             process.path = orch_process.get("path_str")
             process.save()
 
@@ -152,9 +156,11 @@ class ProcessViewSet(viewsets.ModelViewSet):
             return Response(data, status=status.HTTP_201_CREATED)
         except Exception as e:
             msg = f"Orchestration API failure: {str(e)}"
-            logger.error(msg)
+            LOGGER.error(msg)
             content = {"error": msg}
-            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                content, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def __get_mapped_column(self, product, column):
         """Get mapped column by column name
@@ -167,8 +173,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
         columns = product.contents.filter(alias=column)
 
         if columns.count() != 1:
-            logger.warn(f"Column {column} was not mapped for product {product}.")
-            logger.warn(f"Column {column}: value {column.lower()} will be used.")
+            LOGGER.warning(f"Column {column} was not mapped for product {product}.")
+            LOGGER.warning(f"Column {column}: value {column.lower()} will be used.")
             value = column.lower()
         else:
             obj = columns[0]
@@ -180,14 +186,11 @@ class ProcessViewSet(viewsets.ModelViewSet):
         """Add user and upload"""
 
         owned_by = self.request.user
-
-        # TODO: testar path pro release
-
         upload = self.create_initial_upload(serializer, owned_by)
         return serializer.save(user=owned_by, upload=upload)
 
     def create_initial_upload(self, serializer, user):
-        """ Creates the upload with initial data before starting processing. """
+        """Creates the upload with initial data before starting processing."""
 
         data = serializer.initial_data
         pipeline = Pipeline.objects.get(pk=data.get("pipeline"))
@@ -217,6 +220,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
     @action(methods=["GET"], detail=True)
     def stop(self, request, *args, **kwargs):
+        """Stop process"""
+
         try:
             instance = self.get_object()
             _id = instance.pk
@@ -237,7 +242,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             data = {"error": str(err)}
             code_status = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        logger.info("Process[%s]: %s", str(process), data)
+        LOGGER.info("Process[%s]: %s", str(process), data)
         return Response(data, status=code_status)
 
     def destroy(self, request, pk=None, *args, **kwargs):

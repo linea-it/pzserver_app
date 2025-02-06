@@ -12,8 +12,6 @@ class ProcessSerializer(serializers.ModelSerializer):
     pipeline_version = serializers.SerializerMethodField()
     owned_by = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
-    # can_delete = serializers.SerializerMethodField()
-    # can_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Process
@@ -44,11 +42,3 @@ class ProcessSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
-
-    # def get_can_delete(self, obj):
-    #     current_user = self.context["request"].user
-    #     return obj.can_delete(current_user)
-
-    # def get_can_update(self, obj):
-    #     current_user = self.context["request"].user
-    #     return obj.can_update(current_user)    
