@@ -17,6 +17,8 @@ import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
 import SnackbarContent from '@mui/material/SnackbarContent'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
@@ -48,6 +50,7 @@ function SpeczCatalogs() {
   const [data, setData] = useState(initialData)
   const [fieldErrors] = useState({})
   const [selectedProducts, setSelectedProducts] = useState([])
+  const [outputFormat, setOutputFormat] = useState('parquet')
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -67,6 +70,7 @@ function SpeczCatalogs() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSelectedProducts([])
+    setOutputFormat('parquet')
   }
 
   const handleSnackbarClose = () => {
@@ -119,7 +123,8 @@ function SpeczCatalogs() {
           }
         },
         description: data.param.description,
-        inputs: selectedProducts.map(product => product.id)
+        inputs: selectedProducts.map(product => product.id),
+        output_format: outputFormat
       }
 
       // tentativa de envio do json via POST
@@ -152,6 +157,10 @@ function SpeczCatalogs() {
 
   const handleProductSelection = selectedProducts => {
     setSelectedProducts(selectedProducts)
+  }
+
+  const handleOutputFormatChange = event => {
+    setOutputFormat(event.target.value)
   }
 
   const styles = {
@@ -256,6 +265,21 @@ function SpeczCatalogs() {
                 />
               </CardContent>
             </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              4. Output format:
+              <Select value={outputFormat} onChange={handleOutputFormatChange}>
+                <MenuItem value="parquet">parquet</MenuItem>
+                <MenuItem value="csv">csv</MenuItem>
+                <MenuItem value="fits">fits</MenuItem>
+                <MenuItem value="hdf5">hdf5</MenuItem>
+                <MenuItem value="votable" disabled>
+                  VOTable
+                </MenuItem>
+              </Select>
+            </Typography>
           </Grid>
 
           <Grid item xs={12}>
