@@ -24,31 +24,31 @@ import Loading from '../Loading'
 
 const ucds = [
   {
-    name: 'ID (meta.id;meta.main)',
+    name: 'ID',
     value: 'meta.id;meta.main'
   },
   {
-    name: 'RA (pos.eq.ra;meta.main)',
+    name: 'RA',
     value: 'pos.eq.ra;meta.main'
   },
   {
-    name: 'Dec (pos.eq.dec;meta.main)',
+    name: 'Dec',
     value: 'pos.eq.dec;meta.main'
   },
   {
-    name: 'z (src.redshift)',
+    name: 'z',
     value: 'src.redshift'
   },
   {
-    name: 'z_err (stat.error;src.redshift)',
+    name: 'z_err',
     value: 'stat.error;src.redshift'
   },
   {
-    name: 'z_flag (stat.rank)',
+    name: 'z_flag',
     value: 'stat.rank'
   },
   {
-    name: 'survey (meta.curation)',
+    name: 'survey',
     value: 'meta.curation'
   }
 ]
@@ -105,7 +105,7 @@ export function InputUcd({ pc, options, onChange, onChangeInputType }) {
         <TextField select value={value} onChange={handleChange}>
           {options.map(ucd => (
             <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
-              {ucd.name}
+              {`${ucd.name} (${ucd.value})`}
             </MenuItem>
           ))}
         </TextField>
