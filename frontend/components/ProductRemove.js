@@ -16,42 +16,62 @@ export default function ProductRemove({
   onError
 }) {
   const [isLoading, setLoading] = React.useState(false)
+  const [errorDialogOpen, setErrorDialogOpen] = React.useState(false)
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setLoading(true)
-    try {
-      await deleteProduct(recordId)
-      onRemoveSuccess()
-      onClose()
-    } catch (error) {
-      onError(
-        'Failed to remove the product. Please try again later or contact the helpdesk.'
-      )
-      setLoading(false)
-    }
+    deleteProduct(recordId)
+      .then(() => {
+        onRemoveSuccess()
+        onClose()
+      })
+      .catch(error => {
+        setLoading(false)
+        if (error.response && error.response.status < 500) {
+          onError(
+            'Failed to remove the product. Please check your input and try again.'
+          )
+        } else {
+          setErrorDialogOpen(true)
+        }
+      })
   }
 
   if (recordId === null) return null
 
   return (
-    <Dialog open={true}>
-      <DialogTitle>{'Delete this Product?'}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {`Are you sure you want to delete the product "${productName}"?`}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton
-          loading={isLoading}
-          variant="contained"
-          onClick={handleDelete}
-        >
-          Delete
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
+    <>
+      <Dialog open={true}>
+        <DialogTitle>{'Delete this Product?'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you sure you want to delete the product "${productName}"?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <LoadingButton
+            loading={isLoading}
+            variant="contained"
+            onClick={handleDelete}
+          >
+            Delete
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={errorDialogOpen} onClose={() => setErrorDialogOpen(false)}>
+        <DialogTitle>Error</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Failed to remove the product. Please try again later or contact the
+            helpdesk at helpdesk@linea.org.br.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setErrorDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   )
 }
 

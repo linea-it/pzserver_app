@@ -105,7 +105,7 @@ export function InputUcd({ pc, options, onChange, onChangeInputType }) {
         <TextField select value={value} onChange={handleChange}>
           {options.map(ucd => (
             <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
-              {ucd.name}
+              {`${ucd.name} (${ucd.value})`}
             </MenuItem>
           ))}
         </TextField>
