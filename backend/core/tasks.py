@@ -7,7 +7,7 @@ from core.maestro import Maestro
 from core.models import Process
 from core.models.product_file import FileRoles
 from core.product_steps import RegistryProduct
-from core.utils import load_yaml
+from core.utils import get_ucd_columns, load_yaml
 from django.conf import settings
 from django.utils import dateparse, timezone
 
@@ -16,13 +16,13 @@ LOGGER = logging.getLogger()
 
 @shared_task()
 def check_processes():
-    """ Checks the processing status in Orchestration and update the PZ Server
+    """Checks the processing status in Orchestration and update the PZ Server
     database with processing information.
 
     Returns:
         bool: True, if an update was made. False, if no update was made.
     """
-    
+
     monitoring_statuses = ["Stopping", "Pending", "Running", "Queued"]
     LOGGER.debug(f"Monitoring the following statuses: {monitoring_statuses}")
 
@@ -30,9 +30,9 @@ def check_processes():
 
     if not processes:
         return False
-    
+
     maestro = Maestro(settings.ORCHEST_URL)
-    
+
     for process in processes:
         LOGGER.debug(f"Consulting the {process} process status.")
         process_orch_id = process.orchestration_process_id  # type: ignore
@@ -60,27 +60,25 @@ def check_processes():
         elif process_orch_status == "Failed":
             process.upload.status = 9  # Failed status
             process.upload.save()
-            
+
         if process_orch_status != process.status:
             process = update_process_info(
                 process=process,
                 process_orch_status=process_orch_status,
-                data=process_orch
+                data=process_orch,
             )
-            LOGGER.debug(
-                f"{process} has been updated (new status: {process.status})"
-            )
+            LOGGER.debug(f"{process} has been updated (new status: {process.status})")
 
     return True
 
 
 def update_process_info(process, process_orch_status, data):
-    """ Updates basic process information
+    """Updates basic process information
 
     Args:
         process (Process): process object
         process_orch_status (str): process orchestration status
-        data (dict): process info 
+        data (dict): process info
 
     Returns:
         Process: process object
@@ -99,7 +97,7 @@ def update_process_info(process, process_orch_status, data):
 
 
 def register_outputs(process_id):
-    """ Records the outputs in the database
+    """Records the outputs in the database
 
     Args:
         process_id (int): process ID
@@ -126,6 +124,13 @@ def register_outputs(process_id):
             LOGGER.debug("-> output: %s", output)
             filepath = output.get("path")
             rolename = output.get("role")
+            columns_assoc = output.get("columns_assoc", None)
+
+            if columns_assoc:
+                _columns = associate_columns(columns_assoc)
+                LOGGER.info(f"COLUMNS map {_columns}")
+                reg_product.create_product_contents(_columns)
+
             role_id = file_roles.get(rolename, file_roles.get("description"))
             upload_path = copy_upload(filepath, process.upload.path)
             reg_product.create_product_file(upload_path, role_id)
@@ -141,6 +146,29 @@ def register_outputs(process_id):
         process.upload.save()
         process.save()
         LOGGER.exception(f"[process {process_id}]: Failed to upload register!")
+
+
+def associate_columns(columns_map):
+    """Associate columns
+
+    Args:
+        columns_map (dict): columns mapping
+    """
+
+    columns = {}
+    columns_required = ["ra", "dec", "z"]
+    ucd_columns = get_ucd_columns()
+
+    for key, value in columns_map.items():
+        columns[value] = ucd_columns.get(key, {})
+        if key in columns_required:
+            columns_required.remove(key)
+
+    if columns_required:
+        message = f"The column(s) was not filled: {','.join(columns_required)}"
+        raise ValueError(message)
+
+    return columns
 
 
 def copy_upload(filepath, upload_dir):

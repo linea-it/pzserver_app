@@ -12,13 +12,25 @@ from django.db.models import Q
 logger = logging.getLogger()
 
 
+def get_ucd_columns():
+    return {
+        "id": {"alias": "ID", "ucd": "meta.id;meta.main"},
+        "ra": {"alias": "RA", "ucd": "pos.eq.ra;meta.main"},
+        "dec": {"alias": "Dec", "ucd": "pos.eq.dec;meta.main"},
+        "z": {"alias": "z", "ucd": "src.redshift"},
+        "z_err": {"alias": "z_err", "ucd": "stat.error;src.redshift"},
+        "z_flag": {"alias": "z_flag", "ucd": "stat.rank"},
+        "survey": {"alias": "survey", "ucd": "meta.curation"},
+    }
+
+
 def load_yaml(filepath, encoding="utf-8"):
     with open(filepath, encoding=encoding) as _file:
         return yaml.safe_load(_file)
 
 
 def get_pipelines():
-    sys_pipes_file = pathlib.Path(settings.PIPELINES_DIR, 'pipelines.yaml')
+    sys_pipes_file = pathlib.Path(settings.PIPELINES_DIR, "pipelines.yaml")
     return load_yaml(sys_pipes_file)
 
 
@@ -26,7 +38,7 @@ def get_pipeline(name):
     system_pipelines = get_pipelines()
     pipeline = system_pipelines.get(name, None)
     assert pipeline, f"Pipeline {name} not found."
-    pipeline['name'] = name
+    pipeline["name"] = name
     return pipeline
 
 
@@ -56,19 +68,24 @@ def load_executor(executor):
 
 
 def validate_executor(executor):
-    try: import_module(f"core.executors.{executor}")
-    except ModuleNotFoundError: return False
+    try:
+        import_module(f"core.executors.{executor}")
+    except ModuleNotFoundError:
+        return False
     return True
 
 
 def validate_json(data):
-    try: json.loads(data)
-    except ValueError: return False
+    try:
+        json.loads(data)
+    except ValueError:
+        return False
     return True
 
 
 def validate_config(config):
-    if not config: return True
+    if not config:
+        return True
     return validate_json(config) and isinstance(json.loads(config), dict)
 
 
@@ -76,11 +93,11 @@ def get_returncode(process_dir):
     try:
         with open(f"{process_dir}/return.code", encoding="utf-8") as _file:
             content = _file.readline()
-            return int(content.replace('\n',''))
+            return int(content.replace("\n", ""))
     except Exception as err:
         logger.error(f"Error when redeeming return code: {err}")
         return -1
-    
+
 
 def format_query_to_char(key, value, fields) -> Q:
     condition = Q.OR if key.endswith("__or") else Q.AND
