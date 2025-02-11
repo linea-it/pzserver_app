@@ -46,6 +46,7 @@ function TrainingSetMaker() {
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [releases, setReleases] = useState([])
+  const [outputFormat, setOutputFormat] = useState('specz')
   const [initialData, setInitialData] = useState({
     param: {
       crossmatch: {
@@ -99,6 +100,7 @@ function TrainingSetMaker() {
     setCombinedCatalogName('')
     setData(initialData.system_config)
     setSelectedLsstCatalog('')
+    setOutputFormat('specz')
     setIsSubmitting(false)
   }
 
@@ -154,6 +156,7 @@ function TrainingSetMaker() {
             duplicate_criteria: data.param.duplicate_criteria
           }
         },
+        output_format: outputFormat,
         release: releaseId,
         description: data.param.description,
         inputs: [selectedProductId]
@@ -304,7 +307,27 @@ function TrainingSetMaker() {
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              4. Select the Objects catalog (photometric data):
+              4. Output format:
+              <Select
+                value={outputFormat}
+                onChange={event => setOutputFormat(event.target.value)}
+                defaultValue="specz"
+              >
+                <MenuItem value="specz">same as spec-z catalog</MenuItem>
+                <MenuItem value="csv">csv</MenuItem>
+                <MenuItem value="fits">fits</MenuItem>
+                <MenuItem value="parquet">parquet</MenuItem>
+                <MenuItem value="hdf5">hdf5</MenuItem>
+                <MenuItem value="votable" disabled>
+                  VOTable
+                </MenuItem>
+              </Select>
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              5. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
                 onChange={event => setSelectedLsstCatalog(event.target.value)}
@@ -321,7 +344,7 @@ function TrainingSetMaker() {
 
           <Grid item xs={12} mt={3}>
             <Typography variant="body1">
-              5. Select the cross-matching configuration choices:
+              6. Select the cross-matching configuration choices:
             </Typography>
             <Grid item xs={12} mt={2}>
               <Box display="flex" alignItems="center" ml={4}>
