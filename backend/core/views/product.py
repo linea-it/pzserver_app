@@ -339,26 +339,27 @@ class ProductViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         data = request.data
 
-        check_columns = {"Dec": False, "RA": False, "z": False}
-
         prodstatus = int(data.get("status", 0))
-        is_spec = instance.product_type.name == "specz_catalog"
         is_published = ProductStatus(prodstatus).name == "PUBLISHED"
 
+        is_specz = instance.product_type.name == "specz_catalog"
+        is_train = instance.product_type.name == "training_set"
+
         logger.debug(f"Status: {prodstatus}")
-        logger.debug(f"IsSpec: {is_spec}")
         logger.debug(f"IsPubl: {is_published}")
 
-        if is_spec and prodstatus and is_published:
-            for prodcont in ProductContent.objects.filter(product=instance.pk):
-                if prodcont.alias in check_columns:
-                    check_columns[prodcont.alias] = True
+        if is_specz and prodstatus and is_published:
+            check_specz = self.__check_mandatory_columns(instance, ["Dec", "RA", "z"])
 
-            for key, value in check_columns.items():
-                if not value:
-                    content = {"message": f"The {key} column was not filled."}
-                    logger.info(f"MESSAGE: {content}")
-                    return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
+            if not check_specz.get("success", False):
+                content = check_train.get("message")
+                return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
+        elif is_train and prodstatus and is_published:
+            check_train = self.__check_mandatory_columns(instance, ["z"])
+
+            if not check_train.get("success", False):
+                content = check_train.get("message")
+                return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         instance.status = prodstatus
         instance.save()
@@ -366,3 +367,23 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
+
+    def __check_mandatory_columns(self, instance, columns):
+        """Checks mandatory columns
+
+        Args:
+            instance (Product): Product object
+            columns (list): mandatory columns
+        """
+
+        for prodcont in ProductContent.objects.filter(product=instance.pk):
+            if prodcont.alias in columns:
+                columns.remove(prodcont.alias)
+
+        if columns:
+            return {
+                "success": False,
+                "message": f"The column(s) was not filled in: {','.join(columns)}",
+            }
+
+        return {"success": True, "message": "Mandatory columns filled in."}
