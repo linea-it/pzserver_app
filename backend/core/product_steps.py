@@ -255,32 +255,6 @@ class RegistryProduct:
             LOGGER.error(e)
             raise Exception(e)
 
-    # def create_product_contents(self, columns):
-    #     """Create product contents
-
-    #     Args:
-    #         columns (dict): columns mapping
-    #     """
-    #     try:
-    #         for idx, column_name in enumerate(columns):
-    #             ucd = columns.get(column_name, {}).get("ucd", None)
-    #             alias = columns.get(column_name, {}).get("alias", None)
-
-    #             ProductContent.objects.create(
-    #                 product=self.product,
-    #                 column_name=column_name,
-    #                 order=idx,
-    #                 ucd=ucd,
-    #                 alias=alias,
-    #             )
-
-    #         LOGGER.debug(f"{len(columns)} product contents have been registered")
-
-    #     except Exception as e:
-    #         message = f"Failed to create product content. {e}"
-    #         LOGGER.error(message)
-    #         raise Exception(message)
-
     def create_product_contents(self, columns):
         """Registrar as colunas na tabela Product Contents
 
