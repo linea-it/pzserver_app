@@ -134,7 +134,12 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 inputfiles.append(_file)
 
             used_config["inputs"]["specz"] = inputfiles
-            LOGGER.debug("Used inputs: %s", used_config.get("inputs"))
+
+            output_format = request.data.get("output_format", None)
+            if output_format and output_format != "specz":
+                used_config["output_format"] = output_format
+
+            LOGGER.debug("Used config: %s", used_config)
 
             orch_process = maestro.start(
                 pipeline=process.pipeline.name, config=used_config
