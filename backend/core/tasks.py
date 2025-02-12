@@ -1,6 +1,5 @@
 import logging
 import pathlib
-import shutil
 
 from celery import shared_task
 from core.maestro import Maestro
@@ -128,12 +127,11 @@ def register_outputs(process_id):
 
             if columns_assoc:
                 _columns = associate_columns(columns_assoc)
-                LOGGER.info(f"COLUMNS map {_columns}")
+                LOGGER.debug(f"Columns mapping: {_columns}")
                 reg_product.create_product_contents(_columns)
 
             role_id = file_roles.get(rolename, file_roles.get("description"))
-            upload_path = copy_upload(filepath, process.upload.path)
-            reg_product.create_product_file(upload_path, role_id)
+            reg_product.create_product_file(filepath, role_id)
             process.upload.save()
 
         reg_product.registry()
@@ -169,10 +167,3 @@ def associate_columns(columns_map):
         raise ValueError(message)
 
     return columns
-
-
-def copy_upload(filepath, upload_dir):
-    filepath = pathlib.Path(filepath)
-    new_filepath = pathlib.Path(settings.MEDIA_ROOT, upload_dir, filepath.name)
-    shutil.copyfile(str(filepath), str(new_filepath))
-    return str(new_filepath)

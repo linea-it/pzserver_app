@@ -139,6 +139,9 @@ class ProcessViewSet(viewsets.ModelViewSet):
             if output_format and output_format != "specz":
                 used_config["output_format"] = output_format
 
+            output_dir = pathlib.Path(settings.MEDIA_ROOT, process.upload.path)
+            used_config["output_dir"] = str(output_dir)
+
             LOGGER.debug("Used config: %s", used_config)
 
             orch_process = maestro.start(
