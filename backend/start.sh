@@ -3,6 +3,8 @@
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput --clear
 
+umask g+w
+
 # Para produção é necessário usar o uWSGI!
 # https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html
 uwsgi \
