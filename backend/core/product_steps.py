@@ -11,7 +11,7 @@ LOGGER = logging.getLogger("products")
 
 class NonAdminError(ValueError):
     def __init__(self, message):
-        LOGGER.debug('Debug: %s', message)
+        LOGGER.debug("Debug: %s", message)
         super().__init__(message)
 
 
@@ -27,7 +27,6 @@ class CreateProduct:
 
         LOGGER.debug(f"Creating product: {data}")
 
-
         serializer = ProductSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
@@ -41,7 +40,7 @@ class CreateProduct:
         """Save product
 
         Returns:
-            tuple: first position of the tuple reflects the save status, 
+            tuple: first position of the tuple reflects the save status,
                 second position is the final message
         """
 
@@ -232,15 +231,20 @@ class RegistryProduct:
             # Para os demais produtos é opicional.
             if self.product.product_type.name == "specz_catalog":
                 if len(product_columns) == 0:
-                    raise Exception((
-                        "It was not possible to identify the product columns. "
-                        "For Spec-z Catalogs this is mandatory. "
-                        "Please check the file format."
-                    ))
+                    raise Exception(
+                        (
+                            "It was not possible to identify the product columns. "
+                            "For Spec-z Catalogs this is mandatory. "
+                            "Please check the file format."
+                        )
+                    )
 
             # Registra as colunas do produto no banco de dados.
             # é possivel ter produtos sem nenhum registro de coluna
             # Essa regra será tratada no frontend.
+
+            product_columns = {v: dict() for v in product_columns}
+
             self.create_product_contents(product_columns)
             LOGGER.debug("Created product contents.")
 
@@ -255,7 +259,7 @@ class RegistryProduct:
         """Registrar as colunas na tabela Product Contents
 
         Args:
-            columns (_type_): _description_
+            columns (dict): columns mapping
         """
         try:
             cached_ucds = dict()
@@ -267,9 +271,10 @@ class RegistryProduct:
                 col.delete()
 
             for idx, column_name in enumerate(columns):
-                ucd = None
-                alias = None
-                if column_name in cached_ucds:
+                ucd = columns.get(column_name, {}).get("ucd", None)
+                alias = columns.get(column_name, {}).get("alias", None)
+
+                if column_name in cached_ucds and not ucd and not alias:
                     ucd = cached_ucds[column_name]["ucd"]
                     alias = cached_ucds[column_name]["alias"]
 

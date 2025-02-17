@@ -10,7 +10,7 @@ export const getProductTypes = ({ }) => {
 export const downloadProduct = (id, internalName) => {
   return api.get('/api/products/' + id + '/download/', {
     responseType: 'blob',
-    timeout: 60000
+    timeout: 120000
   })
 }
 
@@ -202,6 +202,7 @@ export const createProductFile = (product_id, file, role, onUploadProgress) => {
   formData.append('type', file.type)
 
   return api.post('/api/product-files/', formData, {
+    timeout: 120000,
     headers: {
       'Content-Type': 'multipart/form-data'
     },

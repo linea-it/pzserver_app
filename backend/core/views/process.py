@@ -94,20 +94,16 @@ class ProcessViewSet(viewsets.ModelViewSet):
             used_config["inputs"] = {}
 
             if process.release:
-                release_path = pathlib.Path(
-                    settings.DATASETS_DIR, process.release.name
-                )
+                release_path = pathlib.Path(settings.DATASETS_DIR, process.release.name)
 
                 LOGGER.debug("Used release: %s", process.release)
 
-                if not release_path.exists():
-                    raise ValueError(
-                        f"Release path not found: {str(release_path)}"
-                    )
+                if not release_path.is_dir() and not release_path.is_symlink():
+                    raise ValueError(f"Release path not found: {str(release_path)}")
 
                 used_config["inputs"]["dataset"] = {
                     "path": str(release_path),
-                    "columns": {"id": process.release.indexing_column}
+                    "columns": {"id": process.release.indexing_column},
                 }
 
             LOGGER.debug("Used configuration: %s", used_config)
@@ -128,14 +124,25 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 dec = self.__get_mapped_column(_input, "Dec")
                 z = self.__get_mapped_column(_input, "z")
 
+                ext = main_file.extension
+
                 _file = {
                     "path": str(filepath),
+                    "format": ext.replace(".", ""),
                     "columns": {"ra": ra, "dec": dec, "z": z},
                 }
                 inputfiles.append(_file)
 
             used_config["inputs"]["specz"] = inputfiles
-            LOGGER.debug("Used inputs: %s", used_config.get("inputs"))
+
+            output_format = request.data.get("output_format", None)
+            if output_format and output_format != "specz":
+                used_config["output_format"] = output_format
+
+            output_dir = pathlib.Path(settings.UPLOAD_DIR, process.upload.path)
+            used_config["output_dir"] = str(output_dir)
+
+            LOGGER.debug("Used config: %s", used_config)
 
             orch_process = maestro.start(
                 pipeline=process.pipeline.name, config=used_config
@@ -146,9 +153,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             LOGGER.debug("Process submitted: OrchID %s", orch_process_id)
 
             process.orchestration_process_id = orch_process_id
-            process.used_config = json.loads(
-                orch_process.get("used_config", None)
-            )
+            process.used_config = json.loads(orch_process.get("used_config", None))
             process.path = orch_process.get("path_str")
             process.save()
 
@@ -158,9 +163,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             msg = f"Orchestration API failure: {str(e)}"
             LOGGER.error(msg)
             content = {"error": msg}
-            return Response(
-                content, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def __get_mapped_column(self, product, column):
         """Get mapped column by column name

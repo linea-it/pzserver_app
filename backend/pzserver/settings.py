@@ -155,10 +155,9 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/archive/data/")
 MEDIA_URL = "/archive/data/"
-MEDIA_ROOT = MEDIA_URL
-
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", MEDIA_URL)
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
 
 # Criando VA APPEND
 APPEND_SLASH=False
