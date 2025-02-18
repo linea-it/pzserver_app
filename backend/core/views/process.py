@@ -2,6 +2,7 @@ import json
 import logging
 import pathlib
 
+import requests
 from core.maestro import Maestro
 from core.models import Pipeline, Process, ProductStatus
 from core.product_steps import CreateProduct
@@ -69,6 +70,23 @@ class ProcessViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
+        try:
+            LOGGER.debug("Instantiating maestro: %s", settings.ORCHEST_URL)
+            maestro = Maestro(url=settings.ORCHEST_URL)
+        except requests.exceptions.ConnectionError as err:
+            content = {
+                "error": (
+                    "The service is not responding. "
+                    "Please contact helpdesk@linea.org.br to receive user support."
+                )
+            }
+            LOGGER.error(err)
+            return Response(content, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as err:
+            content = {"error": str(err)}
+            LOGGER.error(err)
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         LOGGER.debug(f"Create process: {request.data}")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -85,9 +103,6 @@ class ProcessViewSet(viewsets.ModelViewSet):
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
-            LOGGER.debug("Instantiating maestro: %s", settings.ORCHEST_URL)
-            maestro = Maestro(url=settings.ORCHEST_URL)
-
             if process.used_config:
                 used_config = process.used_config
 
