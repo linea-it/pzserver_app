@@ -18,7 +18,9 @@ class ProductFile(models.Model):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="files")
 
-    file = models.FileField(upload_to=upload_product_files, null=True, blank=True)
+    file = models.FileField(
+        upload_to=upload_product_files, max_length=1024, null=True, blank=True
+    )
 
     role = models.IntegerField(
         verbose_name="Role",
@@ -26,7 +28,7 @@ class ProductFile(models.Model):
         choices=FileRoles.choices,
     )
 
-    name = models.CharField(verbose_name="Name", max_length=1024, null=True, blank=True)
+    name = models.CharField(verbose_name="Name", max_length=256, null=True, blank=True)
     type = models.CharField(
         verbose_name="Mime Type", max_length=128, null=True, blank=True
     )
