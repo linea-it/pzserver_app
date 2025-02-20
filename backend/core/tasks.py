@@ -121,7 +121,9 @@ def register_outputs(process_id):
     try:
         for output in outputs:
             LOGGER.debug("-> output: %s", output)
-            filepath = output.get("path")
+            root_dir = output.get("root_dir")
+            relative_path = output.get("path")
+            filepath = pathlib.Path(root_dir, relative_path).resolve()
             rolename = output.get("role")
             columns_assoc = output.get("columns_assoc", None)
 
@@ -131,7 +133,7 @@ def register_outputs(process_id):
                 reg_product.create_product_contents(_columns)
 
             role_id = file_roles.get(rolename, file_roles.get("description"))
-            reg_product.create_product_file(filepath, role_id)
+            reg_product.create_product_file(filepath, relative_path, role_id)
             process.upload.save()
 
         reg_product.registry()
@@ -143,7 +145,7 @@ def register_outputs(process_id):
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.save()
-        LOGGER.exception(f"[process {process_id}]: Failed to upload register!")
+        LOGGER.error(f"[process {process_id}]: Failed to upload register!")
 
 
 def associate_columns(columns_map):

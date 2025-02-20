@@ -293,7 +293,7 @@ class RegistryProduct:
             LOGGER.error(message)
             raise Exception(message)
 
-    def create_product_file(self, filepath, role=0):
+    def create_product_file(self, filepath, relative_path, role=0):
         """Create product file
 
         Args:
@@ -307,7 +307,7 @@ class RegistryProduct:
             role=role,
             product=self.product,
             size=_file.stat().st_size,
-            file=str(_file),
+            file=relative_path,
             product_id=self.product.pk,
             extension=_file.suffix,
         )
