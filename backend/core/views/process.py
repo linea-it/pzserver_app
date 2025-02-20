@@ -154,8 +154,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
             if output_format and output_format != "specz":
                 used_config["output_format"] = output_format
 
-            output_dir = pathlib.Path(settings.UPLOAD_DIR, process.upload.path)
-            used_config["output_dir"] = str(output_dir)
+            used_config["output_dir"] = str(process.upload.path)
+            used_config["output_root_dir"] = settings.UPLOAD_DIR
 
             LOGGER.debug("Used config: %s", used_config)
 
