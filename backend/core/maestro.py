@@ -243,6 +243,7 @@ class MaestroApi:
                 {
                     "success": False,
                     "message": message,
+                    "error": requests.exceptions.HTTPError,
                 }
             )
         except requests.exceptions.ConnectionError as errc:
@@ -251,6 +252,7 @@ class MaestroApi:
                 {
                     "success": False,
                     "message": message,
+                    "error": requests.exceptions.ConnectionError,
                 }
             )
         except requests.exceptions.Timeout as errt:
@@ -259,6 +261,7 @@ class MaestroApi:
                 {
                     "success": False,
                     "message": message,
+                    "error": requests.exceptions.Timeout,
                 }
             )
         except requests.exceptions.RequestException as err:
@@ -267,6 +270,7 @@ class MaestroApi:
                 {
                     "success": False,
                     "message": message,
+                    "error": requests.exceptions.RequestException,
                 }
             )
 
@@ -410,7 +414,8 @@ class MaestroApi:
         _response = self.post_request(token_url, payload, headers=headers)
 
         if "success" in _response and _response.get("success") is False:
-            raise requests.exceptions.RequestException(_response.get("message"))
+            cls_err = _response.get("error", requests.exceptions.RequestException)
+            raise cls_err(_response.get("message"))
 
         return _response.get("data")  # type: ignore
 
