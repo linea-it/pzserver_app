@@ -7,6 +7,7 @@ import {
   Link,
   IconButton
 } from '@mui/material'
+import Image from 'next/image'
 import useStyles from '../styles/components/Partnersfooter'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import InstagramIcon from '@mui/icons-material/Instagram'
@@ -43,7 +44,7 @@ function Partnersfooter() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <img
+                <Image
                   src="/linea-logo.png"
                   alt="LIneA logo"
                   width={145}
@@ -95,41 +96,63 @@ function Partnersfooter() {
               <Typography variant="body2" className={classes.apoioText}>
                 Support:
               </Typography>
-              <Link href="https://www.linea.org.br/inct#inct" target="_blank">
-                <img
-                  src="/inct-logo.png"
-                  alt="INCT"
-                  className={classes.inctLogo}
-                />
-              </Link>
-              <Link href="https://www.gov.br/capes/pt-br" target="_blank">
-                <img
-                  src="/capes-logo.png"
-                  alt="CAPES"
-                  className={classes.partnerLogo}
-                />
-              </Link>
-              <Link href="https://www.gov.br/cnpq/pt-br" target="_blank">
-                <img
-                  src="/cnpq-logo.png"
-                  alt="CNPq"
-                  className={classes.partnerLogo}
-                />
-              </Link>
-              <Link href="https://www.faperj.br" target="_blank">
-                <img
-                  src="/faperj-logo.png"
-                  alt="FAPERJ"
-                  className={classes.partnerLogo}
-                />
-              </Link>
-              <Link href="http://www.finep.gov.br" target="_blank">
-                <img
-                  src="/finep-logo.png"
-                  alt="FINEP"
-                  className={classes.partnerLogo}
-                />
-              </Link>
+              <Box
+                sx={{ marginRight: 2, marginLeft: 2, display: 'inline-block' }}
+              >
+                <Link href="https://www.linea.org.br/inct#inct" target="_blank">
+                  <Image
+                    src="/inct-logo.png"
+                    alt="INCT"
+                    width={60}
+                    height={60}
+                    className={classes.inctLogo}
+                  />
+                </Link>
+              </Box>
+              <Box sx={{ marginRight: 2, display: 'inline-block' }}>
+                <Link href="https://www.gov.br/capes/pt-br" target="_blank">
+                  <Image
+                    src="/capes-logo.png"
+                    alt="CAPES"
+                    width={100}
+                    height={60}
+                    className={classes.partnerLogo}
+                  />
+                </Link>
+              </Box>
+              <Box sx={{ marginRight: 2, display: 'inline-block' }}>
+                <Link href="https://www.gov.br/cnpq/pt-br" target="_blank">
+                  <Image
+                    src="/cnpq-logo.png"
+                    alt="CNPq"
+                    width={100}
+                    height={60}
+                    className={classes.partnerLogo}
+                  />
+                </Link>
+              </Box>
+              <Box sx={{ marginRight: 2, display: 'inline-block' }}>
+                <Link href="https://www.faperj.br" target="_blank">
+                  <Image
+                    src="/faperj-logo.png"
+                    alt="FAPERJ"
+                    width={100}
+                    height={60}
+                    className={classes.partnerLogo}
+                  />
+                </Link>
+              </Box>
+              <Box sx={{ marginRight: 2, display: 'inline-block' }}>
+                <Link href="http://www.finep.gov.br" target="_blank">
+                  <Image
+                    src="/finep-logo.png"
+                    alt="FINEP"
+                    width={100}
+                    height={60}
+                    className={classes.partnerLogo}
+                  />
+                </Link>
+              </Box>
             </Box>
 
             <Box className={classes.contactSection}>
