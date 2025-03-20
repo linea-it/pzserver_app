@@ -188,6 +188,10 @@ export default function NewProductStep1({ productId, onNext }) {
                 target: { name: 'product_type', value: prodType.id }
               })
               setProdType(prodType.name)
+              setProduct({
+                ...product,
+                release: null
+              })
             }}
             onBlur={handleInputValue}
             required
