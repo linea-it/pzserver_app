@@ -15,7 +15,8 @@ import ProductTypeSelect from '../../components/ProductTypeSelect'
 import ReleaseSelect from '../../components/ReleaseSelect'
 import { useAuth } from '../../contexts/AuthContext'
 import { createProduct, getProduct, patchProduct } from '../../services/product'
-export default function NewProductStep1({ productId, onNext }) {
+
+export default function NewProductStep1({ productId, onNext, onDiscard }) {
   const { user } = useAuth()
   const defaultProductValues = {
     id: null,
@@ -180,6 +181,7 @@ export default function NewProductStep1({ productId, onNext }) {
         <FormControl fullWidth>
           <ProductTypeSelect
             name="product_type"
+            disabled={!!product.id}
             value={product.product_type}
             useId={false}
             onChange={prodType => {
@@ -187,11 +189,8 @@ export default function NewProductStep1({ productId, onNext }) {
               handleInputValue({
                 target: { name: 'product_type', value: prodType.id }
               })
+
               setProdType(prodType.name)
-              setProduct({
-                ...product,
-                release: null
-              })
             }}
             onBlur={handleInputValue}
             required
@@ -301,6 +300,15 @@ export default function NewProductStep1({ productId, onNext }) {
         >
           Clear Form
         </Button>
+        {product.id !== null && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => onDiscard(product)}
+          >
+            Discard
+          </Button>
+        )}
         <Box sx={{ flex: '1 1 auto' }} />
         <Button variant="contained" color="primary" onClick={handleSubmit}>
           Next
@@ -312,5 +320,6 @@ export default function NewProductStep1({ productId, onNext }) {
 
 NewProductStep1.propTypes = {
   productId: PropTypes.number,
-  onNext: PropTypes.func.isRequired
+  onNext: PropTypes.func.isRequired,
+  onDiscard: PropTypes.func.isRequired
 }
