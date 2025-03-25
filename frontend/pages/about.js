@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
@@ -12,6 +13,11 @@ import Partnersfooter from '../components/Partnersfooter'
 
 export default function About() {
   const classes = useStyles()
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    setEmail('helpdesk@linea.org.br')
+  }, [])
 
   return (
     <Container className={classes.root}>
@@ -28,7 +34,7 @@ export default function About() {
           </Typography>
           <Card>
             <CardContent>
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="span" sx={{ textAlign: 'justify', display: 'block' }}>
                 <p>
                   Inspired by features of the DES Science Portal (
                   <Link
@@ -119,13 +125,11 @@ export default function About() {
                     Photo-z Server repository on GitHub
                   </Link>
                   , or contact the developers at{' '}
-                  <Link
-                    href="mailto:helpdesk@linea.org.br"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    helpdesk@linea.org.br
-                  </Link>
+                  {email && (
+                    <Link href={`mailto:${email}`} target="_blank" rel="noreferrer">
+                      {email}
+                    </Link>
+                  )}
                   .
                 </p>
               </Typography>
