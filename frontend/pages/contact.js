@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
@@ -12,6 +13,14 @@ import Partnersfooter from '../components/Partnersfooter'
 
 export default function Contact() {
   const classes = useStyles()
+  const [emails, setEmails] = useState({})
+
+  useEffect(() => {
+    setEmails({
+      lead: 'julia@linea.org.br',
+      support: 'helpdesk@linea.org.br'
+    })
+  }, [])
 
   return (
     <Container className={classes.root}>
@@ -42,11 +51,25 @@ export default function Contact() {
                   , or contact our team.
                 </p>
                 <p>
-                  BRA-LIN S2 Contribution Lead: julia at linea dot org dot br
+                  BRA-LIN-S4 Contribution Lead:{' '}
+                  {emails.lead ? (
+                    <Link href={`mailto:${emails.lead}`}>{emails.lead}</Link>
+                  ) : (
+                    'Loading...'
+                  )}
                 </p>
-                <p>Technical support: helpdesk at linea dot org dot br</p>
+                <p>
+                  Technical support:{' '}
+                  {emails.support ? (
+                    <Link href={`mailto:${emails.support}`}>
+                      {emails.support}
+                    </Link>
+                  ) : (
+                    'Loading...'
+                  )}
+                </p>
               </Typography>
-            </CardContent>{' '}
+            </CardContent>
           </Card>
           <Partnersfooter />
         </Grid>
