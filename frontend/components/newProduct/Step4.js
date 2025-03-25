@@ -16,7 +16,10 @@ export default function NewProductStep4({ productId, onNext, onPrev }) {
     // Pequeno atraso para garantir que o DOM esteja atualizado antes de rolar
     const timeout = setTimeout(() => {
       if (finishButtonRef.current) {
-        finishButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        finishButtonRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        })
         setHighlight(true)
         setTimeout(() => setHighlight(false), 1500)
       }
