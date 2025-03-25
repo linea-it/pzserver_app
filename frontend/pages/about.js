@@ -34,7 +34,11 @@ export default function About() {
           </Typography>
           <Card>
             <CardContent>
-              <Typography variant="body1" component="span" sx={{ textAlign: 'justify', display: 'block' }}>
+              <Typography
+                variant="body1"
+                component="span"
+                sx={{ textAlign: 'justify', display: 'block' }}
+              >
                 <p>
                   Inspired by features of the DES Science Portal (
                   <Link
@@ -126,7 +130,11 @@ export default function About() {
                   </Link>
                   , or contact the developers at{' '}
                   {email && (
-                    <Link href={`mailto:${email}`} target="_blank" rel="noreferrer">
+                    <Link
+                      href={`mailto:${email}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       {email}
                     </Link>
                   )}
