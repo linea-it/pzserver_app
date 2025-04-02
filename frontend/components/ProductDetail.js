@@ -26,7 +26,6 @@ import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-
 import moment from 'moment'
 import { useRouter } from 'next/router'
 import prettyBytes from 'pretty-bytes'
@@ -366,13 +365,21 @@ export default function ProductDetail({ productId, internalName }) {
             <Paper elevation={2} className={classes.paper}>
               <Stack divider={<Divider flexItem />} spacing={2}>
                 {product.status === 1 && (
-                  <LoadingButton
-                    loading={isDownloading}
-                    variant="contained"
-                    onClick={downloadFile}
-                  >
-                    Download
-                  </LoadingButton>
+                  <>
+                    <LoadingButton
+                      loading={isDownloading}
+                      variant="contained"
+                      onClick={downloadFile}
+                    >
+                      Download
+                    </LoadingButton>
+                    {isDownloading && (
+                      <Alert variant="outlined" severity="info">
+                        The files with data and metadata are being prepared for
+                        the transfer. The download will begin shortly.
+                      </Alert>
+                    )}
+                  </>
                 )}
                 <List>
                   {files.map(pc => {
