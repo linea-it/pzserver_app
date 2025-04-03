@@ -46,9 +46,11 @@ export const patchProduct = data => {
   formData.append('pz_code', data.pz_code)
   formData.append('description', data.description)
   formData.append('status', data.status)
+
   if (data.release !== '' && data.release !== null) {
-    formData.append('release', data.release)
+      formData.append('release', data.release)
   }
+
   if (data.product_type !== '' && data.product_type !== null) {
     formData.append('product_type', data.product_type)
   }

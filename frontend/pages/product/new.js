@@ -1,15 +1,12 @@
-import React from 'react'
-import { useRouter } from 'next/router'
-import { parseCookies } from 'nookies'
 import {
-  Container,
-  Typography,
+  Alert,
   Box,
-  Stepper,
+  Container,
+  Snackbar,
   Step,
   StepLabel,
-  Snackbar,
-  Alert
+  Stepper,
+  Typography
 } from '@mui/material'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -17,16 +14,19 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
+import { useRouter } from 'next/router'
+import { parseCookies } from 'nookies'
+import React from 'react'
 import Loading from '../../components/Loading'
-import useStyles from '../../styles/pages/newproduct'
 import NewProductStep1 from '../../components/newProduct/Step1'
 import NewProductStep2 from '../../components/newProduct/Step2'
 import NewProductStep3 from '../../components/newProduct/Step3'
 import NewProductStep4 from '../../components/newProduct/Step4'
 import {
-  getProductPendingPublication,
-  deleteProduct
+  deleteProduct,
+  getProductPendingPublication
 } from '../../services/product'
+import useStyles from '../../styles/pages/newproduct'
 
 export default function NewProduct() {
   const classes = useStyles()
@@ -85,6 +85,7 @@ export default function NewProduct() {
         productId={productId}
         onNext={handleNextStep}
         onPrev={handlePrevStep}
+        onDiscard={test}
       ></NewProductStep1>
     )
   }
@@ -153,6 +154,7 @@ export default function NewProduct() {
     deleteProduct(pendingProduct.id)
       .then(res => {
         setLoading(false)
+        setProductId(null)
         setPendingProduct(null)
       })
       .catch(res => {
@@ -184,6 +186,10 @@ export default function NewProduct() {
         </DialogActions>
       </Dialog>
     )
+  }
+
+  const test = product => {
+    setPendingProduct(product)
   }
 
   const handleOpenErrorSnackbar = message => {

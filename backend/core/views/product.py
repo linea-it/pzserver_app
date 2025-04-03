@@ -361,12 +361,11 @@ class ProductViewSet(viewsets.ModelViewSet):
                 content = check_train.get("message")
                 return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        instance.status = prodstatus
-        instance.save()
+        if not data.get("release", None):
+            instance.release = None
+            instance.save()
 
-        serializer = self.get_serializer(instance, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data)
+        return super(ProductViewSet, self).partial_update(request, *args, **kwargs)
 
     def __check_mandatory_columns(self, instance, columns):
         """Checks mandatory columns
