@@ -199,7 +199,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
           />
         </FormControl>
         {/* Release necessário Product Type != specz_catalog - Spec-z Catalog */}
-        {prodType !== 'specz_catalog' && (
+        {prodType !== 'specz_catalog' && prodType !== null && (
           <FormControl fullWidth>
             <ReleaseSelect
               name="release"
