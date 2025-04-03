@@ -160,7 +160,7 @@ MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
 
 # Criando VA APPEND
-APPEND_SLASH=False
+APPEND_SLASH = False
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -307,7 +307,6 @@ LOGGING = {
     },
 }
 
-
 # directory where it will contain the processing of the pipelines.
 PROCESSING_DIR = os.getenv("PROCESSING_DIR", "/processes")
 
@@ -356,7 +355,7 @@ if os.getenv("AUTH_SHIB_URL", None):
     SAML_ATTRIBUTE_MAPPING = {
         "eduPersonUniqueId": ("username",),
         "sn": ("full_name",),
-        "isMemberOf":("name",), 
+        "isMemberOf": ("name",),
         "email": ("email",),
     }
 

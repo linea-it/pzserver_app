@@ -7,6 +7,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import tables_io
+from astropy.io.votable import parse as votable_parse
 from core._typing import Column, PathLike
 
 
@@ -45,6 +46,8 @@ class FileHandle(object):
                 self.handle = CsvHandle(fp)
             case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq" | ".parquet":
                 self.handle = TableIOHandle(fp)
+            case ".vo" | ".vot" | ".xml":
+                self.handle = VOTableHandle(fp)
             case ".zip" | ".tar" | ".gz":
                 self.handle = CompressedHandle(fp)
             case ".pickle" | ".pkl" | ".pcl" | ".pckl":
@@ -311,3 +314,17 @@ class TxtHandle(BaseHandle):
                 for el in line.split(self.delimiter)
             )
         )
+
+
+class VOTableHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        # Read VOTable file using astropy
+        votable = votable_parse(self.filepath)
+        # Get first table from VOTable
+        table = votable.get_first_table()
+        # Convert to pandas DataFrame
+        df = table.to_table().to_pandas()
+        return df
