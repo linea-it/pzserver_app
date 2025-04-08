@@ -50,12 +50,10 @@ const useStyles = makeStyles((theme) => ({
     apoioText: {
         color: '#a3a3a3',
         fontSize: '.9rem',
-        textAlign: 'left'
+        textAlign: 'left',
+        marginBottom: theme.spacing(2)
     },
     partnerLogo: {
-        width: '100px',
-        height: '60px',
-        margin: theme.spacing(1),
         filter: 'grayscale(100%)',
         transition: 'filter 0.3s ease',
         '&:hover': {
@@ -63,9 +61,6 @@ const useStyles = makeStyles((theme) => ({
         }
     },
     inctLogo: {
-        width: '60px',
-        height: '60px',
-        margin: theme.spacing(1.5),
         filter: 'grayscale(100%)',
         transition: 'filter 0.3s ease',
         '&:hover': {
