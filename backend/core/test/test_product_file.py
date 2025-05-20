@@ -9,8 +9,7 @@ from core.test.util import sample_product_file
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import (APIRequestFactory, APITestCase,
-                                 force_authenticate)
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 
 class ProductFileListCreateAPIViewTestCase(APITestCase):
@@ -222,6 +221,7 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
             "extension": os.path.splitext(self.product_file.file.name)[1],
             "created": self.product_file.created.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "updated": self.product_file.updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "can_delete": True,
         }
 
         response = self.client.get(self.url)
