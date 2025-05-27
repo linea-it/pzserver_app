@@ -45,5 +45,10 @@ class ProductFile(models.Model):
             self.file.delete()
         super().delete(*args, **kwargs)
 
+    def can_delete(self, user) -> bool:
+        if self.product.user.id == user.id or user.profile.is_admin():
+            return True
+        return False
+
     def __str__(self):
         return f"{self.product.display_name} - {os.path.basename(self.file.name)}"
