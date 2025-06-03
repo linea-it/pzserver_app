@@ -19,12 +19,14 @@ import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -33,6 +35,9 @@ import PropTypes from 'prop-types'
 import Loading from '../components/Loading'
 import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
+import {
+  getProcessByUpload
+} from '../services/process'
 import {
   downloadProduct,
   getProduct,
@@ -46,6 +51,7 @@ export default function ProductDetail({ productId, internalName }) {
   const classes = useStyles()
 
   const [product, setProduct] = React.useState(null)
+  const [process, setProcess] = React.useState(null)
   const [files, setFiles] = React.useState([])
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
@@ -114,6 +120,34 @@ export default function ProductDetail({ productId, internalName }) {
       loadProductByName()
     }
   }, [loadProductByName, internalName])
+
+  const loadProcessByUpload = React.useCallback(async () => {
+    if (!product.id) {
+      return
+    }
+    setLoading(true)
+    getProcessByUpload(product.id)
+      .then(res => {
+        console.log('res', res)
+        setProcess(res)
+        setLoading(false)
+      })
+      .catch(error => {
+        setLoading(false)
+        if (error.response && error.response.status === 500) {
+          console.error('Internal Server Error:', error.response.data)
+        } else {
+          console.error('Error loading process by ID:', error.message)
+        }
+      })
+      
+  }, [product])
+
+  React.useEffect(() => {
+    if (product) {
+      loadProcessByUpload()
+    }
+  }, [loadProcessByUpload, product])
 
   const loadFiles = React.useCallback(async () => {
     if (!product.id) {
@@ -346,10 +380,59 @@ export default function ProductDetail({ productId, internalName }) {
                 </Typography>
               </Stack>
               <Box sx={{ m: 2 }}></Box>
-              <Typography variant="h6">
-                {product.release_name} - {product.product_type_name}
-              </Typography>
-              {product.description !== '' && (
+              <Stack
+                direction="row"
+                justifyContent="flex-start"
+                alignItems="flex-start"
+                spacing={2}
+              >
+                {product.release !== null && (
+                  <Typography variant="subtitle1" color="textSecondary">
+                    <strong>Release:</strong> {product.release_name}
+                  </Typography>
+                )}
+                {process !== null && (
+                  <>
+                    <Typography variant="subtitle1" color="textSecondary"><strong>Source{process.provenance_inputs.length != 1 && ('s')}:</strong></Typography>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      <List
+                        sx={{
+                          width: '100%',
+                          maxWidth: 360,
+                          bgcolor: 'background.paper',
+                          position: 'relative',
+                          overflow: 'auto',
+                          maxHeight: 150,
+                          '& ul': { padding: 0 },
+                        }}
+                        subheader={<li />}
+                      >
+                        {process.provenance_inputs.map((prov_input) => (
+                          <ListItem key={`section-${prov_input.id}`} component="div" disablePadding>
+                            <ListItemButton>
+                            <Tooltip
+                              title={prov_input.description || 'No description available'}
+                            >
+                              <Link
+                                component="button"
+                                onClick={() => {
+                                  setProduct(null)
+                                  router.push(`/product/${prov_input.internal_name}`)
+                                }}
+                              >
+                                {prov_input.display_name}
+                              </Link>
+                            </Tooltip>
+                            </ListItemButton>
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Typography>
+                  </>
+                )}
+              </Stack>
+              <Box sx={{ m: 2 }}></Box>
+              {product.release !== null && (
                 <Typography variant="body1">{product.description}</Typography>
               )}
               <ProductShare
@@ -430,7 +513,6 @@ export default function ProductDetail({ productId, internalName }) {
     </React.Fragment>
   )
 }
-
 ProductDetail.propTypes = {
   productId: PropTypes.number,
   internalName: PropTypes.string
