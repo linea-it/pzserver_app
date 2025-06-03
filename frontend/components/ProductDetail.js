@@ -35,9 +35,7 @@ import PropTypes from 'prop-types'
 import Loading from '../components/Loading'
 import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
-import {
-  getProcessByUpload
-} from '../services/process'
+import { getProcessByUpload } from '../services/process'
 import {
   downloadProduct,
   getProduct,
@@ -140,7 +138,6 @@ export default function ProductDetail({ productId, internalName }) {
           console.error('Error loading process by ID:', error.message)
         }
       })
-      
   }, [product])
 
   React.useEffect(() => {
@@ -393,7 +390,11 @@ export default function ProductDetail({ productId, internalName }) {
                 )}
                 {process !== null && (
                   <>
-                    <Typography variant="subtitle1" color="textSecondary"><strong>Source{process.provenance_inputs.length != 1 && ('s')}:</strong></Typography>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      <strong>
+                        Source{process.provenance_inputs.length !== 1 && 's'}:
+                      </strong>
+                    </Typography>
                     <Typography variant="subtitle1" color="textSecondary">
                       <List
                         sx={{
@@ -403,26 +404,35 @@ export default function ProductDetail({ productId, internalName }) {
                           position: 'relative',
                           overflow: 'auto',
                           maxHeight: 150,
-                          '& ul': { padding: 0 },
+                          '& ul': { padding: 0 }
                         }}
                         subheader={<li />}
                       >
-                        {process.provenance_inputs.map((prov_input) => (
-                          <ListItem key={`section-${prov_input.id}`} component="div" disablePadding>
+                        {process.provenance_inputs.map(provInput => (
+                          <ListItem
+                            key={`section-${provInput.id}`}
+                            component="div"
+                            disablePadding
+                          >
                             <ListItemButton>
-                            <Tooltip
-                              title={prov_input.description || 'No description available'}
-                            >
-                              <Link
-                                component="button"
-                                onClick={() => {
-                                  setProduct(null)
-                                  router.push(`/product/${prov_input.internal_name}`)
-                                }}
+                              <Tooltip
+                                title={
+                                  provInput.description ||
+                                  'No description available'
+                                }
                               >
-                                {prov_input.display_name}
-                              </Link>
-                            </Tooltip>
+                                <Link
+                                  component="button"
+                                  onClick={() => {
+                                    setProduct(null)
+                                    router.push(
+                                      `/product/${provInput.internal_name}`
+                                    )
+                                  }}
+                                >
+                                  {provInput.display_name}
+                                </Link>
+                              </Tooltip>
                             </ListItemButton>
                           </ListItem>
                         ))}
