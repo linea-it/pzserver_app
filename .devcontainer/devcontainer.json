@@ -23,15 +23,15 @@
 			"nodeGypDependencies": true,
 			"version": "lts"
 		},
-		"ghcr.io/devcontainers-contrib/features/black:2": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers-contrib/features/isort:2": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers-contrib/features/pre-commit:2": {
-			"version": "latest"
-		},
+		// "ghcr.io/devcontainers-contrib/features/black:2": {
+		// 	"version": "latest"
+		// },
+		// "ghcr.io/devcontainers-contrib/features/isort:2": {
+		// 	"version": "latest"
+		// },
+		// "ghcr.io/devcontainers-contrib/features/pre-commit:2": {
+		// 	"version": "latest"
+		// },
 		"ghcr.io/dhoeric/features/act:1": {}
 	},
 	"customizations": {
