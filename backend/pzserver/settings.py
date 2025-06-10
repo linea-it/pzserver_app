@@ -277,6 +277,14 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "standard",
         },
+        "tasks": {
+            "level": LOGGING_LEVEL,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "tasks.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 5,
+            "formatter": "standard",
+        },
     },
     "loggers": {
         "django": {
@@ -301,6 +309,11 @@ LOGGING = {
         },
         "products": {
             "handlers": ["products"],
+            "level": LOGGING_LEVEL,
+            "propagate": True,
+        },
+        "tasks": {
+            "handlers": ["tasks"],
             "level": LOGGING_LEVEL,
             "propagate": True,
         },

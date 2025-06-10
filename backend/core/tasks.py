@@ -10,7 +10,7 @@ from core.utils import get_ucd_columns, load_yaml
 from django.conf import settings
 from django.utils import dateparse, timezone
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger("tasks")
 
 
 @shared_task()
@@ -22,8 +22,8 @@ def check_processes():
         bool: True, if an update was made. False, if no update was made.
     """
 
+    # LOGGER.debug(f"Monitoring the following statuses: {monitoring_statuses}")
     monitoring_statuses = ["Stopping", "Pending", "Running", "Queued"]
-    LOGGER.debug(f"Monitoring the following statuses: {monitoring_statuses}")
 
     processes = Process.objects.filter(status__in=monitoring_statuses)
 
