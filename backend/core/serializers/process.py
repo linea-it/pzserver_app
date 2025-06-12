@@ -1,4 +1,5 @@
 from core.models import Process, Release
+from core.serializers.product import ProductSerializer
 from rest_framework import serializers
 
 
@@ -12,18 +13,26 @@ class ProcessSerializer(serializers.ModelSerializer):
     pipeline_version = serializers.SerializerMethodField()
     owned_by = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
+    provenance_inputs = ProductSerializer(source="inputs", many=True, read_only=True)
 
     class Meta:
         model = Process
         read_only_fields = (
-            "pipeline_version", "is_owner", "upload", "status",
-            "orchestration_process_id", "started_at", "ended_at", "path"
+            "pipeline_version",
+            "is_owner",
+            "upload",
+            "status",
+            "orchestration_process_id",
+            "started_at",
+            "ended_at",
+            "path",
+            "provenance_inputs",
         )
         exclude = ("user", "task_id")
 
     def get_pipeline_name(self, obj):
         return obj.pipeline.name
-    
+
     def get_pipeline_version(self, obj):
         return obj.pipeline.version
 

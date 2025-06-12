@@ -53,11 +53,13 @@ const ucds = [
   }
 ]
 
-const mandatoryUcds = [
-  'src.redshift',
+const ucdRaAndDec = [
   'pos.eq.ra;meta.main',
   'pos.eq.dec;meta.main'
 ]
+
+const mandatoryUcds = ['src.redshift']
+mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
 
 export function InputReadOnly({ name, value, onClear }) {
   return (
@@ -194,6 +196,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const [productType, setProductType] = useState(null)
   const [isValid, setIsValid] = useState(false)
   const [isValidTrainingSet, setIsValidTrainingSet] = useState(false)
+  const [isValidObjectsCatalog, setIsValidObjectsCatalog] = useState(false)
 
   const loadProductById = useCallback(async () => {
     setLoading(true)
@@ -276,6 +279,11 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   useEffect(() => {
     const checkValidTrainingSet = usedUcds.includes('src.redshift')
     setIsValidTrainingSet(checkValidTrainingSet)
+  }, [usedUcds])
+
+  useEffect(() => {
+    const checkValidObjectsCatalog = ucdRaAndDec.every(ucd => usedUcds.includes(ucd))
+    setIsValidObjectsCatalog(checkValidObjectsCatalog)
   }, [usedUcds])
 
   const handleSubmit = () => {
@@ -438,7 +446,8 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           onClick={handleSubmit}
           disabled={
             (productType === 'Spec-z Catalog' && !isValid) ||
-            (productType === 'Training Set' && !isValidTrainingSet)
+            (productType === 'Training Set' && !isValidTrainingSet) ||
+            (productType === 'Objects Catalog' && !isValidObjectsCatalog)
           }
         >
           Next

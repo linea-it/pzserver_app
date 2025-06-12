@@ -198,8 +198,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             helperText={fieldErrors.product_type}
           />
         </FormControl>
-        {/* Release necessário Product Type != specz_catalog - Spec-z Catalog */}
-        {prodType !== 'specz_catalog' && prodType !== null && (
+        {/* Release necessário Product Type != specz_catalog or objects_catalog */}
+        {!['objects_catalog', 'specz_catalog', null].includes(prodType) && (
           <FormControl fullWidth>
             <ReleaseSelect
               name="release"
