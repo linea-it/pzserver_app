@@ -28,8 +28,7 @@ class Product(models.Model):
         blank=True,
         default=None,
     )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="products")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
     internal_name = models.CharField(
         max_length=255, null=True, blank=True, default=None
     )
@@ -47,6 +46,7 @@ class Product(models.Model):
     path = models.FilePathField(
         verbose_name="Path", null=True, blank=True, default=None
     )
+    release_year = models.IntegerField(null=True, blank=True, default=None)
 
     def __str__(self):
         return f"{self.display_name}"
@@ -55,16 +55,19 @@ class Product(models.Model):
         # Antes de remover o registro verifica se existe
         # diretório, se houver remove.
         # OBS não é executado pelo admin
-        product_path = pathlib.Path(settings.MEDIA_ROOT, self.path)
-        if product_path.exists():
-            # TODO: mover esta exception para uma funcao separada para que possa ser executado o test.
-            try:
-                shutil.rmtree(product_path)
-            except OSError as e:
-                raise OSError("Failed to remove directory: [ %s ] %s" % (product_path, e))
-        
-            self.status = ProductStatus.DELETED
-            self.save()
+        if self.path:
+            product_path = pathlib.Path(settings.MEDIA_ROOT, self.path)
+            if product_path.exists():
+                # TODO: mover esta exception para uma funcao separada para que possa ser executado o test.
+                try:
+                    shutil.rmtree(product_path)
+                except OSError as e:
+                    raise OSError(
+                        "Failed to remove directory: [ %s ] %s" % (product_path, e)
+                    )
+
+        self.status = ProductStatus.DELETED
+        self.save()
 
     def can_delete(self, user) -> bool:
         if self.user.id == user.id or user.profile.is_admin():
@@ -75,4 +78,3 @@ class Product(models.Model):
         if self.user.id == user.id or user.profile.is_admin():
             return True
         return False
-    

@@ -388,6 +388,11 @@ export default function ProductDetail({ productId, internalName }) {
                     <strong>Release:</strong> {product.release_name}
                   </Typography>
                 )}
+                {product.release_year !== null && (
+                  <Typography variant="subtitle1" color="textSecondary">
+                    <strong>Release Year:</strong> {product.release_year}
+                  </Typography>
+                )}
                 {process !== null && (
                   <>
                     <Typography variant="subtitle1" color="textSecondary">

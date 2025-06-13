@@ -20,6 +20,7 @@ from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 
 logger = logging.getLogger("django")
 
@@ -132,6 +133,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         except NonAdminError as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_403_FORBIDDEN)
+
+        except ValidationError as errors:
+            content = {}
+            if isinstance(errors.detail, dict):
+                for key, value in errors.detail.items():
+                    content[key] = value[0]
+                _status = status.HTTP_400_BAD_REQUEST
+            else:
+                content = {"error": str(errors)}
+                _status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return Response(content, status=_status)
 
         except Exception as e:
             content = {"error": str(e)}
@@ -364,10 +376,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         if check_prod and not check_prod.get("success", False):
             content = check_prod.get("message")
             return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if not data.get("release", None):
-            instance.release = None
-            instance.save()
 
         return super(ProductViewSet, self).partial_update(request, *args, **kwargs)
 
