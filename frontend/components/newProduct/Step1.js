@@ -7,18 +7,18 @@ import {
   FormControlLabel,
   TextField,
   Typography
-} from '@mui/material';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Loading from '../../components/Loading';
-import ProductTypeSelect from '../../components/ProductTypeSelect';
-import ReleaseSelect from '../../components/ReleaseSelect';
-import { useAuth } from '../../contexts/AuthContext';
-import { createProduct, getProduct, patchProduct } from '../../services/product';
+} from '@mui/material'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import dayjs from 'dayjs'
+import PropTypes from 'prop-types'
+import React from 'react'
+import Loading from '../../components/Loading'
+import ProductTypeSelect from '../../components/ProductTypeSelect'
+import ReleaseSelect from '../../components/ReleaseSelect'
+import { useAuth } from '../../contexts/AuthContext'
+import { createProduct, getProduct, patchProduct } from '../../services/product'
 
 export default function NewProductStep1({ productId, onNext, onDiscard }) {
   const { user } = useAuth()
@@ -77,15 +77,15 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
 
     setProduct({
       ...product,
-      ["product_type"]: value,
-      ["release"]: "",
-      ["release_year"]: "",
-      ["pz_code"]: ""
+      product_type: value,
+      release: '',
+      release_year: '',
+      pz_code: ''
     })
 
     setFieldErrors({
       ...fieldErrors,
-      ["product_type"]: ''
+      product_type: ''
     })
   }
 
@@ -93,8 +93,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
     // Ao submeter limpa os errors
     setFieldErrors({})
     setFormError('')
-    console.log("PRODUCT: ", product)
-    
+
+
     if (product.id === null) {
       createProduct(product)
         .then(res => {
@@ -162,9 +162,9 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
 
   const handleFormError = () => {
     return (
-        <Alert variant="outlined" severity="error" sx={{ mt: 2 }}>
-          {formError}
-        </Alert>
+      <Alert variant="outlined" severity="error" sx={{ mt: 2 }}>
+        {formError}
+      </Alert>
     )
   }
 
@@ -199,7 +199,6 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             helperText={fieldErrors.display_name}
             onChange={handleInputValue}
             onBlur={handleInputValue}
-            
           />
         </FormControl>
         <FormControl fullWidth>
@@ -240,12 +239,28 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
                 name="release_year"
                 views={['year']}
                 label="Release year"
-                value={product.release_year ? dayjs().set('year', product.release_year) : null}
+                value={
+                  product.release_year
+                    ? dayjs().set('year', product.release_year)
+                    : null
+                }
                 onChange={newValue => {
-                  handleInputValue({ target: { name: 'release_year', value: newValue.get('year') } })
+                  handleInputValue({
+                    target: {
+                      name: 'release_year',
+                      value: newValue.get('year')
+                    }
+                  })
                 }}
                 onBlur={handleInputValue}
-                renderInput={(params) => <TextField {...params} helperText={fieldErrors.release_year} error={!!fieldErrors.release_year} required />}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    helperText={fieldErrors.release_year}
+                    error={!!fieldErrors.release_year}
+                    required
+                  />
+                )}
                 disableFuture
               />
             </LocalizationProvider>
