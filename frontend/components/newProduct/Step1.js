@@ -94,7 +94,6 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
     setFieldErrors({})
     setFormError('')
 
-
     if (product.id === null) {
       createProduct(product)
         .then(res => {
