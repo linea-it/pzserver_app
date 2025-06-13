@@ -20,6 +20,7 @@ from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 
 logger = logging.getLogger("django")
 
@@ -132,6 +133,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         except NonAdminError as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_403_FORBIDDEN)
+
+        except ValidationError as errors:
+            content = {}
+            if isinstance(errors.detail, dict):
+                for key, value in errors.detail.items():
+                    content[key] = value[0]
+                _status = status.HTTP_400_BAD_REQUEST
+            else:
+                content = {"error": str(errors)}
+                _status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return Response(content, status=_status)
 
         except Exception as e:
             content = {"error": str(e)}
@@ -343,27 +355,27 @@ class ProductViewSet(viewsets.ModelViewSet):
         is_published = ProductStatus(prodstatus).name == "PUBLISHED"
 
         is_specz = instance.product_type.name == "specz_catalog"
+        is_object = instance.product_type.name == "objects_catalog"
         is_train = instance.product_type.name == "training_set"
 
-        logger.debug(f"Status: {prodstatus}")
-        logger.debug(f"IsPubl: {is_published}")
+        logger.debug("Status: %s", prodstatus)
+        logger.debug("IsPubl: %s", is_published)
 
-        if is_specz and prodstatus and is_published:
-            check_specz = self.__check_mandatory_columns(instance, ["Dec", "RA", "z"])
+        check_prod = None
 
-            if not check_specz.get("success", False):
-                content = check_train.get("message")
-                return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
-        elif is_train and prodstatus and is_published:
-            check_train = self.__check_mandatory_columns(instance, ["z"])
+        if is_published:
+            if is_specz and prodstatus:
+                check_prod = self.__check_mandatory_columns(
+                    instance, ["Dec", "RA", "z"]
+                )
+            elif is_object and prodstatus:
+                check_prod = self.__check_mandatory_columns(instance, ["Dec", "RA"])
+            elif is_train and prodstatus:
+                check_prod = self.__check_mandatory_columns(instance, ["z"])
 
-            if not check_train.get("success", False):
-                content = check_train.get("message")
-                return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if not data.get("release", None):
-            instance.release = None
-            instance.save()
+        if check_prod and not check_prod.get("success", False):
+            content = check_prod.get("message")
+            return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         return super(ProductViewSet, self).partial_update(request, *args, **kwargs)
 

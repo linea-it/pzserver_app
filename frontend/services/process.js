@@ -17,3 +17,17 @@ export const submitProcess = (processData) => {
             throw error
         })
 }
+
+export const getProcess = process_id => {
+    return api.get(`/api/processes/${process_id}/`).then(res => res.data)
+}
+
+export const getProcessByUpload = (product_id) => {
+    return api.get(`/api/processes/`, { params: { upload: product_id } }).then((res) => {
+        if (res.data.count == 1) {
+            return res.data.results[0]
+        } else {
+            return null
+        }
+    });
+}
