@@ -58,6 +58,10 @@ const ucdRaAndDec = ['pos.eq.ra;meta.main', 'pos.eq.dec;meta.main']
 const mandatoryUcds = ['src.redshift']
 mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
 
+
+const mandatoryUcds = ['src.redshift']
+mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
+
 export function InputReadOnly({ name, value, onClear }) {
   return (
     <FormControl>

@@ -360,7 +360,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         logger.debug("Status: %s", prodstatus)
         logger.debug("IsPubl: %s", is_published)
-
+        
         check_prod = None
 
         if is_published:
