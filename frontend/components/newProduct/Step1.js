@@ -8,6 +8,10 @@ import {
   TextField,
   Typography
 } from '@mui/material'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import dayjs from 'dayjs'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Loading from '../../components/Loading'
@@ -27,6 +31,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
     survey: '',
     pz_code: '',
     description: '',
+    release_year: '',
     status: 0
   }
   const [product, setProduct] = React.useState(defaultProductValues)
@@ -64,6 +69,23 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
     setFieldErrors({
       ...fieldErrors,
       [name]: ''
+    })
+  }
+
+  const handleProductTypeValue = e => {
+    const value = e
+
+    setProduct({
+      ...product,
+      product_type: value,
+      release: '',
+      release_year: '',
+      pz_code: ''
+    })
+
+    setFieldErrors({
+      ...fieldErrors,
+      product_type: ''
     })
   }
 
@@ -132,7 +154,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
   const handleFieldsErrors = data => {
     const errors = {}
     Object.keys(data).forEach((key, index) => {
-      errors[key] = data[key].join(' ')
+      errors[key] = data[key]
     })
     setFieldErrors(errors)
   }
@@ -185,14 +207,9 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             value={product.product_type}
             useId={false}
             onChange={prodType => {
-              console.log(prodType)
-              handleInputValue({
-                target: { name: 'product_type', value: prodType.id }
-              })
-
+              handleProductTypeValue(prodType.id)
               setProdType(prodType.name)
             }}
-            onBlur={handleInputValue}
             required
             error={!!fieldErrors.product_type}
             helperText={fieldErrors.product_type}
@@ -213,21 +230,41 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             />
           </FormControl>
         )}
-        {/* Survey necessário Product Type = specz_catalog - Spec-z Catalog */}
-        {/* ISSUE #116 - Remove Survey Field */}
-        {/* {prodType === 'specz_catalog' && (
-          <FormControl fullWidth>
-            <TextField
-              name="survey"
-              value={product.survey}
-              label="Survey"
-              onChange={handleInputValue}
-              onBlur={handleInputValue}
-              error={!!fieldErrors.survey}
-              helperText={fieldErrors.survey}
-            />
+        {/* Release year necessário Product Type = specz_catalog - Spec-z Catalog */}
+        {prodType === 'specz_catalog' && (
+          <FormControl>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                name="release_year"
+                views={['year']}
+                label="Release year"
+                value={
+                  product.release_year
+                    ? dayjs().set('year', product.release_year)
+                    : ''
+                }
+                onChange={newValue => {
+                  handleInputValue({
+                    target: {
+                      name: 'release_year',
+                      value: newValue ? newValue.get('year') : ''
+                    }
+                  })
+                }}
+                onBlur={handleInputValue}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    helperText={fieldErrors.release_year}
+                    error={!!fieldErrors.release_year}
+                    required
+                  />
+                )}
+                disableFuture
+              />
+            </LocalizationProvider>
           </FormControl>
-        )} */}
+        )}
         {/* Survey necessário Product Type = validation_results - Photo-z Results */}
         {prodType === 'validation_results' && (
           <FormControl fullWidth>

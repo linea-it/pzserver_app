@@ -26,6 +26,7 @@ export const createProduct = data => {
   // formData.append('main_file', data.main_file)
   // formData.append('description_file', data.description_file)
   formData.append('official_product', data.official_product)
+  formData.append('release_year', data.release_year)
   formData.append('survey', data.survey)
   formData.append('pz_code', data.pz_code)
   formData.append('description', data.description)
@@ -46,6 +47,10 @@ export const patchProduct = data => {
   formData.append('pz_code', data.pz_code)
   formData.append('description', data.description)
   formData.append('status', data.status)
+
+  if (data.release_year !== '' && data.release_year !== null) {
+    formData.append('release_year', data.release_year)
+  }
 
   if (data.release !== '' && data.release !== null) {
       formData.append('release', data.release)

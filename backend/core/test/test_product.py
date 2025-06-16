@@ -12,8 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import (APIRequestFactory, APITestCase,
-                                 force_authenticate)
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -38,7 +37,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type=ProductType.objects.get(name="validation_results")
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         # Get Product Types previous created by fixtures
         self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
@@ -49,6 +48,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -130,6 +130,7 @@ class ProductCreateRulesTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -141,6 +142,7 @@ class ProductCreateRulesTestCase(APITestCase):
         # Not Allowed Product Type
         product_dict = self.product_dict
         product_dict["release"] = self.release.pk
+        product_dict["release_year"] = "2001"
 
         # Not Allowed Product Type
         product_dict["product_type"] = self.specz_catalogs.pk
@@ -160,6 +162,7 @@ class ProductCreateRulesTestCase(APITestCase):
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)
+            print(response.content)
             data = json.loads(response.content)
 
             # Check status response
@@ -170,6 +173,7 @@ class ProductCreateRulesTestCase(APITestCase):
 
         product_dict = self.product_dict
         product_dict["pz_code"] = "Test PZ Code"
+        product_dict["release_year"] = "2001"
 
         # Not Allowed Product Types
         for product_type in [
@@ -178,6 +182,7 @@ class ProductCreateRulesTestCase(APITestCase):
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)
+            print(response.content)
             data = json.loads(response.content)
 
             # Check status response
@@ -246,6 +251,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -284,6 +290,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "id": self.product.pk,
             "release": self.release.pk,
             "release_name": self.release.display_name,
+            "release_year": self.product.release_year,
             "product_type": self.product_type.pk,
             "product_type_name": self.product_type.display_name,
             "uploaded_by": self.user.username,
@@ -385,4 +392,3 @@ class ProductDetailAPIViewTestCase(APITestCase):
     #         self.product.delete()
     #         self.assertEqual("OSError", mock_rmtree.exception)
     #         # print("TESTE %e" % mock_rmtree.exception)
-            

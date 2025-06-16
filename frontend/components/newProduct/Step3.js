@@ -53,10 +53,7 @@ const ucds = [
   }
 ]
 
-const ucdRaAndDec = [
-  'pos.eq.ra;meta.main',
-  'pos.eq.dec;meta.main'
-]
+const ucdRaAndDec = ['pos.eq.ra;meta.main', 'pos.eq.dec;meta.main']
 
 const mandatoryUcds = ['src.redshift']
 mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
@@ -282,7 +279,9 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   }, [usedUcds])
 
   useEffect(() => {
-    const checkValidObjectsCatalog = ucdRaAndDec.every(ucd => usedUcds.includes(ucd))
+    const checkValidObjectsCatalog = ucdRaAndDec.every(ucd =>
+      usedUcds.includes(ucd)
+    )
     setIsValidObjectsCatalog(checkValidObjectsCatalog)
   }, [usedUcds])
 
