@@ -241,13 +241,13 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
                 value={
                   product.release_year
                     ? dayjs().set('year', product.release_year)
-                    : null
+                    : ''
                 }
                 onChange={newValue => {
                   handleInputValue({
                     target: {
                       name: 'release_year',
-                      value: newValue.get('year')
+                      value: newValue ? newValue.get('year') : ''
                     }
                   })
                 }}
