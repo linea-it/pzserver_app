@@ -30,6 +30,7 @@ class ProcessFilter(filters.FilterSet):
             "pipeline",
             "status",
             "release",
+            "upload",
             "user",
         ]
 
@@ -58,6 +59,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
     search_fields = [
         "pipeline_name",
         "pipeline_display_name",
+        "upload",
         "user__username",
         "user__first_name",
         "user__last_name",
