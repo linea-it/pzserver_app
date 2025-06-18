@@ -5,6 +5,7 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -23,7 +24,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
@@ -36,6 +37,7 @@ function TrainingSetMaker() {
   const theme = useTheme()
   const [openDialog, setOpenDialog] = useState(false)
   const router = useRouter()
+  const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
@@ -107,6 +109,10 @@ function TrainingSetMaker() {
   const handleDialogClose = () => {
     setOpenDialog(false)
     router.push('/user_products')
+  }
+
+  const handleUniqueGalaxies = event => {
+    setUniqueGalaxies(event.target.checked)
   }
 
   const handleRun = async () => {
@@ -221,13 +227,12 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign="center">
               Training Set Maker
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="Creates a training set from the spatial cross-matching of a given Spec - z Catalog and the LSST Objects Catalogs."
-              >
-                <InfoIcon />
-              </IconButton>
+            </Typography>
+            <Typography variant="p" mb={3} textAlign={'left'}>
+              The Training Set Maker pipeline uses LSDB to perform spatial
+              cross-matching between a pre-registered Spec-z Catalog and the
+              LSST Objects catalog in order to create training sets for
+              machine-learning based photo-z algorithms.
             </Typography>
           </Grid>
 
@@ -307,27 +312,7 @@ function TrainingSetMaker() {
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              4. Output format:
-              <Select
-                value={outputFormat}
-                onChange={event => setOutputFormat(event.target.value)}
-                defaultValue="specz"
-              >
-                <MenuItem value="specz">same as spec-z catalog</MenuItem>
-                <MenuItem value="csv">csv</MenuItem>
-                <MenuItem value="fits">fits</MenuItem>
-                <MenuItem value="parquet">parquet</MenuItem>
-                <MenuItem value="hdf5">hdf5</MenuItem>
-                <MenuItem value="votable" disabled>
-                  VOTable
-                </MenuItem>
-              </Select>
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Typography variant="body1">
-              5. Select the Objects catalog (photometric data):
+              4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
                 onChange={event => setSelectedLsstCatalog(event.target.value)}
@@ -340,11 +325,128 @@ function TrainingSetMaker() {
                 ))}
               </Select>
             </Typography>
+
+            <Grid item xs={12} mt={2}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1" mr="16px">
+                  Flux type:
+                  <Select
+                    value="cmodel"
+                    // onChange={event => setSelectedLsstCatalog(event.target.value)}
+                    sx={{ marginLeft: '16px' }}
+                  >
+                    <MenuItem value="cmodel" selected>
+                      cModel
+                    </MenuItem>
+                    <MenuItem value="free_cModel" disabled>
+                      free_cModel
+                    </MenuItem>
+                    <MenuItem value="1" disabled>
+                      free_psf
+                    </MenuItem>
+                    <MenuItem value="2" disabled>
+                      gaap0p5
+                    </MenuItem>
+                    <MenuItem value="3" disabled>
+                      gaap0p7
+                    </MenuItem>
+                    <MenuItem value="4" disabled>
+                      gaap1p0
+                    </MenuItem>
+                    <MenuItem value="5" disabled>
+                      gaap1p5
+                    </MenuItem>
+                    <MenuItem value="6" disabled>
+                      gaap2p5
+                    </MenuItem>
+                    <MenuItem value="7" disabled>
+                      gaap3p0
+                    </MenuItem>
+                    <MenuItem value="8" disabled>
+                      aapOptimal
+                    </MenuItem>
+                    <MenuItem value="9" disabled>
+                      gaapPsf
+                    </MenuItem>
+                    <MenuItem value="0" disabled>
+                      psf
+                    </MenuItem>
+                  </Select>
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} mt={2}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1" mr="16px">
+                  Apply dereddening from{' '}
+                  <Link
+                    color="inherit"
+                    underline="always"
+                    href="https://dustmaps.readthedocs.io/en/latest/index.html"
+                  >
+                    dustmaps
+                  </Link>
+                  :
+                  {/* None, sfd, csfd, planck, planckGNILC, bayestar, iphas, marshall, chen2014, lenz2017, leikeensslin2019, leike2020, edenhofer2023, gaia_tge, decaps */}
+                  <Select
+                    value="sfd"
+                    // onChange={event => setSelectedLsstCatalog(event.target.value)}
+                    sx={{ marginLeft: '16px' }}
+                  >
+                    <MenuItem value="" disabled>
+                      None
+                    </MenuItem>
+                    <MenuItem value="sfd" selected>
+                      sfd
+                    </MenuItem>
+                    <MenuItem value="1" disabled>
+                      csfd
+                    </MenuItem>
+                    <MenuItem value="2" disabled>
+                      planck
+                    </MenuItem>
+                    <MenuItem value="3" disabled>
+                      planckGNILC
+                    </MenuItem>
+                    <MenuItem value="4" disabled>
+                      bayestar
+                    </MenuItem>
+                    <MenuItem value="5" disabled>
+                      iphas
+                    </MenuItem>
+                    <MenuItem value="6" disabled>
+                      marshall
+                    </MenuItem>
+                    <MenuItem value="7" disabled>
+                      chen2014
+                    </MenuItem>
+                    <MenuItem value="8" disabled>
+                      lenz2017
+                    </MenuItem>
+                    <MenuItem value="9" disabled>
+                      leikeensslin2019
+                    </MenuItem>
+                    <MenuItem value="0" disabled>
+                      leike2020
+                    </MenuItem>
+                    <MenuItem value="0" disabled>
+                      edenhofer2023
+                    </MenuItem>
+                    <MenuItem value="0" disabled>
+                      gaia_tge
+                    </MenuItem>
+                    <MenuItem value="0" disabled>
+                      decaps
+                    </MenuItem>
+                  </Select>
+                </Typography>
+              </Box>
+            </Grid>
           </Grid>
 
           <Grid item xs={12} mt={3}>
             <Typography variant="body1">
-              6. Select the cross-matching configuration choices:
+              5. Select the cross-matching configuration choices:
             </Typography>
             <Grid item xs={12} mt={2}>
               <Box display="flex" alignItems="center" ml={4}>
@@ -394,7 +496,7 @@ function TrainingSetMaker() {
               </Box>
             </Grid>
 
-            <Grid item xs={12} mt={3}>
+            {/* <Grid item xs={12} mt={3}>
               <Box ml={4}>
                 In case of multiple spec-z measurements for the same object:
                 <Select
@@ -414,7 +516,40 @@ function TrainingSetMaker() {
                   <MenuItem value="all">Keep all</MenuItem>
                 </Select>
               </Box>
-            </Grid>
+            </Grid> */}
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="body1" sx={{ color: '#888' }}>
+              6. Select unique galaxies
+              <Checkbox
+                checked={uniqueGalaxies}
+                onChange={handleUniqueGalaxies}
+                inputProps={{ 'aria-label': 'controlled' }}
+                disabled
+              />
+              <Typography component="span">(soon)</Typography>
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} mt={3}>
+            <Typography variant="body1">
+              7. Output format:
+              <Select
+                value={outputFormat}
+                onChange={event => setOutputFormat(event.target.value)}
+                defaultValue="specz"
+              >
+                <MenuItem value="specz">same as spec-z catalog</MenuItem>
+                <MenuItem value="csv">csv</MenuItem>
+                <MenuItem value="fits">fits</MenuItem>
+                <MenuItem value="parquet">parquet</MenuItem>
+                <MenuItem value="hdf5">hdf5</MenuItem>
+                <MenuItem value="votable" disabled>
+                  VOTable
+                </MenuItem>
+              </Select>
+            </Typography>
           </Grid>
 
           <Grid item xs={12}>
