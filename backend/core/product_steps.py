@@ -131,21 +131,6 @@ class CreateProduct:
                 "success": False,
             }
 
-        # Release year is mandatory in Spec-z Catalog
-        if (
-            self.__data.product_type.name == "specz_catalog"
-            and not self.__data.release_year
-        ):
-            self.__delete()
-            return {
-                "message": {
-                    "release_year": [
-                        "Release year is mandatory on Spec-z Catalogs products."
-                    ]
-                },
-                "success": False,
-            }
-
         # Release is not allowed in Spec-z Catalog
         if self.__data.release and self.__data.product_type.name == "specz_catalog":
             self.__delete()
