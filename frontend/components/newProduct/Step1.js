@@ -264,7 +264,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
               />
             </LocalizationProvider>
           </FormControl>
-        )*/}
+        ) */}
         {/* Survey necessário Product Type = validation_results - Photo-z Results */}
         {prodType === 'validation_results' && (
           <FormControl fullWidth>
