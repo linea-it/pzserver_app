@@ -5,6 +5,7 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -14,16 +15,16 @@ import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
+import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
+import Select from '@mui/material/Select'
 import Snackbar from '@mui/material/Snackbar'
 import SnackbarContent from '@mui/material/SnackbarContent'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SearchField from '../components/SearchField'
 import SpeczData from '../components/SpeczData'
 import { getPipelineByName } from '../services/pipeline'
@@ -33,6 +34,7 @@ function SpeczCatalogs() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
+  const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
   const [search, setSearch] = useState('')
   const router = useRouter()
   const [filters] = useState({})
@@ -70,7 +72,12 @@ function SpeczCatalogs() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSelectedProducts([])
+    setUniqueGalaxies(false)
     setOutputFormat('parquet')
+  }
+
+  const handleUniqueGalaxies = event => {
+    setUniqueGalaxies(event.target.checked)
   }
 
   const handleSnackbarClose = () => {
@@ -119,7 +126,8 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            debug: true
+            debug: true,
+            unique_galaxies: uniqueGalaxies
           }
         },
         description: data.param.description,
@@ -188,13 +196,14 @@ function SpeczCatalogs() {
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign={'center'}>
               Combine Spec-z Catalogs
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="Creates a single spec-z sample from the concatenation of multiple pre-registered individual Spec-z Catalogs."
-              >
-                <InfoIcon />
-              </IconButton>
+            </Typography>
+            <Typography variant="p" mb={3} textAlign={'left'}>
+              The Combine Spec-z Catalogs pipeline creates a single spec-z
+              sample by concatenating multiple pre-registered individual Spec-z
+              Catalogs. It uses LSDB to perform spatial cross-matching
+              (all-to-all) in order to identify multiple measurements of the
+              same galaxies and optionally select a sample containing only
+              unique objects.
             </Typography>
           </Grid>
           <Grid item xs={12}>
@@ -268,8 +277,21 @@ function SpeczCatalogs() {
           </Grid>
 
           <Grid item xs={12}>
+            <Typography variant="body1" sx={{ color: '#888' }}>
+              4. Select unique galaxies
+              <Checkbox
+                checked={uniqueGalaxies}
+                onChange={handleUniqueGalaxies}
+                inputProps={{ 'aria-label': 'controlled' }}
+                disabled
+              />
+              <Typography component="span">(soon)</Typography>
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
             <Typography variant="body1">
-              4. Output format:
+              5. Output format:
               <Select value={outputFormat} onChange={handleOutputFormatChange}>
                 <MenuItem value="parquet">parquet</MenuItem>
                 <MenuItem value="csv">csv</MenuItem>

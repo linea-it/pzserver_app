@@ -8,10 +8,10 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import dayjs from 'dayjs'
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+// import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+// import dayjs from 'dayjs'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Loading from '../../components/Loading'
@@ -231,7 +231,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
           </FormControl>
         )}
         {/* Release year necessário Product Type = specz_catalog - Spec-z Catalog */}
-        {prodType === 'specz_catalog' && (
+        {/* prodType === 'specz_catalog' && (
           <FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -264,7 +264,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
               />
             </LocalizationProvider>
           </FormControl>
-        )}
+        ) */}
         {/* Survey necessário Product Type = validation_results - Photo-z Results */}
         {prodType === 'validation_results' && (
           <FormControl fullWidth>
