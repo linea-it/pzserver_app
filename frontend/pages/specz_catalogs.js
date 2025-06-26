@@ -191,7 +191,9 @@ function SpeczCatalogs() {
             <Link color="inherit" href="pz_pipelines">
               Pipelines
             </Link>
-            <Typography color="textPrimary">Combine Redshift Catalogs</Typography>
+            <Typography color="textPrimary">
+              Combine Redshift Catalogs
+            </Typography>
           </Breadcrumbs>
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign={'center'}>
@@ -199,8 +201,8 @@ function SpeczCatalogs() {
             </Typography>
             <Typography variant="p" mb={3} textAlign={'left'}>
               The Combine Redshift Catalogs pipeline creates a single redshift
-              sample by concatenating multiple pre-registered individual Redshift
-              Catalogs. It uses LSDB to perform spatial cross-matching
+              sample by concatenating multiple pre-registered individual
+              Redshift Catalogs. It uses LSDB to perform spatial cross-matching
               (all-to-all) in order to identify multiple measurements of the
               same galaxies and optionally select a sample containing only
               unique objects.
