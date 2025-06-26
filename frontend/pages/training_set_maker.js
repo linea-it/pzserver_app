@@ -230,7 +230,7 @@ function TrainingSetMaker() {
             </Typography>
             <Typography variant="p" mb={3} textAlign={'left'}>
               The Training Set Maker pipeline uses LSDB to perform spatial
-              cross-matching between a pre-registered Spec-z Catalog and the
+              cross-matching between a pre-registered Redshift Catalog and the
               LSST Objects catalog in order to create training sets for
               machine-learning based photo-z algorithms.
             </Typography>
@@ -293,7 +293,7 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
-                3. Select the Spec-z Catalog for the cross-matching:
+                3. Select the Redshift Catalog for the cross-matching:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
@@ -498,7 +498,7 @@ function TrainingSetMaker() {
 
             {/* <Grid item xs={12} mt={3}>
               <Box ml={4}>
-                In case of multiple spec-z measurements for the same object:
+                In case of multiple redshift measurements for the same object:
                 <Select
                   value={data.param.duplicate_criteria}
                   onChange={e => {
@@ -540,7 +540,7 @@ function TrainingSetMaker() {
                 onChange={event => setOutputFormat(event.target.value)}
                 defaultValue="specz"
               >
-                <MenuItem value="specz">same as spec-z catalog</MenuItem>
+                <MenuItem value="specz">same as redshift catalog</MenuItem>
                 <MenuItem value="csv">csv</MenuItem>
                 <MenuItem value="fits">fits</MenuItem>
                 <MenuItem value="parquet">parquet</MenuItem>

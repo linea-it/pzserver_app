@@ -398,7 +398,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
       </Typography>
       <Typography paragraph variant="body">
         The redshift (z) is mandatory for Training Sets, and also, coordinates
-        (RA, Dec) for Spec-z Catalogs.
+        (RA, Dec) for Redshift Catalogs.
       </Typography>
       <Typography paragraph variant="body">
         It is okay to leave columns unassociated.
@@ -444,7 +444,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           color="primary"
           onClick={handleSubmit}
           disabled={
-            (productType === 'Spec-z Catalog' && !isValid) ||
+            (productType === 'Redshift Catalog' && !isValid) ||
             (productType === 'Training Set' && !isValidTrainingSet) ||
             (productType === 'Objects Catalog' && !isValidObjectsCatalog)
           }

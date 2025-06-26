@@ -215,8 +215,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             helperText={fieldErrors.product_type}
           />
         </FormControl>
-        {/* Release necessário Product Type != specz_catalog or objects_catalog */}
-        {!['objects_catalog', 'specz_catalog', null].includes(prodType) && (
+        {/* Release necessário Product Type != redshift_catalog or objects_catalog */}
+        {!['objects_catalog', 'redshift_catalog', null].includes(prodType) && (
           <FormControl fullWidth>
             <ReleaseSelect
               name="release"
@@ -230,8 +230,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             />
           </FormControl>
         )}
-        {/* Release year necessário Product Type = specz_catalog - Spec-z Catalog */}
-        {/* prodType === 'specz_catalog' && (
+        {/* Release year necessário Product Type = redshift_catalog - Redshift Catalog */}
+        {/* prodType === 'redshift_catalog' && (
           <FormControl>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker

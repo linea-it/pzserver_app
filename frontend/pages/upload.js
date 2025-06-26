@@ -1,26 +1,26 @@
-import React from 'react'
-import { useRouter } from 'next/router'
 import {
-  Container,
-  Grid,
-  Typography,
-  TextField,
+  Alert,
+  Box,
+  Button,
   Checkbox,
-  FormGroup,
+  Container,
   FormControl,
   FormControlLabel,
-  Button,
-  Box,
+  FormGroup,
+  Grid,
   Snackbar,
-  Alert
+  TextField,
+  Typography
 } from '@mui/material'
+import { useRouter } from 'next/router'
+import { parseCookies } from 'nookies'
+import React from 'react'
+import FileUploader from '../components/FileUploader'
+import Loading from '../components/Loading'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
-import useStyles from '../styles/pages/upload'
-import { parseCookies } from 'nookies'
-import FileUploader from '../components/FileUploader'
 import { createProduct } from '../services/product'
-import Loading from '../components/Loading'
+import useStyles from '../styles/pages/upload'
 
 export default function Upload() {
   const classes = useStyles()
@@ -142,7 +142,7 @@ export default function Upload() {
                 }}
               />
             </FormControl>
-            {/* Survey necessário Product Type = 2 - Spec-z Catalog */}
+            {/* Survey necessário Product Type = 2 - Redshift Catalog */}
             {product.product_type === 2 && (
               <FormControl fullWidth>
                 <TextField

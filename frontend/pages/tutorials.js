@@ -1,15 +1,15 @@
 import Breadcrumbs from '@mui/material/Breadcrumbs'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import Link from '@mui/material/Link'
-import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
 
 import { parseCookies } from 'nookies'
-import useStyles from '../styles/pages/tutorials'
 import Partnersfooter from '../components/Partnersfooter'
+import useStyles from '../styles/pages/tutorials'
 
 export default function Tutorials() {
   const classes = useStyles()
@@ -61,7 +61,7 @@ export default function Tutorials() {
                 </p>
                 <ul>
                   <li>
-                    <strong>Spec-z Catalog</strong>: Catalog of spectroscopic
+                    <strong>Redshift Catalog</strong>: Catalog of spectroscopic
                     redshifts and positions (usually equatorial coordinates).
                   </li>
                   <li>

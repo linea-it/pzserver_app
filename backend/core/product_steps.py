@@ -131,12 +131,12 @@ class CreateProduct:
                 "success": False,
             }
 
-        # Release is not allowed in Spec-z Catalog
-        if self.__data.release and self.__data.product_type.name == "specz_catalog":
+        # Release is not allowed in Redshift Catalog
+        if self.__data.release and self.__data.product_type.name == "redshift_catalog":
             self.__delete()
             return {
                 "message": {
-                    "release": ["Release must be null on Spec-z Catalogs products."]
+                    "release": ["Release must be null on Redshift Catalogs products."]
                 },
                 "success": False,
             }
@@ -145,7 +145,7 @@ class CreateProduct:
         if self.__data.pz_code and self.__data.product_type.name in (
             "training_set",
             "training_results",
-            "specz_catalog",
+            "redshift_catalog",
         ):
             dn = self.__data.product_type.display_name
             pzc = self.__data.pz_code
@@ -226,15 +226,15 @@ class RegistryProduct:
                 # Acontece com arquivos comprimidos .zip etc.
                 pass
 
-            # Verifica se o product type é specz_catalog
+            # Verifica se o product type é redshift_catalog
             # Para esses produtos é mandatório ter acesso as colunas da tabela
             # Para os demais produtos é opicional.
-            if self.product.product_type.name == "specz_catalog":
+            if self.product.product_type.name == "redshift_catalog":
                 if len(product_columns) == 0:
                     raise Exception(
                         (
                             "It was not possible to identify the product columns. "
-                            "For Spec-z Catalogs this is mandatory. "
+                            "For Redshift Catalogs this is mandatory. "
                             "Please check the file format."
                         )
                     )
