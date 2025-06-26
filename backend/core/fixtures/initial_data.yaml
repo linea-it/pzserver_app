@@ -9,8 +9,8 @@
 - model: core.producttype
   pk: 1
   fields:
-    name: specz_catalog
-    display_name: Spec-z Catalog
+    name: redshift_catalog
+    display_name: Redshift Catalog
     order: 1
     description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
@@ -104,9 +104,9 @@
   pk: 2
   fields:
     name: combine_specz
-    display_name: Combine Specz Catalogs
+    display_name: Combine Redshift Catalogs
     version: 0.0.1
-    description: Combine Specz Catalogs pipeline
+    description: Combine Redshift Catalogs pipeline
     created_at: 2022-05-18 15:36:59.830913+00:00
     system_config:
       executor:

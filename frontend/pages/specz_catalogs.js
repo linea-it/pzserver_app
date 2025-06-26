@@ -95,7 +95,7 @@ function SpeczCatalogs() {
 
     if (combinedCatalogName.trim() === '') {
       setSnackbarMessage(
-        'Your process has not been submitted. Please fill in the combine spec-z name.'
+        'Your process has not been submitted. Please fill in the combine redshift name.'
       )
       setSnackbarColor(theme.palette.warning.main)
       setSnackbarOpen(true)
@@ -191,15 +191,15 @@ function SpeczCatalogs() {
             <Link color="inherit" href="pz_pipelines">
               Pipelines
             </Link>
-            <Typography color="textPrimary">Combine Spec-z Catalogs</Typography>
+            <Typography color="textPrimary">Combine Redshift Catalogs</Typography>
           </Breadcrumbs>
           <Grid item xs={12}>
             <Typography variant="h4" mb={3} textAlign={'center'}>
-              Combine Spec-z Catalogs
+              Combine Redshift Catalogs
             </Typography>
             <Typography variant="p" mb={3} textAlign={'left'}>
-              The Combine Spec-z Catalogs pipeline creates a single spec-z
-              sample by concatenating multiple pre-registered individual Spec-z
+              The Combine Redshift Catalogs pipeline creates a single redshift
+              sample by concatenating multiple pre-registered individual Redshift
               Catalogs. It uses LSDB to perform spatial cross-matching
               (all-to-all) in order to identify multiple measurements of the
               same galaxies and optionally select a sample containing only
@@ -226,7 +226,7 @@ function SpeczCatalogs() {
               <IconButton
                 color="primary"
                 aria-label="info"
-                title="the product name of the spec-z catalog that will result from the process and be automatically registered as a new product on the PZ Server."
+                title="the product name of the redshift catalog that will result from the process and be automatically registered as a new product on the PZ Server."
               >
                 <InfoIcon />
               </IconButton>
@@ -258,7 +258,7 @@ function SpeczCatalogs() {
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
-                3. Select the Spec-z Catalogs to include in your sample:
+                3. Select the Redshift Catalogs to include in your sample:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>

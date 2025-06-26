@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -27,7 +26,7 @@ function TrainingSetMaker() {
             <Typography variant="h5">Training Set Maker</Typography>
             <Typography variant="body1" color="text.secondary">
               Creates a training set from the spatial cross-matching of a given
-              Spec-z Catalog and the LSST Objects Catalogs.
+              Redshift Catalog and the LSST Objects Catalogs.
             </Typography>
           </CardContent>
         </Box>
