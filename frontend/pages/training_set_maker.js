@@ -38,6 +38,7 @@ function TrainingSetMaker() {
   const [openDialog, setOpenDialog] = useState(false)
   const router = useRouter()
   const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
+  const [convertFluxToMag, setConvertFluxToMag] = useState(true)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
@@ -48,6 +49,7 @@ function TrainingSetMaker() {
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [releases, setReleases] = useState([])
+  const [fluxes, setFluxes] = useState([])
   const [outputFormat, setOutputFormat] = useState('specz')
   const [initialData, setInitialData] = useState({
     param: {
@@ -56,7 +58,10 @@ function TrainingSetMaker() {
         radius_arcsec: 1,
         output_catalog_name: 'tsm_cross_001'
       },
-      duplicate_criteria: 'closest'
+      duplicate_criteria: 'closest',
+      flux_type: 'cmodel',
+      dereddening: 'sfd',
+      convert_flux_to_mag: true,
     }
   })
   const [data, setData] = useState(initialData)
@@ -78,13 +83,13 @@ function TrainingSetMaker() {
     const fetchReleases = async () => {
       try {
         const releasesData = await getReleases()
-
+    
         if (Array.isArray(releasesData.results)) {
           const fetchedReleases = releasesData.results
           setReleases(fetchedReleases)
 
           if (fetchedReleases.length > 0) {
-            setSelectedLsstCatalog(fetchedReleases[0].name)
+            handleRelease(fetchedReleases[0].name)
           }
         } else {
           console.error('No results found in the API response')
@@ -106,6 +111,49 @@ function TrainingSetMaker() {
     setIsSubmitting(false)
   }
 
+  const handleRelease = release_name => {
+
+    setSelectedLsstCatalog(release_name)
+
+    const fluxByRelease = {
+      "dr2": [
+        {"name": "auto", "display_name": "auto", "selected": true},
+        {"name": "wavg_psf", "display_name": "wavg_psf", "disabled": true}
+      ],
+      "dp02": [
+        {"name": "cmodel", "display_name": "cModel", "selected": true},
+        {"name": "gaap1p0", "display_name": "gaap1p0"},
+        {"name": "free_cModel", "display_name": "free_cModel", "disabled": true},
+        {"name": "free_psf", "display_name": "free_psf", "disabled": true},
+        {"name": "gaap0p5", "display_name": "gaap0p5", "disabled": true},
+        {"name": "gaap0p7", "display_name": "gaap0p7", "disabled": true},
+        {"name": "gaap1p5", "display_name": "gaap1p5", "disabled": true},
+        {"name": "gaap2p5", "display_name": "gaap2p5", "disabled": true},
+        {"name": "gaap3p0", "display_name": "gaap3p0", "disabled": true},
+        {"name": "aapOptimal", "display_name": "aapOptimal", "disabled": true},
+        {"name": "gaapPsf", "display_name": "gaapPsf", "disabled": true},
+        {"name": "psf", "display_name": "psf", "disabled": true}
+      ],
+    }
+
+    if (release_name in fluxByRelease) {
+      const flux_release = fluxByRelease[release_name]
+      setFluxes(flux_release)
+
+      flux_release.forEach(flux => {
+        if (flux.selected) {
+          setData({
+            ...data,
+            param: {
+              ...data.param,
+              flux_type: flux.name
+            }
+          })
+        }
+      })
+    }
+  } 
+
   const handleDialogClose = () => {
     setOpenDialog(false)
     router.push('/user_products')
@@ -113,6 +161,10 @@ function TrainingSetMaker() {
 
   const handleUniqueGalaxies = event => {
     setUniqueGalaxies(event.target.checked)
+  }
+
+  const handleConvertFluxToMag = event => {
+    setConvertFluxToMag(event.target.checked)
   }
 
   const handleRun = async () => {
@@ -159,7 +211,10 @@ function TrainingSetMaker() {
               radius_arcsec: data.param.crossmatch.radius_arcsec,
               output_catalog_name: sanitizedCatalogName
             },
-            duplicate_criteria: data.param.duplicate_criteria
+            duplicate_criteria: data.param.duplicate_criteria,
+            flux_type: data.param.flux_type,
+            dereddening: data.param.dereddening,
+            convert_flux_to_mag: convertFluxToMag
           }
         },
         output_format: outputFormat,
@@ -170,6 +225,9 @@ function TrainingSetMaker() {
 
       // tentativa de envio do json via POST
       setIsLoading(true)
+
+      console.log('Submitting process data:', processData)
+
       await submitProcess(processData)
       setSnackbarMessage('')
       handleClearForm()
@@ -230,7 +288,7 @@ function TrainingSetMaker() {
             </Typography>
             <Typography variant="p" mb={3} textAlign={'left'}>
               The Training Set Maker pipeline uses LSDB to perform spatial
-              cross-matching between a pre-registered Spec-z Catalog and the
+              cross-matching between a pre-registered Redshift Catalog and the
               LSST Objects catalog in order to create training sets for
               machine-learning based photo-z algorithms.
             </Typography>
@@ -293,7 +351,7 @@ function TrainingSetMaker() {
           <Grid item xs={12}>
             <Box display="flex" alignItems="center">
               <Typography variant="body1" mb={1}>
-                3. Select the Spec-z Catalog for the cross-matching:
+                3. Select the Redshift Catalog for the cross-matching:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
             </Box>
@@ -315,7 +373,7 @@ function TrainingSetMaker() {
               4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
-                onChange={event => setSelectedLsstCatalog(event.target.value)}
+                onChange={event => handleRelease(event.target.value)}
                 sx={{ marginLeft: '16px' }}
               >
                 {releases.map(release => (
@@ -331,46 +389,23 @@ function TrainingSetMaker() {
                 <Typography variant="body1" mr="16px">
                   Flux type:
                   <Select
-                    value="cmodel"
-                    // onChange={event => setSelectedLsstCatalog(event.target.value)}
+                    value={data.param.flux_type}
+                    onChange={event => {
+                      setData({
+                        ...data,
+                        param: {
+                          ...data.param,
+                          flux_type: event.target.value
+                        }
+                      })
+                    }}
                     sx={{ marginLeft: '16px' }}
-                  >
-                    <MenuItem value="cmodel" selected>
-                      cModel
-                    </MenuItem>
-                    <MenuItem value="free_cModel" disabled>
-                      free_cModel
-                    </MenuItem>
-                    <MenuItem value="1" disabled>
-                      free_psf
-                    </MenuItem>
-                    <MenuItem value="2" disabled>
-                      gaap0p5
-                    </MenuItem>
-                    <MenuItem value="3" disabled>
-                      gaap0p7
-                    </MenuItem>
-                    <MenuItem value="4" disabled>
-                      gaap1p0
-                    </MenuItem>
-                    <MenuItem value="5" disabled>
-                      gaap1p5
-                    </MenuItem>
-                    <MenuItem value="6" disabled>
-                      gaap2p5
-                    </MenuItem>
-                    <MenuItem value="7" disabled>
-                      gaap3p0
-                    </MenuItem>
-                    <MenuItem value="8" disabled>
-                      aapOptimal
-                    </MenuItem>
-                    <MenuItem value="9" disabled>
-                      gaapPsf
-                    </MenuItem>
-                    <MenuItem value="0" disabled>
-                      psf
-                    </MenuItem>
+                  >                
+                    {fluxes.map(flux => (
+                      <MenuItem value={flux.name} selected={flux.selected ? true : false} disabled={flux.disabled ? true : false}>
+                        {flux.display_name} 
+                      </MenuItem>
+                    ))}
                   </Select>
                 </Typography>
               </Box>
@@ -389,8 +424,16 @@ function TrainingSetMaker() {
                   :
                   {/* None, sfd, csfd, planck, planckGNILC, bayestar, iphas, marshall, chen2014, lenz2017, leikeensslin2019, leike2020, edenhofer2023, gaia_tge, decaps */}
                   <Select
-                    value="sfd"
-                    // onChange={event => setSelectedLsstCatalog(event.target.value)}
+                    value={data.param.dereddening}
+                    onChange={event => {
+                      setData({
+                        ...data,
+                        param: {
+                          ...data.param,
+                          dereddening: event.target.value
+                        }
+                      })
+                    }}
                     sx={{ marginLeft: '16px' }}
                   >
                     <MenuItem value="" disabled>
@@ -496,9 +539,22 @@ function TrainingSetMaker() {
               </Box>
             </Grid>
 
+            <Grid item xs={12} mt={3}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1">
+                  Convert fluxes into magnitudes:
+                  <Checkbox
+                    checked={convertFluxToMag}
+                    onChange={handleConvertFluxToMag}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                  />
+                </Typography>
+              </Box>
+            </Grid>
+
             {/* <Grid item xs={12} mt={3}>
               <Box ml={4}>
-                In case of multiple spec-z measurements for the same object:
+                In case of multiple redshift measurements for the same object:
                 <Select
                   value={data.param.duplicate_criteria}
                   onChange={e => {
@@ -540,7 +596,7 @@ function TrainingSetMaker() {
                 onChange={event => setOutputFormat(event.target.value)}
                 defaultValue="specz"
               >
-                <MenuItem value="specz">same as spec-z catalog</MenuItem>
+                <MenuItem value="specz">same as redshift catalog</MenuItem>
                 <MenuItem value="csv">csv</MenuItem>
                 <MenuItem value="fits">fits</MenuItem>
                 <MenuItem value="parquet">parquet</MenuItem>
