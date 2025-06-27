@@ -61,7 +61,7 @@ function TrainingSetMaker() {
       duplicate_criteria: 'closest',
       flux_type: 'cmodel',
       dereddening: 'sfd',
-      convert_flux_to_mag: true,
+      convert_flux_to_mag: true
     }
   })
   const [data, setData] = useState(initialData)
@@ -83,7 +83,7 @@ function TrainingSetMaker() {
     const fetchReleases = async () => {
       try {
         const releasesData = await getReleases()
-    
+
         if (Array.isArray(releasesData.results)) {
           const fetchedReleases = releasesData.results
           setReleases(fetchedReleases)
@@ -111,36 +111,35 @@ function TrainingSetMaker() {
     setIsSubmitting(false)
   }
 
-  const handleRelease = release_name => {
-
-    setSelectedLsstCatalog(release_name)
+  const handleRelease = releaseName => {
+    setSelectedLsstCatalog(releaseName)
 
     const fluxByRelease = {
-      "dr2": [
-        {"name": "auto", "display_name": "auto", "selected": true},
-        {"name": "wavg_psf", "display_name": "wavg_psf", "disabled": true}
+      dr2: [
+        { name: 'auto', display_name: 'auto', selected: true },
+        { name: 'wavg_psf', display_name: 'wavg_psf', disabled: true }
       ],
-      "dp02": [
-        {"name": "cmodel", "display_name": "cModel", "selected": true},
-        {"name": "gaap1p0", "display_name": "gaap1p0"},
-        {"name": "free_cModel", "display_name": "free_cModel", "disabled": true},
-        {"name": "free_psf", "display_name": "free_psf", "disabled": true},
-        {"name": "gaap0p5", "display_name": "gaap0p5", "disabled": true},
-        {"name": "gaap0p7", "display_name": "gaap0p7", "disabled": true},
-        {"name": "gaap1p5", "display_name": "gaap1p5", "disabled": true},
-        {"name": "gaap2p5", "display_name": "gaap2p5", "disabled": true},
-        {"name": "gaap3p0", "display_name": "gaap3p0", "disabled": true},
-        {"name": "aapOptimal", "display_name": "aapOptimal", "disabled": true},
-        {"name": "gaapPsf", "display_name": "gaapPsf", "disabled": true},
-        {"name": "psf", "display_name": "psf", "disabled": true}
-      ],
+      dp02: [
+        { name: 'cmodel', display_name: 'cModel', selected: true },
+        { name: 'gaap1p0', display_name: 'gaap1p0' },
+        { name: 'free_cModel', display_name: 'free_cModel', disabled: true },
+        { name: 'free_psf', display_name: 'free_psf', disabled: true },
+        { name: 'gaap0p5', display_name: 'gaap0p5', disabled: true },
+        { name: 'gaap0p7', display_name: 'gaap0p7', disabled: true },
+        { name: 'gaap1p5', display_name: 'gaap1p5', disabled: true },
+        { name: 'gaap2p5', display_name: 'gaap2p5', disabled: true },
+        { name: 'gaap3p0', display_name: 'gaap3p0', disabled: true },
+        { name: 'aapOptimal', display_name: 'aapOptimal', disabled: true },
+        { name: 'gaapPsf', display_name: 'gaapPsf', disabled: true },
+        { name: 'psf', display_name: 'psf', disabled: true }
+      ]
     }
 
-    if (release_name in fluxByRelease) {
-      const flux_release = fluxByRelease[release_name]
-      setFluxes(flux_release)
+    if (releaseName in fluxByRelease) {
+      const fluxRelease = fluxByRelease[releaseName]
+      setFluxes(fluxRelease)
 
-      flux_release.forEach(flux => {
+      fluxRelease.forEach(flux => {
         if (flux.selected) {
           setData({
             ...data,
@@ -152,7 +151,7 @@ function TrainingSetMaker() {
         }
       })
     }
-  } 
+  }
 
   const handleDialogClose = () => {
     setOpenDialog(false)
@@ -400,10 +399,15 @@ function TrainingSetMaker() {
                       })
                     }}
                     sx={{ marginLeft: '16px' }}
-                  >                
+                  >
                     {fluxes.map(flux => (
-                      <MenuItem value={flux.name} selected={flux.selected ? true : false} disabled={flux.disabled ? true : false}>
-                        {flux.display_name} 
+                      <MenuItem
+                        key={flux.name}
+                        value={flux.name}
+                        selected={!!flux.selected}
+                        disabled={!!flux.disabled}
+                      >
+                        {flux.display_name}
                       </MenuItem>
                     ))}
                   </Select>
