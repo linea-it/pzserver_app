@@ -1,7 +1,7 @@
 - model: core.release
   pk: 1
   fields:
-    name: mini_dataset
+    name: dr2
     display_name: Small Dataset
     description: Small dataset for example runs
     created_at: 2022-05-18 15:36:16.234786+00:00
@@ -83,7 +83,7 @@
           memory_limit: "1GiB"
       inputs:
         dataset:
-          path: "/datasets/data-example/mini_dataset"
+          path: "/datasets/data-example/dr2"
           columns:
             id: "id"
         specz:
@@ -94,6 +94,9 @@
       output_dir: "outputs"
       param:
         duplicate_criteria: "closest"
+        flux_type: "auto"
+        convert_flux_to_mag: false
+        dereddening: "sfd"
         crossmatch:
           output_catalog_name: "tsm_cross_001"
           radius_arcsec: 1.0
