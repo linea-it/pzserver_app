@@ -39,6 +39,7 @@ function TrainingSetMaker() {
   const router = useRouter()
   const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
   const [convertFluxToMag, setConvertFluxToMag] = useState(true)
+  const [disabledFluxToMag, setDisabledConvertFluxToMag] = useState(false)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
@@ -133,6 +134,13 @@ function TrainingSetMaker() {
         { name: 'gaapPsf', display_name: 'gaapPsf', disabled: true },
         { name: 'psf', display_name: 'psf', disabled: true }
       ]
+    }
+
+    if (releaseName === 'dr2') {
+      setDisabledConvertFluxToMag(true)
+      setConvertFluxToMag(true)
+    } else {
+      setDisabledConvertFluxToMag(false)
     }
 
     if (releaseName in fluxByRelease) {
@@ -550,6 +558,7 @@ function TrainingSetMaker() {
                   <Checkbox
                     checked={convertFluxToMag}
                     onChange={handleConvertFluxToMag}
+                    disabled={!!disabledFluxToMag}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
                 </Typography>
