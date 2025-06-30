@@ -279,8 +279,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             />
           </FormControl>
         )}
-        {/* Survey necessário Product Type = photoz_table - Photo-z Table */}
-        {prodType === 'photoz_table' && (
+        {/* Survey necessário Product Type = photoz_estimates - Photo-z Table */}
+        {prodType === 'photoz_estimates' && (
           <FormControl fullWidth>
             <TextField
               name="pz_code"

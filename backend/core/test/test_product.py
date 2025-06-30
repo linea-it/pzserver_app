@@ -122,7 +122,7 @@ class ProductCreateRulesTestCase(APITestCase):
 
         self.validation_results = ProductType.objects.get(name="validation_results")
 
-        self.photoz_table = ProductType.objects.get(name="photoz_table")
+        self.photoz_table = ProductType.objects.get(name="photoz_estimates")
 
         self.product_dict = {
             "product_type": self.validation_results.pk,
