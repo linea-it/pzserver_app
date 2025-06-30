@@ -61,7 +61,7 @@ export default function Tutorials() {
                 </p>
                 <ul>
                   <li>
-                    <strong>Redshift Catalog</strong>: Catalog of reference redshifts and positions of galaxies (usually spectroscopic redshifts and equatorial coordinates).
+                    <strong>Reference Redshift Catalog</strong>: Catalog of reference redshifts and positions of galaxies (usually spectroscopic redshifts and equatorial coordinates).
                   </li>
                   <li>
                     <strong>Training Set</strong>: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and reference redshifts.
