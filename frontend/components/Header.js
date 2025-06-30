@@ -145,6 +145,17 @@ function Header(props) {
               ))}
             </List>
           </Box>
+          <Typography
+            variant="p"
+            sx={{
+              paddingLeft: '2rem',
+              fontFamily: 'Oxanium',
+              color: '#03a9f4',
+              fontSize: '1.2rem'
+            }}
+          >
+            Beta
+          </Typography>
           <div className={classes.separator} />
           <Typography>{user?.username}</Typography>
           <IconButton
