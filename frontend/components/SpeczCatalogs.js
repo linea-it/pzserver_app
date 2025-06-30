@@ -25,8 +25,9 @@ function SpeczCatalogs() {
             Combine Redshift Catalogs (soon)
           </Typography>
           <Typography variant="body1" color="#555" sx={{ mt: 1 }}>
-            Creates a single redshift catalog from the combination of
-            pre-registered individual reference redshift catalogs.
+            Creates a single redshift sample from the multiple spatial
+            cross-matching (all-to-all) of a list of pre-registered individual
+            Redshift Catalogs.
           </Typography>
         </CardContent>
       </Box>

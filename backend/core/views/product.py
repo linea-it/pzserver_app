@@ -75,9 +75,12 @@ class ProductFilter(filters.FilterSet):
 
 
 class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
-    """Esse endpoint retorna apenas os produtos cujo o product type é = a 'spec-z' e o status é = a 1"""
+    """
+    This endpoint returns only those products whose
+    product type = 'redshift_catalog' and status = 1
+    """
 
-    queryset = Product.objects.filter(product_type__name="specz_catalog", status=1)
+    queryset = Product.objects.filter(product_type__name="redshift_catalog", status=1)
     serializer_class = ProductSerializer
     search_fields = [
         "display_name",
@@ -354,13 +357,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         prodstatus = int(data.get("status", 0))
         is_published = ProductStatus(prodstatus).name == "PUBLISHED"
 
-        is_specz = instance.product_type.name == "specz_catalog"
+        is_specz = instance.product_type.name == "redshift_catalog"
         is_object = instance.product_type.name == "objects_catalog"
         is_train = instance.product_type.name == "training_set"
 
         logger.debug("Status: %s", prodstatus)
         logger.debug("IsPubl: %s", is_published)
-        
+
         check_prod = None
 
         if is_published:

@@ -225,7 +225,7 @@ export const getProductsSpecz = ({
   page_size = 25,
   sort = []
 }) => {
-  // Esse endpoint retorna apenas os catalogos cujo o product type é = 'spec-z' e status = 1
+  // Esse endpoint retorna apenas os catalogos cujo o product type é = 'redshift' e status = 1
   let ordering = null
 
   // Ordenação no DRF

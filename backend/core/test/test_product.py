@@ -40,7 +40,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.product_type = ProductType.objects.get(name="validation_results")
 
         # Get Product Types previous created by fixtures
-        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
+        self.redshift_catalogs = ProductType.objects.get(name="redshift_catalog")
 
         self.product_dict = {
             "product_type": self.product_type.pk,
@@ -116,13 +116,13 @@ class ProductCreateRulesTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
+        self.redshift_catalogs = ProductType.objects.get(name="redshift_catalog")
 
         self.training_set = ProductType.objects.get(name="training_set")
 
         self.validation_results = ProductType.objects.get(name="validation_results")
 
-        self.photoz_table = ProductType.objects.get(name="photoz_table")
+        self.photoz_table = ProductType.objects.get(name="photoz_estimates")
 
         self.product_dict = {
             "product_type": self.validation_results.pk,
@@ -138,14 +138,14 @@ class ProductCreateRulesTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
     def test_release_field_rules(self):
-        """Release must be null in Spec-z Catalog"""
+        """Release must be null in Redshift Catalog"""
         # Not Allowed Product Type
         product_dict = self.product_dict
         product_dict["release"] = self.release.pk
         product_dict["release_year"] = "2001"
 
         # Not Allowed Product Type
-        product_dict["product_type"] = self.specz_catalogs.pk
+        product_dict["product_type"] = self.redshift_catalogs.pk
         response = self.client.post(self.url, product_dict)
         data = json.loads(response.content)
 
@@ -178,7 +178,7 @@ class ProductCreateRulesTestCase(APITestCase):
         # Not Allowed Product Types
         for product_type in [
             self.training_set.pk,
-            self.specz_catalogs.pk,
+            self.redshift_catalogs.pk,
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)

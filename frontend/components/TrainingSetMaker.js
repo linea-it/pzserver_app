@@ -26,8 +26,8 @@ function TrainingSetMaker() {
             Training Set Maker (soon)
           </Typography>
           <Typography variant="body1" color="#555" sx={{ mt: 1 }}>
-            Creates a training set from the matching between a given reference
-            redshift catalog and the LSST Objects Catalog.
+            Creates a training set from the spatial cross-matching of a given
+            Redshift Catalog and the LSST Objects Catalogs.
           </Typography>
         </CardContent>
       </Box>
