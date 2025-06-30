@@ -210,21 +210,26 @@ class RegistryProduct:
             LOGGER.debug("Main File: [%s]" % self.main_file)
 
             product_columns = list()
-            try:
-                # Le o arquivo principal e converte para pandas.Dataframe
-                df_product = ProductHandle().df_from_file(self.main_file)
+            if self.product.product_type.name not in (
+                "other",
+                "photoz_estimates",
+                "validation_results",
+            ):
+                try:
+                    # Le o arquivo principal e converte para pandas.Dataframe
+                    df_product = ProductHandle().df_from_file(self.main_file)
 
-                # Lista de Colunas no arquivo.
-                product_columns = df_product.columns.tolist()
+                    # Lista de Colunas no arquivo.
+                    product_columns = df_product.columns.tolist()
 
-                # Record number of lines of the main product
-                mf.n_rows = len(df_product)
-                mf.save()
-                LOGGER.debug(f"Number of rows: {str(mf.n_rows)}")
-            except NotTableError as err:
-                LOGGER.warning(err)
-                # Acontece com arquivos comprimidos .zip etc.
-                pass
+                    # Record number of lines of the main product
+                    mf.n_rows = len(df_product)
+                    mf.save()
+                    LOGGER.debug(f"Number of rows: {str(mf.n_rows)}")
+                except NotTableError as err:
+                    LOGGER.warning(err)
+                    # Acontece com arquivos comprimidos .zip etc.
+                    pass
 
             # Verifica se o product type é redshift_catalog
             # Para esses produtos é mandatório ter acesso as colunas da tabela

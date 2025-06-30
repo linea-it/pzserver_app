@@ -150,6 +150,7 @@ export default function ProductDetail({ productId, internalName }) {
     if (!product.id) {
       return
     }
+
     setLoading(true)
 
     getProductFiles(product.id)
@@ -181,6 +182,17 @@ export default function ProductDetail({ productId, internalName }) {
             lowerName.endsWith('.parquet')
           )
         })
+
+        if (
+          ['other', 'photoz_estimates', 'validation_results'].includes(
+            product.product_type_internal_name
+          )
+        ) {
+          // If the product type is 'other', 'photoz_estimates', or 'validation_results' we don't load files
+          setIsTabular(false)
+          return
+        }
+
         setIsTabular(isTabularData)
 
         setLoading(false)
