@@ -1,15 +1,15 @@
 import Breadcrumbs from '@mui/material/Breadcrumbs'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import Link from '@mui/material/Link'
-import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
 
 import { parseCookies } from 'nookies'
-import useStyles from '../styles/pages/tutorials'
 import Partnersfooter from '../components/Partnersfooter'
+import useStyles from '../styles/pages/tutorials'
 
 export default function Tutorials() {
   const classes = useStyles()
@@ -61,13 +61,14 @@ export default function Tutorials() {
                 </p>
                 <ul>
                   <li>
-                    <strong>Spec-z Catalog</strong>: Catalog of spectroscopic
-                    redshifts and positions (usually equatorial coordinates).
+                    <strong>Reference Redshift Catalog</strong>: Catalog of
+                    reference redshifts and positions of galaxies (usually
+                    spectroscopic redshifts and equatorial coordinates).
                   </li>
                   <li>
                     <strong>Training Set</strong>: Training set for photo-z
                     algorithms (tabular data). It usually contains magnitudes,
-                    errors, and spectroscopic (or true) redshifts.
+                    errors, and reference redshifts.
                   </li>
                   <li>
                     <strong>Training Results</strong>: Results of a photo-z
@@ -81,13 +82,12 @@ export default function Tutorials() {
                     photo-z validation metrics, validation plots, etc.
                   </li>
                   <li>
-                    <strong>Photo-z Table</strong>: Results of a photo-z
-                    estimation procedure. Ideally in the same format as the
-                    photo-z tables delivered by the DM as part of the LSST data
-                    releases. If the data is larger than the file upload limit
-                    (200MB), the product entry stores only the metadata (and
-                    instructions on accessing the data should be provided in the
-                    description field).
+                    <strong>Photo-z Estimates</strong>: Results of a photo-z
+                    estimation procedure (usually the output of RAIL Estimate
+                    module). If the data is larger than the file upload limit
+                    (200MB), the product entry stores only the metadata
+                    (instructions on accessing the data should be provided in
+                    the description field.
                   </li>
                 </ul>
               </Typography>

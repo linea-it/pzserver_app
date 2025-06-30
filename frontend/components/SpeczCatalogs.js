@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -19,15 +18,15 @@ function SpeczCatalogs() {
           component="img"
           sx={{ width: 350, height: 231 }}
           image="../interfaces/milkyway.jpg"
-          alt="Spec-z Catalogs"
+          alt="Redshift Catalogs"
         />
         <Box>
           <CardContent m={2} sx={{ maxWidth: 500 }}>
-            <Typography variant="h5">Combine Spec-z Catalogs</Typography>
+            <Typography variant="h5">Combine Redshift Catalogs</Typography>
             <Typography variant="body1" color="text.secondary">
-              Creates a single spec-z sample from the multiple spatial
+              Creates a single redshift sample from the multiple spatial
               cross-matching (all-to-all) of a list of pre-registered individual
-              Spec-z Catalogs.
+              Redshift Catalogs.
             </Typography>
           </CardContent>
         </Box>
