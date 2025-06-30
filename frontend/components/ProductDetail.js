@@ -183,9 +183,12 @@ export default function ProductDetail({ productId, internalName }) {
           )
         })
 
-        if (["other", "photoz_estimates", "validation_results"].includes(product.product_type_internal_name)) {
+        if (
+          ['other', 'photoz_estimates', 'validation_results'].includes(
+            product.product_type_internal_name
+          )
+        ) {
           // If the product type is 'other', 'photoz_estimates', or 'validation_results' we don't load files
-          console.log('product.product_type_internal_name', product.product_type_internal_name)
           setIsTabular(false)
           return
         }
