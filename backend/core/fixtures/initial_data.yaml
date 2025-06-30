@@ -10,9 +10,9 @@
   pk: 1
   fields:
     name: redshift_catalog
-    display_name: Redshift Catalog
+    display_name: Reference Redshift Catalog
     order: 1
-    description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
+    description: Catalog of reference redshifts and positions of galaxies (usually spectroscopic redshifts and equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
 - model: core.producttype
   pk: 2
