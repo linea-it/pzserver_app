@@ -61,10 +61,14 @@ export default function Tutorials() {
                 </p>
                 <ul>
                   <li>
-                    <strong>Reference Redshift Catalog</strong>: Catalog of reference redshifts and positions of galaxies (usually spectroscopic redshifts and equatorial coordinates).
+                    <strong>Reference Redshift Catalog</strong>: Catalog of
+                    reference redshifts and positions of galaxies (usually
+                    spectroscopic redshifts and equatorial coordinates).
                   </li>
                   <li>
-                    <strong>Training Set</strong>: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and reference redshifts.
+                    <strong>Training Set</strong>: Training set for photo-z
+                    algorithms (tabular data). It usually contains magnitudes,
+                    errors, and reference redshifts.
                   </li>
                   <li>
                     <strong>Training Results</strong>: Results of a photo-z
@@ -78,7 +82,12 @@ export default function Tutorials() {
                     photo-z validation metrics, validation plots, etc.
                   </li>
                   <li>
-                    <strong>Photo-z Estimates</strong>: Results of a photo-z estimation procedure (usually the output of RAIL Estimate module). If the data is larger than the file upload limit (200MB), the product entry stores only the metadata (instructions on accessing the data should be provided in the description field.
+                    <strong>Photo-z Estimates</strong>: Results of a photo-z
+                    estimation procedure (usually the output of RAIL Estimate
+                    module). If the data is larger than the file upload limit
+                    (200MB), the product entry stores only the metadata
+                    (instructions on accessing the data should be provided in
+                    the description field.
                   </li>
                 </ul>
               </Typography>
