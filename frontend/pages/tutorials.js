@@ -47,7 +47,7 @@ export default function Tutorials() {
               <Typography variant="body1" component="span">
                 <p>
                   To upload a data product, click on the button{' '}
-                  <strong>&quot;NEW PRODUCT&quot;</strong> on the top left of
+                  <strong>&quot;NEW PRODUCT&quot;</strong> on the top right of
                   the <strong>&quot;User-generated Data Products&quot;</strong>{' '}
                   page and fill in the Upload Form with relevant metadata.
                 </p>
