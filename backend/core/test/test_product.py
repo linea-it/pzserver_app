@@ -293,6 +293,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "release_year": self.product.release_year,
             "product_type": self.product_type.pk,
             "product_type_name": self.product_type.display_name,
+            "product_type_internal_name": self.product_type.name,
             "uploaded_by": self.user.username,
             "is_owner": True,
             "origin": "Upload",
