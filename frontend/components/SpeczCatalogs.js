@@ -22,9 +22,7 @@ function SpeczCatalogs() {
         />
         <Box>
           <CardContent m={2} sx={{ maxWidth: 500 }}>
-            <Typography variant="h5">
-              Combine Redshift Catalogs
-            </Typography>
+            <Typography variant="h5">Combine Redshift Catalogs</Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>
               Creates a single redshift sample from the multiple spatial
               cross-matching (all-to-all) of a list of pre-registered individual

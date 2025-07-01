@@ -23,9 +23,7 @@ function TrainingSetMaker() {
         />
         <Box>
           <CardContent m={2} sx={{ maxWidth: 500 }}>
-            <Typography variant="h5">
-              Training Set Maker
-            </Typography>
+            <Typography variant="h5">Training Set Maker</Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>
               Creates a training set from the spatial cross-matching of a given
               Redshift Catalog and the LSST Objects Catalogs.
