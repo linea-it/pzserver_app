@@ -163,7 +163,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                       }
                     }}
                   >
-                    LOGIN WITH CILOGON (RSP ACCOUNT)
+                    LOGIN LSST MEMBERS (RSP ACCOUNT)
                   </Button>
                 </Grid>
                 <Grid item xs={12}>
@@ -174,7 +174,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     href={GithubUrl || shibLoginUrl}
                     sx={{ bottom: 20 }}
                   >
-                    Login with GitHub
+                    LOGIN ADMIN
                   </GitHubButton>
                 </Grid>
               </>
