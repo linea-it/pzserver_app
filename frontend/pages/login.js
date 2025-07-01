@@ -174,7 +174,7 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     href={GithubUrl || shibLoginUrl}
                     sx={{ bottom: 20 }}
                   >
-                    LOGIN ADMIN 
+                    LOGIN ADMIN
                   </GitHubButton>
                 </Grid>
               </>
