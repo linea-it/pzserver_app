@@ -29,7 +29,9 @@ export default function Documentation() {
           </Typography> */}
           <Card>
             <CardContent>
-              <Typography variant="h6">Photo-z Server Documentation for Users</Typography>
+              <Typography variant="h6">
+                Photo-z Server Documentation for Users
+              </Typography>
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
@@ -63,9 +65,7 @@ export default function Documentation() {
                   </Link>
                   .
                 </p>
-                <p>
-                  Instalation:
-                </p>
+                <p>Instalation:</p>
                 <pre className={classes.codeBlock}>
                   <code>$ pip install pzserver </code>
                 </pre>
@@ -75,9 +75,8 @@ export default function Documentation() {
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  A tutorial notebook with examples for all pzserver methods
-                  is available on
-                  {' '}
+                  A tutorial notebook with examples for all pzserver methods is
+                  available on{' '}
                   <Link
                     href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/pzserver_tutorial.ipynb"
                     target="_blank"

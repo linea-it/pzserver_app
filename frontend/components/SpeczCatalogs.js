@@ -2,12 +2,12 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
-//import Link from '@mui/material/Link'
+// import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 
 function SpeczCatalogs() {
   return (
-    //<Link href="/specz_catalogs">
+    // <Link href="/specz_catalogs">
     <Card
       elevation={3}
       sx={{
@@ -31,7 +31,7 @@ function SpeczCatalogs() {
         </CardContent>
       </Box>
     </Card>
-    //</Link>
+    // </Link>
   )
 }
 
