@@ -461,9 +461,7 @@ export default function ProductDetail({ productId, internalName }) {
                 )}
               </Stack>
               <Box sx={{ m: 2 }}></Box>
-              {product.release !== null && (
-                <Typography variant="body1">{product.description}</Typography>
-              )}
+              <Typography variant="body1">{product.description}</Typography>
               <ProductShare
                 isOpen={shareDialogOpen}
                 handleShareDialogOpen={handleShareDialogOpen}
