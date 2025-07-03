@@ -1,6 +1,6 @@
+from core.models import Product, ProductStatus, ProductType, Release
 from pkg_resources import require
 from rest_framework import serializers
-from core.models import Release, ProductType, Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -16,17 +16,38 @@ class ProductSerializer(serializers.ModelSerializer):
     )
     product_type_name = serializers.SerializerMethodField()
 
+    product_type_internal_name = serializers.SerializerMethodField()
+
     uploaded_by = serializers.SerializerMethodField()
 
     is_owner = serializers.SerializerMethodField()
 
+    origin = serializers.SerializerMethodField()
+
+    process_status = serializers.SerializerMethodField()
+
+    product_status = serializers.SerializerMethodField()
+
+    can_delete = serializers.SerializerMethodField()
+
+    can_update = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        read_only_fields = ("internal_name", "is_owner")
+        read_only_fields = (
+            "internal_name",
+            "is_owner",
+            "origin",
+            "process_status",
+            "product_status",
+        )
         exclude = ["user", "path"]
 
     def get_product_type_name(self, obj):
         return obj.product_type.display_name
+
+    def get_product_type_internal_name(self, obj):
+        return obj.product_type.name
 
     def get_release_name(self, obj):
         try:
@@ -43,3 +64,21 @@ class ProductSerializer(serializers.ModelSerializer):
             return True
         else:
             return False
+
+    def get_origin(self, obj):
+        return obj.upload.pipeline.display_name if hasattr(obj, "upload") else "Upload"
+
+    def get_process_status(self, obj):
+        return obj.upload.status if hasattr(obj, "upload") else None
+
+    def get_product_status(self, obj):
+        pr = ProductStatus(obj.status)
+        return pr.label
+
+    def get_can_delete(self, obj):
+        current_user = self.context["request"].user
+        return obj.can_delete(current_user)
+
+    def get_can_update(self, obj):
+        current_user = self.context["request"].user
+        return obj.can_update(current_user)

@@ -1,21 +1,21 @@
-import Head from 'next/head'
 import {
-  Grid,
   Card,
   CardActionArea,
   CardMedia,
+  Grid,
   Typography
 } from '@mui/material'
+import Head from 'next/head'
+import { parseCookies } from 'nookies'
 import Link from '../components/Link'
 import useStyles from '../styles/pages/index'
-import { parseCookies } from 'nookies'
 
 export default function Index() {
   const classes = useStyles()
 
   const interfaces = [
     {
-      title: 'LSST PZ Data Products',
+      title: 'Rubin Observatory PZ Data Products',
       path: '/oficial_products',
       background: '/interfaces/lsst-dp.jpg',
       description:
@@ -27,6 +27,13 @@ export default function Index() {
       background: '/interfaces/user-dp.jpg',
       description:
         'User-generated data products shared by members of the LSST community.'
+    },
+    {
+      title: 'PZ Server Pipelines',
+      path: '/pz_pipelines',
+      background: '/interfaces/gamma-ray-burst.jpg',
+      description:
+        'Pipelines to create customized science-driven PZ-related data products.'
     }
   ]
 

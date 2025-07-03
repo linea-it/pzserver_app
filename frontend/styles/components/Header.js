@@ -8,7 +8,7 @@ const useStyles = makeStyles(theme => ({
     marginRight: 10
   },
   appbar: {
-    background: theme.palette.primary.dark
+    background: theme.palette.grey[900]
   },
   separator: {
     flexGrow: 1
@@ -48,7 +48,9 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     background: 'url(/header.jpg)',
     backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover'
+    backgroundSize: 'cover',
+    height: '40vh',
+    // backgroundPositionY: '-400px'
     // height: '30%'
     // marginBottom: theme.spacing(4)
   },

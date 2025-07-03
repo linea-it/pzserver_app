@@ -1,4 +1,4 @@
-# Postgres 
+# Postgres
 POSTGRES_USER=pzadmin
 POSTGRES_PASSWORD=adminpz
 POSTGRES_DB=pzdev
@@ -10,15 +10,25 @@ POSTGRES_DB=pzdev
 # export GROUPID=1000      # gid
 # export USERNAME=pzapp    # container user
 
+DJANGO_ENVIRONMENT_NAME=Development
+
 # Backend/Django
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
 LOGGING_LEVEL=DEBUG
-# AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must 
+# AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must
 # disable it.
 AUTORELOAD=1
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY=Z-cVO6l8catnpijVIKXcwwaKeGJTzJ2hiItn3lw2a4M
+
+# AMQP
+RABBITMQ_HOST="rabbitmq"
+RABBITMQ_PORT="5672"
+RABBITMQ_ERLANG_COOKIE="SWQOKODSQALRPCLNMEQG"
+RABBITMQ_DEFAULT_USER="orcadmin"
+RABBITMQ_DEFAULT_PASS="adminorc"
+RABBITMQ_DEFAULT_VHOST="/"
 
 # Database
 DB_ENGINE=django.db.backends.postgresql
@@ -28,9 +38,13 @@ DB_DATABASE=pzdev
 DB_HOST=database
 DB_PORT=5432
 
+# URI
+DOMAIN=localhost
+URI=http://${DOMAIN}
+
 # CORS
-DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
+DJANGO_ALLOWED_HOSTS=${DOMAIN} 127.0.0.1 [::1]
+DJANGO_CSRF_TRUSTED_ORIGINS=${URI} http://127.0.0.1
 
 # Frontend
 # Client ID e Client Secret devem ser cadastradas no Django Admin
@@ -38,13 +52,44 @@ DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost http://127.0.0.1
 # DJANGO_OAUTH_CLIENT_ID=
 # DJANGO_OAUTH_CLIENT_SECRET=
 
+# Configure the ORCHEST_URL variable with an active instance of an orchestration app
+# ORCHEST_URL=
+
+# Client ID and Client Secret must be registered in Django Admin
+# after backend Setup, in the Django Oauth Applications interface
+# ORCHEST_CLIENT_ID=
+# ORCHEST_CLIENT_SECRET=
+
 # Github OAuth
-# To enable Github OAuth authentication, 
+# To enable Github OAuth authentication,
 # uncomment and fill in the following variables.
-#GITHUB_CLIENT_ID=
-#GITHUB_CLIENT_SECRET=
-#GITHUB_ORG_NAME=linea-it
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
+# GITHUB_ORG_NAME=linea-it
 
 # Shibboleth / Satosa Auth
 # Url para login utilizando Shibboleth
 # AUTH_SHIB_URL=
+
+# directory where it will contain the processing of the pipelines.
+PROCESSING_DIR=/processes
+
+# directory where it will contain the source code of the pipelines.
+PIPELINES_DIR=/pipelines
+
+# directory where it will contain the datasets.
+DATASETS_DIR=/datasets
+
+# Saml2 / Satosa Auth
+# URL to login using satosa
+# AUTH_GITHUB_URL=${URI}/saml2/login/?idp=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cDovL2dpdGh1Yi5jb20vbG9naW4vb2F1dGgvYXV0aG9yaXpl&next=/
+# AUTH_CILOGON_URL=${URI}/saml2/login/?idp=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cHM6Ly9kYXRhLmxzc3QuY2xvdWQ=&next=/
+
+# Keys and Certificates
+# SIG_KEY_PEM=
+# SIG_CERT_PEM=
+# ENCRYP_KEY_PEM=
+# ENCRYP_CERT_PEM=
+
+# IDP metadata
+# IDP_METADATA=

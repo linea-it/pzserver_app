@@ -5,15 +5,14 @@ import shutil
 from unittest import mock
 
 import pytest
-from core.models import Product, ProductType, Release
+from core.models import Product, ProductStatus, ProductType, Release
 from core.serializers import ProductSerializer
 from core.views import ProductViewSet
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import (APIRequestFactory, APITestCase,
-                                 force_authenticate)
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 
 class ProductListCreateAPIViewTestCase(APITestCase):
@@ -38,10 +37,10 @@ class ProductListCreateAPIViewTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.product_type=ProductType.objects.get(name="validation_results")
+        self.product_type = ProductType.objects.get(name="validation_results")
 
         # Get Product Types previous created by fixtures
-        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
+        self.redshift_catalogs = ProductType.objects.get(name="redshift_catalog")
 
         self.product_dict = {
             "product_type": self.product_type.pk,
@@ -49,6 +48,7 @@ class ProductListCreateAPIViewTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -116,13 +116,13 @@ class ProductCreateRulesTestCase(APITestCase):
         self.release = Release.objects.first()
 
         # Get Product Types previous created by fixtures
-        self.specz_catalogs = ProductType.objects.get(name="specz_catalog")
+        self.redshift_catalogs = ProductType.objects.get(name="redshift_catalog")
 
         self.training_set = ProductType.objects.get(name="training_set")
 
         self.validation_results = ProductType.objects.get(name="validation_results")
 
-        self.photoz_table = ProductType.objects.get(name="photoz_table")
+        self.photoz_table = ProductType.objects.get(name="photoz_estimates")
 
         self.product_dict = {
             "product_type": self.validation_results.pk,
@@ -130,6 +130,7 @@ class ProductCreateRulesTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -137,13 +138,14 @@ class ProductCreateRulesTestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
     def test_release_field_rules(self):
-        """Release must be null in Spec-z Catalog"""
+        """Release must be null in Redshift Catalog"""
         # Not Allowed Product Type
         product_dict = self.product_dict
         product_dict["release"] = self.release.pk
+        product_dict["release_year"] = "2001"
 
         # Not Allowed Product Type
-        product_dict["product_type"] = self.specz_catalogs.pk
+        product_dict["product_type"] = self.redshift_catalogs.pk
         response = self.client.post(self.url, product_dict)
         data = json.loads(response.content)
 
@@ -160,6 +162,7 @@ class ProductCreateRulesTestCase(APITestCase):
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)
+            print(response.content)
             data = json.loads(response.content)
 
             # Check status response
@@ -170,14 +173,16 @@ class ProductCreateRulesTestCase(APITestCase):
 
         product_dict = self.product_dict
         product_dict["pz_code"] = "Test PZ Code"
+        product_dict["release_year"] = "2001"
 
         # Not Allowed Product Types
         for product_type in [
             self.training_set.pk,
-            self.specz_catalogs.pk,
+            self.redshift_catalogs.pk,
         ]:
             product_dict["product_type"] = product_type
             response = self.client.post(self.url, product_dict)
+            print(response.content)
             data = json.loads(response.content)
 
             # Check status response
@@ -246,6 +251,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "display_name": "Sample Product",
             "official_product": False,
             "pz_code": None,
+            "release_year": None,
             "description": "Test product description.",
         }
 
@@ -284,10 +290,17 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "id": self.product.pk,
             "release": self.release.pk,
             "release_name": self.release.display_name,
+            "release_year": self.product.release_year,
             "product_type": self.product_type.pk,
             "product_type_name": self.product_type.display_name,
+            "product_type_internal_name": self.product_type.name,
             "uploaded_by": self.user.username,
             "is_owner": True,
+            "origin": "Upload",
+            "process_status": None,
+            "product_status": ProductStatus(self.product.status).label,
+            "can_delete": True,
+            "can_update": True,
             "internal_name": self.product.internal_name,
             "display_name": self.product.display_name,
             "official_product": self.product.official_product,
@@ -295,6 +308,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "description": self.product.description,
             "created_at": self.product.created_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "status": self.product.status,
+            "updated_at": self.product.updated_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         }
 
         response = self.client.get(self.url)
@@ -336,6 +350,27 @@ class ProductDetailAPIViewTestCase(APITestCase):
 
         self.assertEqual(204, response.status_code)
 
+    def test_product_object_delete_by_admin(self):
+        """Tests if the product admin can remove it"""
+        view = ProductViewSet.as_view({"delete": "destroy"})
+
+        # Cria um usuario que faz parte do grupo admin
+        adm_group = Group.objects.create(name="Admin")
+        user = User.objects.create_user("john2", "john2@snow.com", "you_know_nothing")
+        user.groups.add(adm_group)
+        token = Token.objects.create(user=user)
+        # Cria uma requisicao utilizando Factory
+        # para que o metodo destroy da view tenha acesso ao request.user
+        factory = APIRequestFactory()
+        request = factory.delete(self.url, format="json")
+        force_authenticate(request, user=user, token=user.auth_token)
+        request.user = user
+
+        raw_response = view(request, pk=self.product.pk)
+        response = raw_response.render()
+
+        self.assertEqual(204, response.status_code)
+
     def test_access_another_user_product(self):
         """Verifica se é possivel um usuario ler produtos de outro usuario.
         Valida se a flag is_owner retorna False
@@ -358,4 +393,3 @@ class ProductDetailAPIViewTestCase(APITestCase):
     #         self.product.delete()
     #         self.assertEqual("OSError", mock_rmtree.exception)
     #         # print("TESTE %e" % mock_rmtree.exception)
-            

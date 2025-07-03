@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => ({
     height: 64,
     position: 'relative',
     zIndex: 2,
-    backgroundColor: '#212121',
+    backgroundColor: theme.palette.grey[900],
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen
@@ -52,6 +52,10 @@ const useStyles = makeStyles(theme => ({
     color: '#fff',
     fontFamily: 'League Gothic',
     fontSize: 32
+  },
+  images_credits: {
+    color: '#fff',
+    paddingTop: '15px'
   }
 }))
 

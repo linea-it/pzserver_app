@@ -1,13 +1,12 @@
-import React from 'react'
-import { useRouter } from 'next/router'
-import { parseCookies } from 'nookies'
 import {
-  Container,
-  Typography,
+  Alert,
   Box,
-  Stepper,
+  Container,
+  Snackbar,
   Step,
-  StepLabel
+  StepLabel,
+  Stepper,
+  Typography
 } from '@mui/material'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -15,16 +14,19 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
+import { useRouter } from 'next/router'
+import { parseCookies } from 'nookies'
+import React from 'react'
 import Loading from '../../components/Loading'
-import useStyles from '../../styles/pages/newproduct'
 import NewProductStep1 from '../../components/newProduct/Step1'
 import NewProductStep2 from '../../components/newProduct/Step2'
 import NewProductStep3 from '../../components/newProduct/Step3'
 import NewProductStep4 from '../../components/newProduct/Step4'
 import {
-  getProductPendingPublication,
-  deleteProduct
+  deleteProduct,
+  getProductPendingPublication
 } from '../../services/product'
+import useStyles from '../../styles/pages/newproduct'
 
 export default function NewProduct() {
   const classes = useStyles()
@@ -35,6 +37,10 @@ export default function NewProduct() {
   const [isLoading, setLoading] = React.useState(false)
   const [activeStep, setActiveStep] = React.useState(0)
   const [open, setOpen] = React.useState(false)
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
 
   React.useEffect(() => {
     // Procurar por produtos que foram criados mas não foram publicados ainda pelo usuario.
@@ -48,6 +54,9 @@ export default function NewProduct() {
       })
       .catch(res => {
         setLoading(false)
+        handleOpenErrorSnackbar(
+          'Error loading pending product. Please try again.'
+        )
       })
   }, [])
 
@@ -57,13 +66,11 @@ export default function NewProduct() {
 
   const handleNextStep = id => {
     setProductId(id)
-
     setActiveStep(activeStep + 1)
   }
 
   const handlePrevStep = id => {
     setProductId(id)
-
     setActiveStep(activeStep - 1)
   }
 
@@ -78,6 +85,7 @@ export default function NewProduct() {
         productId={productId}
         onNext={handleNextStep}
         onPrev={handlePrevStep}
+        onDiscard={test}
       ></NewProductStep1>
     )
   }
@@ -130,7 +138,7 @@ export default function NewProduct() {
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     },
     {
-      label: 'Association Columns',
+      label: 'Columns Association',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     },
@@ -142,22 +150,22 @@ export default function NewProduct() {
   ]
 
   const handleDiscard = () => {
-    // setOpen(true)
     setLoading(true)
     deleteProduct(pendingProduct.id)
       .then(res => {
         setLoading(false)
+        setProductId(null)
         setPendingProduct(null)
       })
       .catch(res => {
         setLoading(false)
-        // TODO: Tratar o erro
-        console.log('Falhou ao excluir o produto')
+        handleOpenErrorSnackbar(
+          'Failed to discard the pending product. Please try again.'
+        )
       })
   }
 
   const handleContinue = () => {
-    // setProduct(pendingProduct)
     setProductId(pendingProduct.id)
     setPendingProduct(null)
   }
@@ -180,6 +188,17 @@ export default function NewProduct() {
     )
   }
 
+  const test = product => {
+    setPendingProduct(product)
+  }
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
+
   return (
     <Container className={classes.container}>
       {isLoading && <Loading isLoading={isLoading} />}
@@ -199,26 +218,15 @@ export default function NewProduct() {
               )
             })}
           </Stepper>
-          {/* <Box className={classes.stepDescription}>
-            <Typography variant="body">
-              {steps[activeStep].description}
-            </Typography>
-          </Box> */}
           <Box
             sx={{
               mt: 2,
               mb: 2,
               p: 2
             }}
-            // height="400px"
             alignItems="center"
             justifyContent="center"
-            // style={{
-            //   overflow: 'hidden',
-            //   overflowY: 'scroll'
-            // }}
           >
-            {/* {product && steps[activeStep].component(product.id)} */}
             {activeStep === 0 && step1(productId)}
             {activeStep === 1 && step2(productId)}
             {activeStep === 2 && step3(productId)}
@@ -226,6 +234,19 @@ export default function NewProduct() {
           </Box>
         </React.Fragment>
       )}
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   )
 }

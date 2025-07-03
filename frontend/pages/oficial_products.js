@@ -1,17 +1,29 @@
 import * as React from 'react'
-import { Paper, Box, Button } from '@mui/material'
-import Grid from '@mui/material/Grid'
-import Divider from '@mui/material/Divider'
-import Typography from '@mui/material/Typography'
-import useStyles from '../styles/pages/products'
+
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
+
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button'
+import Paper from '@mui/material/Paper'
+import Link from '@mui/material/Link'
+import Stack from '@mui/material/Stack'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
+
+import { useRouter } from 'next/router'
+import { parseCookies } from 'nookies'
 import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
-import { parseCookies } from 'nookies'
-import { useRouter } from 'next/router'
 import { useAuth } from '../contexts/AuthContext'
+import useStyles from '../styles/pages/products'
 
 export default function Products() {
   const classes = useStyles()
@@ -26,15 +38,58 @@ export default function Products() {
     status: 1 // Published
   })
 
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
+
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
+
   return (
     // Baseado neste template: https://mira.bootlab.io/dashboard/analytics
-    <Paper className={classes.root}>
+    <Paper className={classes.root} elevation={3}>
       <Grid container className={classes.gridTitle}>
         <Grid item xs={4}>
-          {/* TODO: Aqui deve entrar o BREADCRUMB */}
-          <Typography variant="h3" className={classes.title}>
-            LSST PZ Data Products
-          </Typography>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">
+              Rubin Observatory PZ Data Products
+            </Typography>
+          </Breadcrumbs>
+          <Box
+            sx={{
+              mt: 1,
+              mb: 1,
+              p: 1
+            }}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Stack
+              direction="row"
+              justifyContent="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <ArrowBackIosIcon
+                onClick={() => {
+                  router.back()
+                }}
+                color="primary"
+                cursor="pointer"
+              />
+              <Typography variant="h3" className={classes.title}>
+                Rubin Observatory PZ Data Products
+              </Typography>
+            </Stack>
+          </Box>
         </Grid>
         <Grid item xs={4}>
           {/* TODO: Aqui deve entrar botões de ações da pagina */}
@@ -43,7 +98,7 @@ export default function Products() {
             <Button
               variant="contained"
               color="primary"
-              onClick={e => {
+              onClick={() => {
                 router.push('/product/new')
               }}
             >
@@ -52,45 +107,70 @@ export default function Products() {
           )}
         </Grid>
       </Grid>
-      <Divider className={classes.titleDivider} variant={'fullWidth'} />
-      <Grid container className={classes.gridContent}>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <ReleaseSelect
-                value={filters.release}
-                onChange={value => {
-                  setFilters({
-                    ...filters,
-                    release: value
-                  })
+      <Card>
+        <CardContent>
+          <Grid container className={classes.gridContent}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                <FormControl sx={{ mt: 1, minWidth: '200px' }}>
+                  <ReleaseSelect
+                    value={filters.release}
+                    onChange={value => {
+                      setFilters({
+                        ...filters,
+                        release: value
+                      })
+                    }}
+                    disabled={search !== ''}
+                    allowAll={true}
+                    noRelease={true}
+                  />
+                </FormControl>
+                <FormControl sx={{ m: 1, minWidth: '200px' }}>
+                  <ProductTypeSelect
+                    value={filters.product_type}
+                    onChange={value => {
+                      setFilters({
+                        ...filters,
+                        product_type: value
+                      })
+                    }}
+                    disabled={search !== ''}
+                    allowAll={true}
+                  />
+                </FormControl>
+                {/* TODO: Empurrar o Search para a direita */}
+                <SearchField onChange={query => setSearch(query)} />
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <ProductGrid
+                query={search}
+                filters={filters}
+                onError={error => {
+                  console.error('Error loading products:', error)
+                  handleOpenErrorSnackbar(
+                    'Error loading products. Please try again.'
+                  )
                 }}
-                disabled={search !== ''}
-                allowAll={true}
-                noRelease={true}
               />
-            </FormControl>
-            <FormControl sx={{ m: 1, minWidth: '200px' }}>
-              <ProductTypeSelect
-                value={filters.product_type}
-                onChange={value => {
-                  setFilters({
-                    ...filters,
-                    product_type: value
-                  })
-                }}
-                disabled={search !== ''}
-                allowAll={true}
-              />
-            </FormControl>
-            {/* TODO: Empurrar o Search para a direita */}
-            <SearchField onChange={query => setSearch(query)} />
-          </Box>
-        </Grid>
-        <Grid item xs={12}>
-          <ProductGrid query={search} filters={filters} />
-        </Grid>
-      </Grid>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   )
 }

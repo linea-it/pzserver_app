@@ -18,6 +18,10 @@ export default function TokenDialog({ open, onClose }) {
   const [isLoading, setLoading] = React.useState(false)
   const [token, setToken] = React.useState('')
   const [copied, setCopied] = React.useState(false)
+  const [errorSnackbar, setErrorSnackbar] = React.useState({
+    open: false,
+    message: ''
+  })
 
   const handleNewApi = () => {
     setLoading(true)
@@ -28,10 +32,11 @@ export default function TokenDialog({ open, onClose }) {
         setToken(res.data.token)
       })
       .catch(res => {
-        // TODO: Tratar Error
         setLoading(false)
+        handleOpenErrorSnackbar('Error generating API token. Please try again.')
       })
   }
+
   const handleCopy = () => {
     const text = token
 
@@ -41,7 +46,6 @@ export default function TokenDialog({ open, onClose }) {
     }
     navigator.clipboard.writeText(text).then(
       function () {
-        // console.log('Async: Copying to clipboard was successful!');
         setCopied(true)
       },
       function (err) {
@@ -54,7 +58,6 @@ export default function TokenDialog({ open, onClose }) {
     const textArea = document.createElement('textarea')
     textArea.value = text
 
-    // Avoid scrolling to bottom
     textArea.style.top = '0'
     textArea.style.left = '0'
     textArea.style.position = 'fixed'
@@ -86,6 +89,13 @@ export default function TokenDialog({ open, onClose }) {
     onClose()
   }
 
+  const handleOpenErrorSnackbar = message => {
+    setErrorSnackbar({
+      open: true,
+      message
+    })
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>API Token</DialogTitle>
@@ -102,24 +112,16 @@ export default function TokenDialog({ open, onClose }) {
         </DialogContentText>
         <LoadingButton
           loading={isLoading}
-          // loadingPosition="start"
           variant="contained"
           onClick={handleNewApi}
         >
           Generate API Token
         </LoadingButton>
         <Stack direction="row" spacing={2}>
-          <TextField
-            margin="dense"
-            fullWidth
-            // variant="standard"
-            value={token}
-            readOnly
-          />
+          <TextField margin="dense" fullWidth value={token} readOnly />
           <IconButton
             size="large"
             edge="end"
-            // color="inherit"
             onClick={handleCopy}
             disabled={!token}
             variant="outlined"
@@ -136,6 +138,12 @@ export default function TokenDialog({ open, onClose }) {
         autoHideDuration={3000}
         onClose={handleCloseSnack}
         message="The token has been copied to the clipboard!"
+      />
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setErrorSnackbar({ ...errorSnackbar, open: false })}
+        message={errorSnackbar.message}
       />
     </Dialog>
   )

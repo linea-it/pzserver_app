@@ -58,7 +58,6 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
         return product
 
     def test_create_product_content(self):
-
         # Make request
         response = self.client.post(self.url, self.content_dict)
         data = json.loads(response.content)
@@ -72,7 +71,6 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
         )
 
     def test_list_product_content(self):
-
         # Create a ProductContent
         response = self.client.post(self.url, self.content_dict)
         pcontent = json.loads(response.content)
@@ -93,7 +91,6 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
         )
 
     def test_list_product_content_filter_by_product(self):
-
         # Create a ProductContent
         response = self.client.post(self.url, self.content_dict)
         pcontent = json.loads(response.content)
@@ -113,7 +110,6 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
 
 
 class ProductContentDetailAPIViewTestCase(APITestCase):
-
     fixtures = [
         "core/fixtures/initial_data.yaml",
     ]
@@ -137,6 +133,7 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
             "product": self.product.pk,
             "column_name": "ra",
             "ucd": "pos.eq.ra;meta.main",
+            "alias": "RA",
             "order": 0,
         }
 
@@ -204,6 +201,7 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
             "product": self.product.pk,
             "column_name": self.content_dict["column_name"],
             "ucd": self.content_dict["ucd"],
+            "alias": self.content_dict["alias"],
             "order": self.content_dict["order"],
         }
 
@@ -212,7 +210,6 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
         self.assertEqual(response_data, expected)
 
     def test_product_content_object_update(self):
-
         pdcontent = self.create_product_content()
 
         url = reverse("product_contents-detail", kwargs={"pk": pdcontent.pk})
@@ -230,7 +227,6 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_product_content_patch_update(self):
-
         pdcontent = self.create_product_content()
 
         url = reverse("product_contents-detail", kwargs={"pk": pdcontent.pk})
@@ -246,7 +242,6 @@ class ProductContentDetailAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_product_content_delete(self):
-
         pdcontent = self.create_product_content()
 
         url = reverse("product_contents-detail", kwargs={"pk": pdcontent.pk})

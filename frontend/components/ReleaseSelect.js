@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import MenuItem from '@mui/material/MenuItem'
-import { getReleases } from '../services/product'
+import { getReleases } from '../services/release'
 import { TextField } from '@mui/material'
 
 // export default function ReleaseSelect({ value, onChange, disabled }) {

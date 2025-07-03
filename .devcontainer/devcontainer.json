@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/postgres
 {
-	"name": "Python 3 & PostgreSQL",
+	"name": "Pz Server",
 	"dockerComposeFile": [
 		"../docker-compose.yml",
 		"docker-compose.yml"
@@ -23,15 +23,15 @@
 			"nodeGypDependencies": true,
 			"version": "lts"
 		},
-		"ghcr.io/devcontainers-contrib/features/black:2": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers-contrib/features/isort:2": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers-contrib/features/pre-commit:2": {
-			"version": "latest"
-		},
+		// "ghcr.io/devcontainers-contrib/features/black:2": {
+		// 	"version": "latest"
+		// },
+		// "ghcr.io/devcontainers-contrib/features/isort:2": {
+		// 	"version": "latest"
+		// },
+		// "ghcr.io/devcontainers-contrib/features/pre-commit:2": {
+		// 	"version": "latest"
+		// },
 		"ghcr.io/dhoeric/features/act:1": {}
 	},
 	"customizations": {
@@ -40,12 +40,21 @@
 				"alefragnani.Bookmarks",
 				"mikestead.dotenv",
 				"RandomFractalsInc.vscode-data-preview",
-				"eamodio.gitlens",
+				"davidanson.vscode-markdownlint",
+				"njpwerner.autodocstring",
+				"mrmlnc.vscode-duplicate",
 				"oderwat.indent-rainbow",
-				"DavidAnson.vscode-markdownlint",
-				"mervin.markdown-formatter",
+				"visualstudioexptteam.vscodeintellicode",
+				"visualstudioexptteam.intellicode-api-usage-examples",
+				"eamodio.gitlens",
+				// python
+				"ms-python.python",
+				"ms-python.vscode-pylance",
 				"ms-python.isort",
-				"njpwerner.autodocstring"
+				"ms-python.black-formatter",
+				// Javascript
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode"
 			]
 		}
 	},

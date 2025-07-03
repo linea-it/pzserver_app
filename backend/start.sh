@@ -3,8 +3,9 @@
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput --clear
 
+umask g+w
+
 # Para produção é necessário usar o uWSGI!
-# uWSGI para servir o app e ter compatibilidade com Shibboleth
 # https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html
 uwsgi \
     --socket 0.0.0.0:8000 \

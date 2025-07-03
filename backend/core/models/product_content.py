@@ -27,5 +27,8 @@ class ProductContent(models.Model):
         default=0,
     )
 
+    alias = models.CharField(
+        max_length=256, verbose_name="Alias", null=True, blank=True)
+
     def __str__(self):
         return f"{self.product.display_name} - {self.column_name}"

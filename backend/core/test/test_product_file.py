@@ -3,7 +3,7 @@ import mimetypes
 import os
 from pathlib import Path
 
-from core.models import Product, ProductFile, ProductType, Release
+from core.models import Product, ProductFile, ProductType, Release, FileRoles
 from core.serializers import ProductFileSerializer
 from core.test.util import sample_product_file
 from django.contrib.auth.models import User
@@ -212,12 +212,17 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
             "product": self.product.pk,
             "file": serializer_data["file"],
             "role": self.product_file.role,
+            "role_name": serializer_data["role_name"],
             "name": self.product_file.name,
             "type": mimetypes.guess_type(os.path.basename(self.product_file.file.name))[
                 0
             ],
             "size": self.product_file.file.size,
+            "n_rows": None,
             "extension": os.path.splitext(self.product_file.file.name)[1],
+            "created": self.product_file.created.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "updated": self.product_file.updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "can_delete": True,
         }
 
         response = self.client.get(self.url)

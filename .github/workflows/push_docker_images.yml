@@ -3,22 +3,23 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      - 'main'
+      - "main"
+      - "production"
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
-      - 'main'
+      - "main"
+      - "production"
 
 jobs:
-
   build_backend:
     name: Build and Push Backend
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-      
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
@@ -60,7 +61,7 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-      
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
@@ -81,7 +82,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 'Create env file'
+      - name: "Create env file"
         run: |
           touch ./frontend/.env
           echo NEXT_PUBLIC_CLIENT_ID=${{ secrets.DJANGO_CLIENT_ID }} >> ./frontend/.env

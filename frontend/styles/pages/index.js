@@ -26,9 +26,12 @@ const useStyles = makeStyles(theme => ({
     fontFamily: 'Oxanium',
     fontSize: '1.5em',
     paddingTop: '0.5em',
-    paddingLeft: '1em',
+    // paddingLeft: '1em',
     color: 'white',
-    textShadow: '0.1em 0.1em 0.1em black'
+    textShadow: '0.1em 0.1em 0.1em black',
+    background: 'rgba(100, 100, 100, 0.5)',
+    textDecoration: 'none',
+    textAlign: 'center'
   },
   ItemDescription: {
     fontFamily: 'Oxanium',
@@ -37,7 +40,8 @@ const useStyles = makeStyles(theme => ({
     color: 'white',
     textShadow: '0.1em 0.1em 0.1em black',
     position: 'absolute',
-    bottom: '1em'
+    bottom: '1em',
+    background: 'rgba(0, 0, 0, 0.6)'
   },
   media: {
     minHeight: 260,
@@ -48,8 +52,8 @@ const useStyles = makeStyles(theme => ({
 
   gridApplicationLg: {
     [theme.breakpoints.up('lg')]: {
-      width: '20%',
-      maxWidth: '20%'
+      width: '80%',
+      maxWidth: '80%'
     }
   }
 }))

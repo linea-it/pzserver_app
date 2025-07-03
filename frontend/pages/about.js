@@ -1,20 +1,44 @@
-import { Container, Grid, Link, Typography } from '@mui/material'
+import { useState, useEffect } from 'react'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Typography from '@mui/material/Typography'
+import Container from '@mui/material/Container'
+import Link from '@mui/material/Link'
+import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+
 import { parseCookies } from 'nookies'
 import useStyles from '../styles/pages/about'
+import Partnersfooter from '../components/Partnersfooter'
+
 export default function About() {
   const classes = useStyles()
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    setEmail('helpdesk@linea.org.br')
+  }, [])
+
   return (
     <Container className={classes.root}>
       <Grid container spacing={8}>
         <Grid item xs={12}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">About</Typography>
+          </Breadcrumbs>
           <Typography variant="h6" sx={{ mb: 2 }}>
             About
           </Typography>
           <Card>
             <CardContent>
-              <Typography variant="body1" component="span">
+              <Typography
+                variant="body1"
+                component="span"
+                sx={{ textAlign: 'justify', display: 'block' }}
+              >
                 <p>
                   Inspired by features of the DES Science Portal (
                   <Link
@@ -98,25 +122,28 @@ export default function About() {
                   If you have comments or suggestions, be welcome to open an
                   issue on the{' '}
                   <Link
-                    href="https://github.com/linea-it/pz-server/issues"
+                    href="https://github.com/linea-it/pz-server/issues/new"
                     target="_blank"
                     rel="noreferrer"
                   >
                     Photo-z Server repository on GitHub
                   </Link>
                   , or contact the developers at{' '}
-                  <Link
-                    href="mailto:helpdesk@linea.org.br"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    helpdesk@linea.org.br
-                  </Link>
+                  {email && (
+                    <Link
+                      href={`mailto:${email}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {email}
+                    </Link>
+                  )}
                   .
                 </p>
               </Typography>
             </CardContent>
           </Card>
+          <Partnersfooter />
         </Grid>
       </Grid>
     </Container>

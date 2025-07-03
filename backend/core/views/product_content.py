@@ -2,7 +2,6 @@ from core.models import ProductContent
 from core.serializers import ProductContentSerializer
 from rest_framework import viewsets
 
-
 class ProductContentViewSet(viewsets.ModelViewSet):
     queryset = ProductContent.objects.all()
     serializer_class = ProductContentSerializer

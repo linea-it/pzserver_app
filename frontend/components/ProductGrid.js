@@ -1,11 +1,13 @@
 /* eslint-disable multiline-ternary */
 import DeleteIcon from '@mui/icons-material/Delete'
 import DownloadIcon from '@mui/icons-material/Download'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
+import EditIcon from '@mui/icons-material/Edit'
+import ShareIcon from '@mui/icons-material/Share'
+import { Box } from '@mui/material'
+import Alert from '@mui/material/Alert'
+import Link from '@mui/material/Link'
+import Snackbar from '@mui/material/Snackbar'
+import Tooltip from '@mui/material/Tooltip'
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -14,224 +16,309 @@ import * as React from 'react'
 import { getProducts } from '../services/product'
 
 import ProductRemove from '../components/ProductRemove'
+import ProductShare from './ProductShare'
 
 export default function ProductGrid(props) {
   const router = useRouter()
   const [rows, setRows] = React.useState([])
-  const [rowCount, setRowCount] = React.useState(undefined)
-
+  const [rowCount, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
   const [sortModel, setSortModel] = React.useState([
     { field: 'created_at', sort: 'desc' }
   ])
   const [loading, setLoading] = React.useState(false)
-  const [delRecordId, setDelRecordId] = React.useState(null)
-  const [error, setError] = React.useState(null)
+  const [delRecord, setDelRecord] = React.useState(null)
+  const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
+  const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const productShareRef = React.useRef(null)
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadProducts = React.useCallback(() => {
-    // eslint-disable-next-line prettier/prettier
-    let active = true;
-    // eslint-disable-next-line no-unexpected-multiline
-    // eslint-disable-next-line prettier/prettier
-    (async () => {
-      setLoading(true)
+  const handleCloseCopySnackbar = () => {
+    setCopySnackbarOpen(false)
+  }
+
+  const loadProducts = React.useCallback(async () => {
+    setLoading(true)
+    try {
       const response = await getProducts({
         filters: props.filters,
-        page: page,
+        page,
         page_size: pageSize,
         sort: sortModel,
         search: props.query
       })
 
-      if (!active) {
-        return
-      }
       setRows(response.results)
       setRowCount(response.count)
+    } catch (error) {
+      console.error(error)
+    } finally {
       setLoading(false)
-    })()
-
-    return () => {
-      active = false
     }
-  })
+  }, [page, pageSize, sortModel, props.query, props.filters])
 
   React.useEffect(() => {
     loadProducts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, sortModel, props.query, props.filters])
+  }, [loadProducts])
 
-  // Some api client return undefine while loading
-  // Following lines are here to prevent `rowCountState` from being undefined during the loading
-  const [rowCountState, setRowCountState] = React.useState(rowCount || 0)
-  React.useEffect(() => {
-    setRowCountState(prevRowCountState =>
-      rowCount !== undefined ? rowCount : prevRowCountState
-    )
-  }, [rowCount, setRowCountState])
+  const getProductUrl = React.useCallback(internalName => {
+    return `/product/${encodeURIComponent(internalName)}`
+  }, [])
 
   const columns = React.useMemo(() => {
-    function handleDownload(row) {
-      // Redirecionar para a pagina de detalhe do produto
-      router.push(`/product/${encodeURIComponent(row.internal_name)}`)
+    const handleDownload = row => {
+      router.push(getProductUrl(row.internal_name))
     }
 
-    function handleDelete(row) {
-      setDelRecordId(row.id)
+    const handleDelete = row => {
+      setDelRecord(row)
+    }
+
+    const handleShare = row => {
+      const productUrl = getProductUrl(row.internal_name)
+      const shareUrl = `${window.location.origin}${productUrl}`
+      setSelectedFileUrl(shareUrl)
+      setSnackbarOpen(true)
+    }
+
+    const handleEdit = row => {
+      router.push(`/product/edit/${row.internal_name}`)
     }
 
     return [
       // Hide Id Column ISSUE #123
       // { field: 'id', headerName: 'ID', width: 90, sortable: true },
-      { field: 'display_name', headerName: 'Name', sortable: true, flex: 1 },
+      {
+        field: 'display_name',
+        headerName: 'Name',
+        sortable: true,
+        flex: 1,
+        minWidth: 130,
+        renderCell: params => (
+          <>
+            {params.row.product_status !== 'Published' ? (
+              params.value
+            ) : (
+              <Tooltip
+                title={params.row.description || 'No description available'}
+              >
+                <Link
+                  component="button"
+                  onClick={() => handleDownload(params.row)}
+                >
+                  {params.value}
+                </Link>
+              </Tooltip>
+            )}
+          </>
+        )
+      },
       {
         field: 'release_name',
         headerName: 'Release',
-        width: 200,
+        flex: 1,
+        minWidth: 130,
         sortable: false
       },
       {
         field: 'product_type_name',
         headerName: 'Product Type',
         flex: 1,
+        minWidth: 130,
         sortable: false
       },
       {
         field: 'uploaded_by',
-        headerName: 'Uploaded By',
+        headerName: 'Owner',
         flex: 1,
+        maxWidth: 130,
+        sortable: false
+      },
+      {
+        field: 'release_year',
+        headerName: 'Release Year',
+        flex: 1,
+        maxWidth: 120,
+        sortable: true
+      },
+      {
+        field: 'product_status',
+        headerName: 'Status',
+        flex: 1,
+        maxWidth: 130,
+        sortable: false
+      },
+      {
+        field: 'process_status',
+        headerName: 'Process Status',
+        flex: 1,
+        maxWidth: 130,
         sortable: false
       },
       {
         field: 'created_at',
         headerName: 'Created at',
-        width: 200,
+        width: 130,
         sortable: true,
         valueFormatter: params => {
-          if (params.value == null) {
+          if (!params.value) {
             return ''
           }
-          const valueFormatted = moment(params.value).format('L LTS')
-          return `${valueFormatted}`
+          return moment(params.value).format('YYYY-MM-DD')
         }
       },
       {
-        field: 'actions_download',
+        field: 'actions',
+        headerName: '',
         type: 'actions',
-        headerName: 'Download',
-        width: 100,
-        sortable: false,
-        getActions: data => [
-          <GridActionsCellItem
-            key={'product_download_' + data.id}
-            icon={<DownloadIcon />}
-            label="Download"
-            onClick={e => handleDownload(data.row)}
-          />
-        ]
-      },
-      {
-        field: 'actions_delete',
-        type: 'actions',
-        headerName: 'Delete',
-        width: 100,
-        sortable: false,
-        getActions: data => [
-          <GridActionsCellItem
-            key={'product_delete_' + data.id}
-            icon={<DeleteIcon />}
-            label="Delete Product"
-            disabled={data.row.is_owner === false}
-            onClick={e => handleDelete(data.row)}
-          />
-        ]
+        width: 150,
+        renderCell: params => (
+          <>
+            <Tooltip title={'Download this product'}>
+              <Box>
+                <GridActionsCellItem
+                  icon={<DownloadIcon />}
+                  label="Download"
+                  disabled={params.row.product_status !== 'Published'}
+                  onClick={() => handleDownload(params.row)}
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip title={'Share product'}>
+              <Box>
+                <GridActionsCellItem
+                  icon={<ShareIcon />}
+                  label="Share"
+                  disabled={params.row.product_status !== 'Published'}
+                  onClick={() => handleShare(params.row)}
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip
+              title={
+                !params.row.can_delete
+                  ? 'You cannot delete this data product because it belongs to another user.'
+                  : 'Delete this data product.'
+              }
+            >
+              <Box>
+                <GridActionsCellItem
+                  icon={<DeleteIcon />}
+                  label="Delete"
+                  onClick={() => handleDelete(params.row)}
+                  disabled={
+                    !(
+                      params.row.product_status === 'Published' &&
+                      params.row.can_delete === true
+                    )
+                  }
+                />
+              </Box>
+            </Tooltip>
+            <Tooltip
+              title={
+                !params.row.can_update
+                  ? 'You cannot update this data product because it belongs to another user.'
+                  : 'Edit this data product.'
+              }
+            >
+              <Box>
+                <GridActionsCellItem
+                  icon={<EditIcon />}
+                  label="Edit"
+                  onClick={() => handleEdit(params.row)}
+                  disabled={
+                    !(
+                      params.row.product_status === 'Published' &&
+                      params.row.can_update === true
+                    )
+                  }
+                />
+              </Box>
+            </Tooltip>
+          </>
+        )
       }
     ]
-  }, [router])
+  }, [getProductUrl, router])
 
-  const onDeleteOk = () => {
-    loadProducts()
-    setDelRecordId(null)
-  }
-  const onDeleteCancel = () => {
-    setDelRecordId(null)
-  }
-
-  const handleError = () => {
-    const handleClose = () => {
-      setError(null)
-    }
-    return (
-      <Dialog
-        open={true}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {error}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} autoFocus>
-            Ok
-          </Button>
-        </DialogActions>
-      </Dialog>
-    )
-  }
-
-  const handleDeleteProduct = () => {
-    return (
-      <ProductRemove
-        productId={delRecordId}
-        open={delRecordId !== null}
-        onOk={onDeleteOk}
-        onCancel={onDeleteCancel}
-        onError={e => setError(e)}
-      ></ProductRemove>
-    )
+  function handleError(errorMessage) {
+    console.error(errorMessage)
   }
 
   return (
-    <>
-      {error !== null ? handleError() : null}
-      {delRecordId !== null ? handleDeleteProduct() : null}
+    <React.Fragment>
       <DataGrid
-        getRowId={row => row.id}
         rows={rows}
         columns={columns}
-        disableSelectionOnClick
-        autoHeight
-        sortingMode="server"
+        rowCount={rowCount}
+        pagination
+        paginationMode="server"
+        pageSize={pageSize}
+        onPageChange={newPage => setPage(newPage)}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
-        paginationMode="server"
-        rowCount={rowCountState}
-        pagination
-        page={page}
-        onPageChange={page => setPage(page)}
-        pageSize={pageSize}
-        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-        rowsPerPageOptions={[25, 50, 100]}
         loading={loading}
+        autoHeight
+        hideFooterSelectedRowCount
+        getRowClassName={params =>
+          params.id === delRecord?.id ? 'highlight-row' : ''
+        }
+        sx={{
+          '& .highlight-row': {
+            backgroundColor: '#ffe6e6 !important'
+          }
+        }}
       />
-    </>
+
+      <ProductShare
+        isOpen={snackbarOpen}
+        handleShareDialogOpen={() => setSnackbarOpen(!snackbarOpen)}
+        url={selectedFileUrl}
+        setParentSnackbarOpen={setCopySnackbarOpen}
+        productShareRef={productShareRef}
+      />
+      {delRecord && (
+        <ProductRemove
+          open={Boolean(delRecord)}
+          onClose={() => setDelRecord(null)}
+          recordId={delRecord.id}
+          productName={delRecord.display_name}
+          onRemoveSuccess={loadProducts}
+          onError={handleError}
+        />
+      )}
+
+      <Snackbar
+        open={copySnackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseCopySnackbar}
+      >
+        <Alert
+          onClose={handleCloseCopySnackbar}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          Link copied successfully!
+        </Alert>
+      </Snackbar>
+    </React.Fragment>
   )
 }
 
 ProductGrid.propTypes = {
-  query: PropTypes.string,
-  filters: PropTypes.shape({
-    release: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    product_type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    official_product: PropTypes.bool
-  })
+  filters: PropTypes.object,
+  query: PropTypes.string
+}
+
+ProductGrid.defaultProps = {
+  filters: {},
+  query: ''
 }

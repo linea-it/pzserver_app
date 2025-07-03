@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react'
-import {
-  Grid,
-  Typography,
-  TextField,
-  FormGroup,
-  Button,
-  Box,
-  Alert,
-  Stack
-} from '@mui/material'
-import FileUploader from '../FileUploader'
-import Loading from '../Loading'
-import LinearProgressWithLabel from '../LinearProgressWithLabel'
-import {
-  getProductFiles,
-  deleteProductFile,
-  createProductFile,
-  registryProduct
-} from '../../services/product'
-import InputAdornment from '@mui/material/InputAdornment'
 import CloseIcon from '@mui/icons-material/Close'
 import UploadIcon from '@mui/icons-material/Upload'
+import {
+  Alert,
+  Box,
+  Button,
+  FormGroup,
+  Grid,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
+import React, { useEffect, useState } from 'react'
+import {
+  MAX_UPLOAD_SIZE,
+  createProductFile,
+  deleteProductFile,
+  getProductFiles,
+  registryProduct
+} from '../../services/product'
+import FileUploader from '../FileUploader'
+import LinearProgressWithLabel from '../LinearProgressWithLabel'
+import Loading from '../Loading'
 export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [mainFile, setMainFile] = useState(false)
   const [mainFileError, setMainFileError] = useState('')
@@ -34,7 +35,6 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [isLoading, setLoading] = useState(false)
   const [progress, setProgress] = useState(null)
   const [formError, setFormError] = React.useState('')
-  const maxUploadSize = 200
 
   const loadFiles = React.useCallback(async () => {
     setFormError('')
@@ -226,11 +226,11 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
       <Typography paragraph variant="body">
         Please select the file(s) for the upload. The main file is the one
         containing the data. It must be a single file. For example, if the
-        product type is Spec-z Sample or Training Set, the data must be tabular,
-        and the tool supports the formats: CSV, FITS, HDF5, and parquet.
-        Otherwise, if the product type is Validation Results or Photo-z Table,
-        the file format is free. Please provide them compressed in a single .tar
-        file in case of multiple files.
+        product type is Redshift Sample or Training Set, the data must be
+        tabular, and the tool supports the formats: CSV, FITS, HDF5, and
+        parquet. Otherwise, if the product type is Validation Results or Photo-z
+        Table, the file format is free. Please provide them compressed in a
+        single .tar file in case of multiple files.
       </Typography>
       {/* <Typography paragraph variant="body">
         The description file is supposed to contain relevant information about
@@ -241,8 +241,8 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
         the upload button as many times as necessary).
       </Typography>
       <Typography paragraph variant="body">
-        The maximum upload size is {maxUploadSize}MB. For text files, e.g., CSV,
-        all commented lines are ignored. Index column is optional.
+        The maximum upload size is {MAX_UPLOAD_SIZE}MB. For text files, e.g.,
+        CSV, all commented lines are ignored. Index column is optional.
       </Typography>
       <Typography paragraph variant="body">
         For text files, the header is optional (multiline headers are ignored).
@@ -267,7 +267,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                     onFileSelectError={e => {
                       handleFileError(0, e.error)
                     }}
-                    maxSize={maxUploadSize} // 200 MB
+                    maxSize={MAX_UPLOAD_SIZE} // 200 MB
                     buttonProps={{
                       color: 'primary',
                       disabled: progress !== null,
@@ -325,7 +325,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                   onFileSelectError={e => {
                     handleFileError(2, e.error)
                   }}
-                  maxSize={maxUploadSize} // 200 MB
+                  maxSize={MAX_UPLOAD_SIZE} // 200 MB
                   buttonProps={{
                     startIcon: <UploadIcon />,
                     disabled: progress !== null,

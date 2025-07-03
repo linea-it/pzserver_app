@@ -1,11 +1,13 @@
 import abc
 import csv
+from collections import OrderedDict
 from pathlib import Path
 from typing import List
 
 import numpy as np
 import pandas as pd
 import tables_io
+from astropy.io.votable import parse as votable_parse
 from core._typing import Column, PathLike
 
 
@@ -20,10 +22,10 @@ class ProductHandle:
         descritos aqui: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
 
         Args:
-            filepath (PathLike): _description_
+            filepath (PathLike): product filepath
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame
         """
         return FileHandle(filepath).to_df(**kwargs)
 
@@ -42,10 +44,14 @@ class FileHandle(object):
         match self.extension:
             case ".csv":
                 self.handle = CsvHandle(fp)
-            case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq":
+            case ".fits" | ".fit" | ".hf5" | ".hdf5" | ".h5" | ".pq" | ".parquet":
                 self.handle = TableIOHandle(fp)
+            case ".vo" | ".vot" | ".xml":
+                self.handle = VOTableHandle(fp)
             case ".zip" | ".tar" | ".gz":
                 self.handle = CompressedHandle(fp)
+            case ".pickle" | ".pkl" | ".pcl" | ".pckl":
+                self.handle = PickleHandle(fp)
             # TODO: .zip, .tar, .tar.gz
             case _:
                 # Try TxtHandle
@@ -171,18 +177,34 @@ class TableIOHandle(BaseHandle):
         super().__init__(filepath)
 
     def to_df(self, **kwargs) -> pd.DataFrame:
-        # TODO: Tratar arquivos com mais de uma tabela.
-
         # Le o arquivo utilizando o metodo read da tables_io
         # O retorno é um astropy table.
-        tb_ap = tables_io.read(self.filepath)
+        df = tables_io.read(self.filepath, tables_io.types.AP_TABLE)
+
+        # TODO: Tratar arquivos com mais de uma tabela.
+        if isinstance(df, OrderedDict):
+            df = df[list(df.keys())[0]]
+
         # Converte o astropy table para pandas.Dataframe
-        df = tables_io.convert(tb_ap, tables_io.types.PD_DATAFRAME)
+        try:
+            df = df.to_pandas()
+        except ValueError as _:
+            df = tables_io.read(self.filepath, tables_io.types.PD_DATAFRAME)
 
         return df
 
 
 class CompressedHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        raise NotTableError(
+            "It is not possible to return a dataframe from this file type."
+        )
+
+
+class PickleHandle(BaseHandle):
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
 
@@ -292,3 +314,17 @@ class TxtHandle(BaseHandle):
                 for el in line.split(self.delimiter)
             )
         )
+
+
+class VOTableHandle(BaseHandle):
+    def __init__(self, filepath: PathLike):
+        super().__init__(filepath)
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        # Read VOTable file using astropy
+        votable = votable_parse(self.filepath)
+        # Get first table from VOTable
+        table = votable.get_first_table()
+        # Convert to pandas DataFrame
+        df = table.to_table().to_pandas()
+        return df

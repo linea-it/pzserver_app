@@ -1,33 +1,32 @@
+import logging
 import mimetypes
 import os
 import pathlib
 import secrets
 import tempfile
 import zipfile
-from json import dumps, loads
+from json import loads
 from pathlib import Path
 
-import pandas as pd
-from core.models import Product
-from core.pagination import CustomPageNumberPagination
+from core.models import Product, ProductContent, ProductStatus
 from core.product_handle import FileHandle, NotTableError
-from core.serializers import ProductContentSerializer, ProductSerializer
-from core.views.registry_product import RegistryProduct
+from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
+from core.serializers import ProductSerializer
+from core.utils import format_query_to_char
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
+
+logger = logging.getLogger("django")
 
 
 class ProductFilter(filters.FilterSet):
-    release__isnull = filters.BooleanFilter(
-        field_name="release", lookup_expr="isnull")
+    release__isnull = filters.BooleanFilter(field_name="release", lookup_expr="isnull")
     uploaded_by__or = filters.CharFilter(method="filter_user")
     uploaded_by = filters.CharFilter(method="filter_user")
     product_type_name__or = filters.CharFilter(method="filter_type_name")
@@ -39,54 +38,64 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = [
-            "internal_name",
-            "display_name",
-            "release",
-            "product_type",
-            "official_product",
-            "status",
-            "user",
-        ]
+        fields = {
+            "internal_name": ["exact", "in"],
+            "display_name": ["exact", "in"],
+            "release": ["exact", "in"],
+            "product_type": ["exact", "in"],
+            "official_product": ["exact", "in"],
+            "status": ["exact", "in"],
+            "user": ["exact", "in"],
+        }
 
     def filter_user(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value, ["user__username",
-                          "user__first_name", "user__last_name"]
+        query = format_query_to_char(
+            name, value, ["user__username", "user__first_name", "user__last_name"]
         )
 
         return queryset.filter(query)
 
     def filter_name(self, queryset, name, value):
-        query = self.format_query_to_char(name, value, ["display_name"])
+        query = format_query_to_char(name, value, ["display_name"])
 
         return queryset.filter(query)
 
     def filter_type_name(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value, ["product_type__display_name"])
+        query = format_query_to_char(
+            name, value, ["product_type__display_name", "product_type__name"]
+        )
 
         return queryset.filter(query)
 
     def filter_release(self, queryset, name, value):
-        query = self.format_query_to_char(
-            name, value, ["release__display_name"])
+        query = format_query_to_char(
+            name, value, ["release__display_name", "release__name"]
+        )
         return queryset.filter(query)
 
-    @staticmethod
-    def format_query_to_char(key, value, fields):
-        condition = Q.OR if key.endswith("__or") else Q.AND
-        values = value.split(",")
-        query = Q()
 
-        for value in values:
-            subfilter = Q()
-            for field in fields:
-                subfilter.add(Q(**{f"{field}__icontains": value}), Q.OR)
+class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This endpoint returns only those products whose
+    product type = 'redshift_catalog' and status = 1
+    """
 
-            query.add(subfilter, condition)
-
-        return query
+    queryset = Product.objects.filter(product_type__name="redshift_catalog", status=1)
+    serializer_class = ProductSerializer
+    search_fields = [
+        "display_name",
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+    ]
+    filterset_class = ProductFilter
+    ordering_fields = [
+        "id",
+        "display_name",
+        "product_type",
+        "created_at",
+    ]
+    ordering = ["-created_at"]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -108,89 +117,40 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = self.perform_create(serializer)
+
+        logger.debug("PRODUCT -> %s", request.data)
 
         try:
-            product = Product.objects.get(pk=instance.pk)
+            product = CreateProduct(request.data, request.user)
+            check_prodtype = product.check_product_types()
 
-            # Verifica se o produto é oficial,
-            # Apenas user que fazem parte do Group=Admin podem criar produtos oficiais.
-            if product.official_product is True:
-                if request.user.profile.is_admin() is False:
-                    return Response(
-                        {
-                            "error": "Not allowed. Only users with admin permissions can create official products."
-                        },
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-
-            # Cria um internal name
-            name = self.get_internal_name(product.display_name)
-            product.internal_name = f"{product.pk}_{name}"
-
-            # Cria um path para o produto
-            relative_path = f"{product.product_type.name}/{product.internal_name}"
-            # TODO: Talves mover a criação do path do produto para a parte do upload dos arquivos.
-            path = pathlib.Path(settings.MEDIA_ROOT, relative_path)
-            path.mkdir(parents=True, exist_ok=True)
-
-            product.path = relative_path
-
-            # Verificar campos relacionados ao Produt Type.
-
-            # Release is not allowed in Spec-z Catalog
-            if (
-                product.release
-                and product.product_type.name == "specz_catalog"
-            ):
+            if not check_prodtype.get("success"):
                 return Response(
-                    {"release": [
-                        "Release must be null on Spec-z Catalogs products."]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Pzcode is only allowed in Validations Results and Photo-z Table
-            if product.pz_code and product.product_type.name in (
-                "training_set",
-                "specz_catalog",
-            ):
-                return Response(
-                    {
-                        "pz_code": [
-                            f"Pz Code must be null on {product.product_type.display_name} products. '{product.pz_code}'"
-                        ]
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    check_prodtype.get("message"), status=status.HTTP_400_BAD_REQUEST
                 )
 
             product.save()
-
-            data = self.get_serializer(instance=product).data
+            data = self.get_serializer(instance=product.data).data
             return Response(data, status=status.HTTP_201_CREATED)
+
+        except NonAdminError as e:
+            content = {"error": str(e)}
+            return Response(content, status=status.HTTP_403_FORBIDDEN)
+
+        except ValidationError as errors:
+            content = {}
+            if isinstance(errors.detail, dict):
+                for key, value in errors.detail.items():
+                    content[key] = value[0]
+                _status = status.HTTP_400_BAD_REQUEST
+            else:
+                content = {"error": str(errors)}
+                _status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return Response(content, status=_status)
 
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def perform_create(self, serializer):
-        """Create user and add internal_name"""
-
-        uploaded_by = self.request.user
-        return serializer.save(user=uploaded_by)
-
-    def get_internal_name(self, display_name):
-        """
-        Creates an internal name without special characters or spaces.
-        The internal name can be used for paths, urls and tablenames.
-        """
-
-        # change spaces to "_", convert to lowercase, remove trailing spaces.
-        name = display_name.replace(" ", "_").lower().strip().strip("\n")
-
-        # strip any non-alphanumeric character except "_"
-        return "".join(e for e in name if e.isalnum() or e == "_")
 
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
@@ -201,7 +161,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             with tempfile.TemporaryDirectory() as tmpdirname:
                 # Cria um arquivo zip no diretório tmp com os arquivos do produto
                 zip_file = self.zip_product(
-                    product.internal_name, product.path, tmpdirname)
+                    product.internal_name, product.path, tmpdirname
+                )
 
                 # Abre o arquivo e envia em bites para o navegador
                 mimetype, _ = mimetypes.guess_type(zip_file)
@@ -211,8 +172,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 file_handle = open(zip_file, "rb")
                 response = FileResponse(file_handle, content_type=mimetype)
                 response["Content-Length"] = size
-                response["Content-Disposition"] = "attachment; filename={}".format(
-                    name)
+                response["Content-Disposition"] = "attachment; filename={}".format(name)
                 return response
         except Exception as e:
             content = {"error": str(e)}
@@ -238,8 +198,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             response = FileResponse(file_handle, content_type=mimetype)
 
             response["Content-Length"] = size
-            response["Content-Disposition"] = "attachment; filename={}".format(
-                name)
+            response["Content-Disposition"] = "attachment; filename={}".format(name)
             return response
         except Exception as e:
             content = {"error": str(e)}
@@ -247,27 +206,29 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @action(methods=["GET"], detail=True)
     def read_data(self, request, **kwargs):
-        page = int(request.GET.get('page', 1))
-        page_size = int(request.GET.get('page_size', 100))
+        page = int(request.GET.get("page", 1))
+        page_size = int(request.GET.get("page_size", 100))
 
         product = self.get_object()
         product_file = product.files.get(role=0)
         main_file_path = Path(product_file.file.path)
 
         try:
-            df = FileHandle(main_file_path).to_df()
-            records = loads(df.to_json(orient='records'))
+            df = FileHandle(main_file_path).to_df(nrows=page_size)
+            records = loads(df.to_json(orient="records"))
             paginator = Paginator(records, page_size)
             records = paginator.get_page(page)
 
-            return Response({
-                'count': df.shape[0],
-                'columns': df.columns,
-                'results': records.object_list})
+            return Response(
+                {
+                    "count": df.shape[0],
+                    "columns": df.columns,
+                    "results": records.object_list,
+                }
+            )
 
         except NotTableError as e:
-            content = {
-                "message": "Table preview not available for this product type."}
+            content = {"message": "Table preview not available for this product type."}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             content = {"message": str(e)}
@@ -297,6 +258,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             main_file["type"] = product_file.type
             main_file["extension"] = product_file.extension
             main_file["size"] = product_file.size
+            main_file["n_rows"] = product_file.n_rows
 
             if product_file.extension == ".csv":
                 product_content = FileHandle(product_path)
@@ -341,8 +303,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         try:
             # Procura por produtos criados pelo usuario que ainda não foram publicados
-            product = Product.objects.filter(
-                status=0, user_id=request.user.id).first()
+            product = Product.objects.filter(status=0, user_id=request.user.id).first()
 
             if product:
                 # Retorna o produto
@@ -358,8 +319,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def zip_product(self, internal_name, path, tmpdir):
 
         product_path = pathlib.Path(settings.MEDIA_ROOT, path)
-        thash = ''.join(secrets.choice(secrets.token_hex(16))
-                        for i in range(5))
+        thash = "".join(secrets.choice(secrets.token_hex(16)) for i in range(5))
         zip_name = f"{internal_name}_{thash}.zip"
         zip_path = pathlib.Path(tmpdir, zip_name)
 
@@ -379,9 +339,65 @@ class ProductViewSet(viewsets.ModelViewSet):
         return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
-        # TODO: Duvida, Admin pode remover produto que não seja dele?
+        """Product can only be deleted by the OWNER or if the user has an
+        admin profile.
+        """
+        # Regra do admin atualizada na issue:
+        # 192 - https://github.com/linea-it/pzserver_app/issues/192
         instance = self.get_object()
-        if self.request.user.id == instance.user.pk:
+        if instance.can_delete(self.request.user):
             return super(ProductViewSet, self).destroy(request, pk, *args, **kwargs)
         else:
             raise exceptions.PermissionDenied()
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data
+
+        prodstatus = int(data.get("status", 0))
+        is_published = ProductStatus(prodstatus).name == "PUBLISHED"
+
+        is_specz = instance.product_type.name == "redshift_catalog"
+        is_object = instance.product_type.name == "objects_catalog"
+        is_train = instance.product_type.name == "training_set"
+
+        logger.debug("Status: %s", prodstatus)
+        logger.debug("IsPubl: %s", is_published)
+
+        check_prod = None
+
+        if is_published:
+            if is_specz and prodstatus:
+                check_prod = self.__check_mandatory_columns(
+                    instance, ["Dec", "RA", "z"]
+                )
+            elif is_object and prodstatus:
+                check_prod = self.__check_mandatory_columns(instance, ["Dec", "RA"])
+            elif is_train and prodstatus:
+                check_prod = self.__check_mandatory_columns(instance, ["z"])
+
+        if check_prod and not check_prod.get("success", False):
+            content = check_prod.get("message")
+            return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        return super(ProductViewSet, self).partial_update(request, *args, **kwargs)
+
+    def __check_mandatory_columns(self, instance, columns):
+        """Checks mandatory columns
+
+        Args:
+            instance (Product): Product object
+            columns (list): mandatory columns
+        """
+
+        for prodcont in ProductContent.objects.filter(product=instance.pk):
+            if prodcont.alias in columns:
+                columns.remove(prodcont.alias)
+
+        if columns:
+            return {
+                "success": False,
+                "message": f"The column(s) was not filled in: {','.join(columns)}",
+            }
+
+        return {"success": True, "message": "Mandatory columns filled in."}

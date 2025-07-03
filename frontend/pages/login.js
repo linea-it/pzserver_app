@@ -1,135 +1,207 @@
-import { useRef, useState } from 'react'
-import {
-  Avatar,
-  Button,
-  TextField,
-  Grid,
-  Typography,
-  Container,
-  Snackbar
-} from '@mui/material'
-import Alert from '@mui/material/Alert'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import Link from '../components/Link'
-import useStyles from '../styles/pages/login'
-import { parseCookies } from 'nookies'
-import { useAuth } from '../contexts/AuthContext'
-import { grey } from '@mui/material/colors'
-import { styled } from '@mui/material/styles'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Grid,
+  Snackbar,
+  TextField,
+  Typography
+} from '@mui/material'
+import { styled } from '@mui/material/styles'
+import Image from 'next/image'
+import { parseCookies } from 'nookies'
 import PropTypes from 'prop-types'
+import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
-function Login(props) {
-  const { shibLoginUrl } = props
+const GitHubButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.getContrastText('#000'),
+  backgroundColor: '#000',
+  '&:hover': {
+    backgroundColor: '#333'
+  }
+}))
 
-  const formRef = useRef(null)
-  const classes = useStyles()
+function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
   const { signIn } = useAuth()
-
   const [formError, setFormError] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+
+  const handleSnackbarErrorClose = (_, reason) => {
+    if (reason === 'clickaway') return
+    setFormError('')
+  }
 
   const handleSignIn = async e => {
     e.preventDefault()
 
-    const form = formRef.current
-    const username = form.username.value
-    const password = form.password.value
-
-    await signIn({ username, password })
-  }
-
-  const handleSnackbarErrorClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (!username || !password) {
+      setFormError('Username and Password are required')
       return
     }
 
-    setFormError('')
+    try {
+      await signIn({ username, password })
+    } catch (error) {
+      setFormError('Authentication failed. Please try again.')
+    }
   }
 
-  const GitHubButton = styled(Button)(({ theme }) => ({
-    color: theme.palette.getContrastText(grey[900]),
-    backgroundColor: grey[900],
-    '&:hover': {
-      backgroundColor: grey[800]
-    }
-  }))
-
   return (
-    <Container component="main" maxWidth="xs" className={classes.container}>
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Login
-        </Typography>
-        <form
-          ref={formRef}
-          className={classes.form}
-          noValidate
-          onSubmit={handleSignIn}
+    <Container
+      component="main"
+      maxWidth="md"
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh'
+      }}
+    >
+      <Grid
+        container
+        sx={{
+          width: '90%',
+          backgroundColor: '#fff',
+          borderRadius: '20px',
+          padding: '32px',
+          boxShadow:
+            '0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)'
+        }}
+      >
+        <Grid
+          item
+          xs={12}
+          md={6}
+          sx={{
+            display: 'flex',
+            justifyContent: 'left',
+            alignItems: 'center'
+          }}
         >
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="username"
-            label="Username"
-            name="username"
-            autoComplete="username"
-            autoFocus
-            error={formError !== ''}
+          <Image
+            src="/logo_idac.png"
+            alt="LIneA Logo"
+            width={140}
+            height={130}
           />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            error={formError !== ''}
+          <Image
+            src="/vc-rubin.png"
+            alt="Rubin Logo"
+            width={170}
+            height={175}
           />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography
+            component="h3"
+            variant="h5"
+            textAlign="center"
+            fontWeight="bold"
+            color="#283661"
+            mt={4}
           >
-            Sign In
-          </Button>
-          {shibLoginUrl !== null && (
-            <GitHubButton
-              startIcon={<GitHubIcon />}
-              fullWidth
-              variant="contained"
-              href={shibLoginUrl}
-            >
-              Login With GitHub
-            </GitHubButton>
-          )}
-          <Grid container>
-            <Grid item xs>
-              <Link href="/" variant="body2">
-                Forgot your password?
-              </Link>
-            </Grid>
-            {/* <Grid item>
-              <Link href="/" variant="body2">
-                Não tem uma conta? Cadastre-se
-              </Link>
-            </Grid> */}
+            Welcome to PZ Server
+          </Typography>
+          <Grid container spacing={2} mt={4}>
+            {!CILogonUrl ? (
+              <>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Username"
+                    variant="outlined"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    type="password"
+                    variant="outlined"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSignIn}
+                  >
+                    Sign In
+                  </Button>
+                </Grid>
+              </>
+            ) : (
+              <>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={
+                      <Image
+                        src="/cilogon_logo.png"
+                        alt="CILogon Logo"
+                        width={20}
+                        height={20}
+                      />
+                    }
+                    href={CILogonUrl || shibLoginUrl}
+                    sx={{
+                      backgroundColor: '#283663',
+                      color: '#fff',
+                      bottom: 20,
+                      '&:hover': {
+                        backgroundColor: '#3b4a8c'
+                      }
+                    }}
+                  >
+                    LOGIN LSST MEMBERS (RSP ACCOUNT)
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <GitHubButton
+                    fullWidth
+                    variant="contained"
+                    startIcon={<GitHubIcon />}
+                    href={GithubUrl || shibLoginUrl}
+                    sx={{ bottom: 20 }}
+                  >
+                    LOGIN ADMIN
+                  </GitHubButton>
+                </Grid>
+              </>
+            )}
           </Grid>
-        </form>
-      </div>
-      <Grid className={classes.copyrightContainer}>
-        <Typography variant="body2" color="textSecondary" align="center">
-          {'Copyright © LIneA '}
-          {new Date().getFullYear()}
+        </Grid>
+        <Typography
+          textAlign="center"
+          color="#283661"
+          mt={2}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%'
+          }}
+        >
+          Any problem authenticating or registering?{' '}
+          <Box component="span" sx={{ mx: 0.5 }}></Box>
+          <a
+            href="mailto:helpdesk@linea.org.br"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Contact our helpdesk
+          </a>
+          .
         </Typography>
       </Grid>
       <Snackbar
@@ -165,22 +237,33 @@ export async function getServerSideProps({ ctx }) {
     }
   }
 
-  const shibbolethLoginUrl = process.env.AUTH_SHIB_URL
-    ? process.env.AUTH_SHIB_URL
+  const CILogonLoginUrl = process.env.AUTH_CILOGON_URL
+    ? process.env.AUTH_CILOGON_URL
+    : null
+
+  const GithubLoginUrl = process.env.AUTH_GITHUB_URL
+    ? process.env.AUTH_GITHUB_URL
     : null
 
   return {
     props: {
-      shibLoginUrl: shibbolethLoginUrl
+      shibLoginUrl: null,
+      CILogonUrl: CILogonLoginUrl,
+      GithubUrl: GithubLoginUrl
     }
   }
 }
 
-export default Login
-
 Login.propTypes = {
-  shibLoginUrl: PropTypes.string
+  shibLoginUrl: PropTypes.string,
+  CILogonUrl: PropTypes.string,
+  GithubUrl: PropTypes.string
 }
+
 Login.defaultProps = {
-  shibLoginUrl: null
+  shibLoginUrl: null,
+  CILogonUrl: null,
+  GithubUrl: null
 }
+
+export default Login

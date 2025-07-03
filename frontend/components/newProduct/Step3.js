@@ -1,64 +1,249 @@
 import CloseIcon from '@mui/icons-material/Close'
+import EditIcon from '@mui/icons-material/Edit'
 import {
   Alert,
   Box,
   Button,
   FormControl,
+  MenuItem,
   Stack,
   TextField,
   Typography
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import MenuItem from '@mui/material/MenuItem'
+import debounce from 'lodash/debounce'
 import PropTypes from 'prop-types'
-import React, { useEffect, useState } from 'react'
-import { contentAssociation, getProductContents } from '../../services/product'
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  contentAssociation,
+  getProduct,
+  getProductContents
+} from '../../services/product'
 import Loading from '../Loading'
 
+const ucds = [
+  {
+    name: 'ID',
+    value: 'meta.id;meta.main'
+  },
+  {
+    name: 'RA',
+    value: 'pos.eq.ra;meta.main'
+  },
+  {
+    name: 'Dec',
+    value: 'pos.eq.dec;meta.main'
+  },
+  {
+    name: 'z',
+    value: 'src.redshift'
+  },
+  {
+    name: 'z_err',
+    value: 'stat.error;src.redshift'
+  },
+  {
+    name: 'z_flag',
+    value: 'stat.rank'
+  },
+  {
+    name: 'survey',
+    value: 'meta.curation'
+  }
+]
+
+const ucdRaAndDec = ['pos.eq.ra;meta.main', 'pos.eq.dec;meta.main']
+
+const mandatoryUcds = ['src.redshift']
+mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
+
+export function InputReadOnly({ name, value, onClear }) {
+  return (
+    <FormControl>
+      <TextField
+        name={name}
+        value={value}
+        readOnly
+        InputProps={
+          onClear !== undefined
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={onClear}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }
+            : null
+        }
+      />
+    </FormControl>
+  )
+}
+InputReadOnly.propTypes = {
+  value: PropTypes.string.isRequired,
+  name: PropTypes.string,
+  onClear: PropTypes.func
+}
+
+export function InputUcd({ pc, options, onChange, onChangeInputType }) {
+  const [value, setValue] = useState('')
+
+  const handleChange = e => {
+    setValue(e.target.value)
+    onChange(pc, e.target.value)
+  }
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+  return (
+    <FormControl>
+      <Stack direction="row" spacing={2}>
+        <TextField select value={value} onChange={handleChange}>
+          {options.map(ucd => (
+            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
+              {`${ucd.name} (${ucd.value})`}
+            </MenuItem>
+          ))}
+        </TextField>
+        <IconButton onClick={handleChangeType}>
+          <EditIcon />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputUcd.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired,
+  options: PropTypes.array.isRequired
+}
+
+export function InputAlias({ pc, onChange, onChangeInputType }) {
+  const [value, setValue] = useState(pc.alias !== null ? pc.alias : '')
+
+  const handleChange = e => {
+    const inputValue = e.target.value
+    setValue(inputValue)
+  }
+
+  const handleClear = () => {
+    setValue('')
+    onChange(pc, null)
+  }
+
+  // Using lodash debounce to Delay search by 800ms
+  // Exemplo: https://www.upbeatcode.com/react/how-to-use-lodash-in-react/
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedEdit = useCallback(
+    debounce(updatedValue => {
+      if (updatedValue.trim() !== '') {
+        onChange(pc, updatedValue)
+      }
+    }, 800),
+    []
+  )
+
+  useEffect(() => {
+    debouncedEdit(value)
+  }, [value, debouncedEdit])
+
+  const handleChangeType = () => {
+    onChangeInputType(pc.column_name)
+  }
+
+  return (
+    <FormControl>
+      <Stack direction="row" spacing={2}>
+        <TextField
+          value={value}
+          onChange={handleChange}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleClear}>
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
+        <IconButton onClick={handleChangeType}>
+          <EditIcon color="primary" />
+        </IconButton>
+      </Stack>
+    </FormControl>
+  )
+}
+InputAlias.propTypes = {
+  pc: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onChangeInputType: PropTypes.func.isRequired
+}
+
 export default function NewProductStep3({ productId, onNext, onPrev }) {
-  const ucds = [
-    {
-      name: 'ID',
-      value: 'meta.id;meta.main'
-    },
-    {
-      name: 'RA',
-      value: 'pos.eq.ra;meta.main'
-    },
-    {
-      name: 'Dec',
-      value: 'pos.eq.dec;meta.main'
-    },
-    {
-      name: 'z',
-      value: 'src.redshift'
-    },
-    {
-      name: 'z_err',
-      value: 'stat.error;src.redshift'
-    },
-    {
-      name: 'z_flag',
-      value: 'stat.rank'
-    },
-    {
-      name: 'survey',
-      value: 'meta.curation'
-    }
-  ]
-
-  const [productColumns, setProductColumns] = React.useState([])
-  const [usedUcds, setUsedUcds] = React.useState([])
+  const [productColumns, setProductColumns] = useState([])
+  const [usedUcds, setUsedUcds] = useState([])
   const [isLoading, setLoading] = useState(false)
-  const [formError, setFormError] = React.useState('')
+  const [formError, setFormError] = useState('')
+  const [inputsType] = useState([])
+  const [productType, setProductType] = useState(null)
+  const [isValid, setIsValid] = useState(false)
+  const [isValidTrainingSet, setIsValidTrainingSet] = useState(false)
+  const [isValidObjectsCatalog, setIsValidObjectsCatalog] = useState(false)
 
-  const loadContents = React.useCallback(async () => {
+  const loadProductById = useCallback(async () => {
     setLoading(true)
-    getProductContents(productId)
-      .then(res => {
-        setProductColumns(res.results)
-        setLoading(false)
+    try {
+      const res = await getProduct(productId)
+      setProductType(res.product_type_name)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      if (error.response && error.response.status === 500) {
+        console.error('Internal Server Error:', error.response.data)
+      } else {
+        console.error('Error loading product by ID:', error.message)
+      }
+    }
+  }, [productId])
+
+  const loadContents = useCallback(async () => {
+    setLoading(true)
+    try {
+      const response = await getProductContents(productId)
+
+      setProductColumns(response.results)
+
+      // Ao carregar as colunas identifica os campos que
+      // sao do tipo alias e que ja tenham valor.
+      response.results.forEach(pc => {
+        if (pc.ucd === null && pc.alias !== null) {
+          inputsType.push(pc.column_name)
+        }
+      })
+
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      if (error.response && error.response.status === 500) {
+        catchFormError(error.response.data)
+      }
+    }
+  }, [productId, inputsType])
+
+  const changeProductContent = (pc, ucd, alias) => {
+    if (pc.ucd === ucd && pc.alias === alias) {
+      return
+    }
+    // setLoading(true)
+    contentAssociation(pc.id, ucd, alias)
+      .then(() => {
+        // setLoading(false)
+        loadContents(productId)
       })
       .catch(res => {
         setLoading(false)
@@ -66,11 +251,12 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           catchFormError(res.response.data)
         }
       })
-  }, [productId])
+  }
 
   useEffect(() => {
+    loadProductById()
     loadContents()
-  }, [loadContents])
+  }, [loadProductById, loadContents])
 
   useEffect(() => {
     const useducds = []
@@ -82,97 +268,107 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     setUsedUcds(useducds)
   }, [productColumns])
 
+  useEffect(() => {
+    const checkValid = mandatoryUcds.every(ucd => usedUcds.includes(ucd))
+    setIsValid(checkValid)
+  }, [usedUcds])
+
+  useEffect(() => {
+    const checkValidTrainingSet = usedUcds.includes('src.redshift')
+    setIsValidTrainingSet(checkValidTrainingSet)
+  }, [usedUcds])
+
+  useEffect(() => {
+    const checkValidObjectsCatalog = ucdRaAndDec.every(ucd =>
+      usedUcds.includes(ucd)
+    )
+    setIsValidObjectsCatalog(checkValidObjectsCatalog)
+  }, [usedUcds])
+
   const handleSubmit = () => {
     onNext(productId)
   }
   const handlePrev = () => {
     onPrev(productId)
   }
-  const onChangeUcd = (pc, value) => {
-    if (pc.ucd === value) {
-      return
-    }
 
-    // setLoading(true)
-    contentAssociation(pc.id, value)
-      .then(() => {
-        // setLoading(false)
-        loadContents(productId)
-      })
-      .catch(res => {
-        setLoading(false)
+  const onClear = pc => {
+    changeProductContent(pc, null, null)
+  }
 
-        if (res.response.status === 500) {
-          catchFormError(res.response.data)
-        }
-      })
+  const onSelectUcd = (pc, ucd) => {
+    changeProductContent(pc, ucd, getAliasByUcd(ucd))
   }
-  const handleMouseDownPassword = event => {
-    event.preventDefault()
+
+  const onChangeAlias = (pc, alias) => {
+    changeProductContent(pc, null, alias)
   }
-  const createSelect = pc => {
-    // Check Available Ucds and Current UCD when pc.ucd is not null
+
+  const getAliasByUcd = ucd => {
+    const result = ucds.find(o => o.value === ucd)
+    return result ? result.name : null
+  }
+
+  const getAvailableUcds = () => {
     const avoptions = []
-    let currentUcd = null
     ucds.forEach(ucd => {
-      if (usedUcds.indexOf(ucd.value) === -1 || ucd.value === pc.ucd) {
+      if (usedUcds.indexOf(ucd.value) === -1) {
         avoptions.push(ucd)
       }
-      if (ucd.value === pc.ucd) {
-        currentUcd = ucd
-      }
     })
+    return avoptions
+  }
 
-    if (pc.ucd !== null ? pc.ucd : '') {
-      return (
-        <TextField
-          value={currentUcd.name}
-          readOnly
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => onChangeUcd(pc, null)}
-                  onMouseDown={handleMouseDownPassword}
-                  edge="end"
-                >
-                  <CloseIcon />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-        />
-      )
-    } else {
-      return (
-        <TextField
-          select
-          onChange={e => onChangeUcd(pc, e.target.value)}
-          defaultValue=""
-        >
-          {avoptions.map(ucd => (
-            <MenuItem key={`${pc.column_name}_${ucd.name}`} value={ucd.value}>
-              {ucd.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      )
+  const isInputTypeAlias = name => {
+    // Se name estiver no array de input type
+    // Entao Input é do tipo Alias.
+    if (inputsType.indexOf(name) === -1) {
+      return false
     }
+    return true
+  }
+
+  function handleChangeInputType(columnName) {
+    if (inputsType.indexOf(columnName) === -1) {
+      inputsType.push(columnName)
+    } else {
+      inputsType.splice(inputsType.indexOf(columnName), 1)
+    }
+    loadContents(productId)
   }
 
   const createFields = pc => {
+    const avoptions = getAvailableUcds()
+
+    if (pc.ucd !== null) {
+      return (
+        <InputReadOnly
+          name={pc.column_name}
+          value={pc.alias}
+          onClear={() => onClear(pc)}
+        />
+      )
+    }
+
+    // Campo de Texto para Alias
+    if (isInputTypeAlias(pc.column_name)) {
+      return (
+        <InputAlias
+          pc={pc}
+          onChange={onChangeAlias}
+          onChangeInputType={handleChangeInputType}
+        />
+      )
+    }
+
+    // Select para UCD
     return (
-      <Stack
-        direction="row"
-        spacing={2}
-        key={`fields_${pc.column_name}`}
-        mb={2}
-      >
-        <FormControl>
-          <TextField value={pc.column_name} />
-        </FormControl>
-        <FormControl>{createSelect(pc)}</FormControl>
-      </Stack>
+      <InputUcd
+        pc={pc}
+        options={avoptions}
+        onChange={onSelectUcd}
+        onChangeInputType={handleChangeInputType}
+      />
     )
   }
 
@@ -197,8 +393,12 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
       <Typography paragraph variant="body">
-        Please associate the column names of your file with those expected by
-        the tool.
+        Please associate the column names from your file (left) with those
+        expected by the tool (right).
+      </Typography>
+      <Typography paragraph variant="body">
+        The redshift (z) is mandatory for Training Sets, and also, coordinates
+        (RA, Dec) for Redshift Catalogs.
       </Typography>
       <Typography paragraph variant="body">
         It is okay to leave columns unassociated.
@@ -215,7 +415,17 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
         autoComplete="off"
       >
         {productColumns.map(pc => {
-          return createFields(pc)
+          return (
+            <Stack
+              direction="row"
+              spacing={2}
+              key={`fields_${pc.column_name}`}
+              mb={2}
+            >
+              <InputReadOnly value={pc.column_name} />
+              {createFields(pc)}
+            </Stack>
+          )
         })}
       </Box>
       {formError !== '' && handleFormError()}
@@ -229,7 +439,16 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           Prev
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={
+            (productType === 'Redshift Catalog' && !isValid) ||
+            (productType === 'Training Set' && !isValidTrainingSet) ||
+            (productType === 'Objects Catalog' && !isValidObjectsCatalog)
+          }
+        >
           Next
         </Button>
       </Box>

@@ -1,14 +1,37 @@
-import { Container, Grid, Typography, Link } from '@mui/material'
-import useStyles from '../styles/pages/contact'
-import { parseCookies } from 'nookies'
+import { useState, useEffect } from 'react'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Typography from '@mui/material/Typography'
+import Container from '@mui/material/Container'
+import Link from '@mui/material/Link'
+import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+
+import { parseCookies } from 'nookies'
+import useStyles from '../styles/pages/contact'
+import Partnersfooter from '../components/Partnersfooter'
+
 export default function Contact() {
   const classes = useStyles()
+  const [emails, setEmails] = useState({})
+
+  useEffect(() => {
+    setEmails({
+      lead: 'julia@linea.org.br',
+      support: 'helpdesk@linea.org.br'
+    })
+  }, [])
+
   return (
     <Container className={classes.root}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/">
+              Home
+            </Link>
+            <Typography color="textPrimary">Contact</Typography>
+          </Breadcrumbs>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Contact
           </Typography>
@@ -28,12 +51,27 @@ export default function Contact() {
                   , or contact our team.
                 </p>
                 <p>
-                  BRA-LIN S2 Contribution Lead: julia at linea dot org dot br
+                  BRA-LIN-S4 Contribution Lead:{' '}
+                  {emails.lead ? (
+                    <Link href={`mailto:${emails.lead}`}>{emails.lead}</Link>
+                  ) : (
+                    'Loading...'
+                  )}
                 </p>
-                <p>Technical support: helpdesk at linea dot org dot br</p>
+                <p>
+                  Technical support:{' '}
+                  {emails.support ? (
+                    <Link href={`mailto:${emails.support}`}>
+                      {emails.support}
+                    </Link>
+                  ) : (
+                    'Loading...'
+                  )}
+                </p>
               </Typography>
-            </CardContent>{' '}
+            </CardContent>
           </Card>
+          <Partnersfooter />
         </Grid>
       </Grid>
     </Container>

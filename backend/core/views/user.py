@@ -1,12 +1,10 @@
 import logging
 
-import requests
-from core.models import Profile
 from core.serializers.user import UserSerializer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import logout
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
@@ -49,23 +47,7 @@ class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-
-        if settings.SHIBBOLETH_ENABLED:  # pragma: no cover
-            try:
-                log = logging.getLogger("shibboleth")
-                log.debug(f"User {request.user} request logout ")
-                shib_logout_uri = request.build_absolute_uri("/Shibboleth.sso/Logout")
-                log.debug(f"Logout URL: {shib_logout_uri}")
-                r = requests.get(shib_logout_uri)
-                if r.status_code == 200:
-                    log.debug(f"Logout Success")
-                else:
-                    log.error(f"User {request.user} Logout Failed. {str(r)}")
-            except Exception as e:
-                log.error(f"User {request.user} Logout Failed. {str(e)}")
-
         logout(request)
-
         return Response(status=status.HTTP_200_OK)
 
 

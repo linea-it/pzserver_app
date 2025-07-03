@@ -1,39 +1,137 @@
 - model: core.release
   pk: 1
   fields:
-    name: lsst_dp0
-    display_name: LSST DP0
-    description: LSST Data Preview 0
+    name: dr2
+    display_name: Small Dataset
+    description: Small dataset for example runs
     created_at: 2022-05-18 15:36:16.234786+00:00
+    indexing_column: id
 - model: core.producttype
   pk: 1
   fields:
-    name: specz_catalog
-    display_name: Spec-z Catalog
-    description: Catalog of spectroscopic redshifts and positions (usually equatorial coordinates).
+    name: redshift_catalog
+    display_name: Reference Redshift Catalog
+    order: 1
+    description: Catalog of reference redshifts and positions of galaxies (usually spectroscopic redshifts and equatorial coordinates).
     created_at: 2022-05-18 15:37:15.900581+00:00
 - model: core.producttype
   pk: 2
   fields:
     name: training_set
     display_name: Training Set
-    description: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and true redshifts.
+    order: 2
+    description: Training set for photo-z algorithms (tabular data). It usually contains magnitudes, errors, and reference redshifts.
     created_at: 2022-05-18 15:37:55.565131+00:00
 - model: core.producttype
   pk: 3
   fields:
     name: validation_results
     display_name: Validation Results
+    order: 4
     description: Results of a photo-z validation procedure (free format). Usually contains photo-z estimates (single estimates and/or pdf) of a validation set and photo-z validation metrics.
     created_at: 2022-05-18 15:36:59.830913+00:00
 - model: core.producttype
   pk: 4
   fields:
-    name: photoz_table
-    display_name: Photo-z Table
-    description: Results of a photo-z estimation procedure. If the data is larger than the file upload limit (200MB), the product entry stores only the metadata (instructions on accessing the data should be provided in the description field.
+    name: photoz_estimates
+    display_name: Photo-z Estimates
+    order: 5
+    description: Results of a photo-z estimation procedure (usually the output of RAIL Estimate module). If the data is larger than the file upload limit (200MB), the product entry stores only the metadata (instructions on accessing the data should be provided in the description field.
     created_at: 2022-05-18 15:37:55.565131+00:00
+- model: core.producttype
+  pk: 5
+  fields:
+    name: training_results
+    display_name: Training Results
+    order: 3
+    description: "Any file(s) resulting from the training of machine learning algorithms (free format). E.g.: output of RAIL inform module estimator_<algorithm>.pkl."
+    created_at: 2023-12-04 15:36:59.830913+00:00
+- model: core.producttype
+  pk: 6
+  fields:
+    name: objects_catalog
+    display_name: Objects Catalog
+    order: 6
+    description: "Catalog of objects"
+    created_at: 2023-06-06 12:11:59.830913+00:00
+- model: core.producttype
+  pk: 7
+  fields:
+    name: other
+    display_name: Other
+    order: 7
+    description: "Any file(s)"
+    created_at: 2023-12-04 15:36:59.830913+00:00
 - model: auth.group
   pk: 1
   fields:
     name: Admin
+- model: core.pipeline
+  pk: 1
+  fields:
+    name: training_set_maker
+    display_name: Training Set Maker
+    version: 0.0.1
+    description: Training Set Maker pipeline
+    created_at: 2022-05-18 15:36:59.830913+00:00
+    system_config:
+      executor:
+        name: "local"
+        args:
+          n_workers: 2
+          threads_per_worker: 2
+          memory_limit: "1GiB"
+      inputs:
+        dataset:
+          path: "/datasets/data-example/dr2"
+          columns:
+            id: "id"
+        specz:
+          - path: "/datasets/data-example/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+      output_dir: "outputs"
+      param:
+        duplicate_criteria: "closest"
+        flux_type: "auto"
+        convert_flux_to_mag: false
+        dereddening: "sfd"
+        crossmatch:
+          output_catalog_name: "tsm_cross_001"
+          radius_arcsec: 1.0
+          n_neighbors: 1
+    product_types_accepted: [1]
+    output_product_type: 2
+- model: core.pipeline
+  pk: 2
+  fields:
+    name: combine_specz
+    display_name: Combine Redshift Catalogs
+    version: 0.0.1
+    description: Combine Redshift Catalogs pipeline
+    created_at: 2022-05-18 15:36:59.830913+00:00
+    system_config:
+      executor:
+        name: "local" # or "slurm"
+        args:
+          n_workers: 2
+          threads_per_worker: 2
+          memory_limit: "1GiB"
+      inputs:
+        specz:
+          - path: "/datasets/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+              z: "z"
+          - path: "/datasets/specz.parquet"
+            columns:
+              ra: "ra"
+              dec: "dec"
+              z: "z"
+      output_dir: "outputs"
+      param:
+        debug: true
+    product_types_accepted: [1]
+    output_product_type: 1
