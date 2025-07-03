@@ -395,6 +395,10 @@ export default function ProductDetail({ productId, internalName }) {
                 alignItems="flex-start"
                 spacing={2}
               >
+                <Typography variant="subtitle1" color="textSecondary">
+                  <strong>Product Type:</strong> {product.product_type_name}
+                </Typography>
+
                 {product.release !== null && (
                   <Typography variant="subtitle1" color="textSecondary">
                     <strong>Release:</strong> {product.release_name}
@@ -461,7 +465,11 @@ export default function ProductDetail({ productId, internalName }) {
                 )}
               </Stack>
               <Box sx={{ m: 2 }}></Box>
-              <Typography variant="body1">{product.description}</Typography>
+              {!hasHtmlFile && (
+                <Typography variant="body" color="textSecondary">
+                  {product.description}
+                </Typography>
+              )}
               <ProductShare
                 isOpen={shareDialogOpen}
                 handleShareDialogOpen={handleShareDialogOpen}
