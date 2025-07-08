@@ -9,9 +9,9 @@ import Typography from '@mui/material/Typography'
 
 import { parseCookies } from 'nookies'
 import Partnersfooter from '../components/Partnersfooter'
-import useStyles from '../styles/pages/tutorials'
+import useStyles from '../styles/pages/documentation'
 
-export default function Tutorials() {
+export default function Documentation() {
   const classes = useStyles()
 
   return (
@@ -22,34 +22,69 @@ export default function Tutorials() {
             <Link color="inherit" href="/">
               Home
             </Link>
-            <Typography color="textPrimary">Tutorials</Typography>
+            <Typography color="textPrimary">Documentation</Typography>
           </Breadcrumbs>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Tutorials
-          </Typography>
+          {/* <Typography variant="h6" sx={{ mb: 2 }}>
+            Documentation
+          </Typography> */}
           <Card>
             <CardContent>
-              <Typography variant="h6">Download</Typography>
+              <Typography variant="h6">
+                Photo-z Server Documentation for Users
+              </Typography>
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  To download a data product available on the Photo-z Server, go
-                  to one of the two pages by clicking on the card &quot;Rubin
-                  Observatory PZ Data Products&quot; (for official products
-                  released by LSST DM Team) or &quot;User-generated Data
-                  Products&quot; (for products uploaded by the members of LSST
-                  community). The download button is on the left side of each
-                  data product (each row of the list).
+                  Please find the complete documentation about how to use the
+                  Photo-z Server website, available in English, Spanish, and
+                  Brazilian Portuguese on its{' '}
+                  <Link
+                    href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    documentation for users web page
+                  </Link>
+                  .
                 </p>
               </Typography>
-              <Typography variant="h6">Upload</Typography>
+              <Typography variant="h6">Access via API</Typography>
               <Divider />
               <Typography variant="body1" component="span">
                 <p>
-                  To upload a data product, click on the button{' '}
-                  <strong>&quot;NEW PRODUCT&quot;</strong> on the top right of
-                  the <strong>&quot;User-generated Data Products&quot;</strong>{' '}
-                  page and fill in the Upload Form with relevant metadata.
+                  The registered data products can also be accessed directly
+                  from Python code using the PZ Server&apos;s library. The
+                  internal documentation of the API functions is available on
+                  the{' '}
+                  <Link
+                    href="https://linea-it.github.io/pzserver"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    API&apos;s documentation page
+                  </Link>
+                  .
+                </p>
+                <p>Instalation:</p>
+                <pre className={classes.codeBlock}>
+                  <code>$ pip install pzserver </code>
+                </pre>
+                <p></p>
+              </Typography>
+              <Typography variant="h6">Tutorial notebook</Typography>
+              <Divider />
+              <Typography variant="body1" component="span">
+                <p>
+                  A tutorial notebook with examples for all pzserver methods is
+                  available on{' '}
+                  <Link
+                    href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/pzserver_tutorial.ipynb"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    it&apos;s repository on Github
+                  </Link>
+                  .
                 </p>
               </Typography>
               <Typography variant="h6">Data Products</Typography>
@@ -90,52 +125,6 @@ export default function Tutorials() {
                     the description field.
                   </li>
                 </ul>
-              </Typography>
-              <Typography variant="h6">Access via API</Typography>
-              <Divider />
-              <Typography variant="body1" component="span">
-                <p>
-                  The registered data products can also be accessed directly
-                  from Python code using the PZ Server&apos;s library. The
-                  internal documentation of the API functions is available on
-                  the{' '}
-                  <Link
-                    href="https://linea-it.github.io/pzserver"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    API&apos;s documentation page
-                  </Link>
-                  .
-                </p>
-                <p>
-                  <strong>Instalation via pip</strong>
-                </p>
-                <p>
-                  The PZ Server API is avalialble as a Python library on pip as{' '}
-                  <strong>pzserver</strong>. To install the API and its
-                  dependencies, type, on the Terminal:
-                </p>
-                <pre className={classes.codeBlock}>
-                  <code>$ pip install pzserver </code>
-                </pre>
-                <p></p>
-              </Typography>
-              <Typography variant="h6">Tutorial notebook</Typography>
-              <Divider />
-              <Typography variant="body1" component="span">
-                <p>
-                  The executable file with the notebook tutorial is available in
-                  the{' '}
-                  <Link
-                    href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/pzserver_tutorial.ipynb"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    library&apos;s repository on Github
-                  </Link>
-                  .
-                </p>
               </Typography>
             </CardContent>
           </Card>

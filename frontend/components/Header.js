@@ -55,8 +55,8 @@ function Header(props) {
       href: '/about'
     },
     {
-      description: 'Tutorials',
-      href: '/tutorials'
+      description: 'Documentation',
+      href: '/documentation'
     },
     {
       description: 'Contact',
