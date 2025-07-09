@@ -1,6 +1,5 @@
 import { Grid, Typography } from '@mui/material'
 import Image from 'next/image'
-import React from 'react'
 import Link from '../components/Link'
 import useStyles from '../styles/components/Footer'
 
@@ -22,12 +21,30 @@ function Footer() {
               alt="LIneA"
               width={80}
               height={50}
-              className={classes.rubinLogo}
+              // className={classes.rubinLogo}
             />
           </Link>
+
           <Link href="https://data.lsst.cloud/" target="_blank">
             <Typography className={classes.rsp}>RSP</Typography>
           </Link>
+
+          <Link
+            href="https://scienceplatform.linea.org.br/idac"
+            target="_blank"
+          >
+            <Image
+              src="/logo_idac.png"
+              alt="IDAC"
+              width={90}
+              height={90}
+              marginBottom={10}
+              className={classes.idacLogo}
+            />
+          </Link>
+          <Typography className={classes.rsp}>IDAC</Typography>
+        </Grid>
+        <Grid item className={classes.marginItem}>
           <div className={classes.images_credits}>
             {/* <Typography >Image credits: NOIRLab public images archive and LSST gallery.</Typography> */}
             <Typography variant="body2" component="span">
@@ -53,7 +70,7 @@ function Footer() {
           </div>
         </Grid>
         <Grid item className={classes.marginItem}>
-          <Typography>
+          <Typography component="div">
             <span className={classes.poweredBy}>Powered By</span>
             <Link
               href="https://www.linea.org.br/"

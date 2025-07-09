@@ -1,12 +1,10 @@
 import logging
 
-import requests
-from core.models import Profile
 from core.serializers.user import UserSerializer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import logout
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
