@@ -5,7 +5,6 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Checkbox from '@mui/material/Checkbox'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -34,7 +33,7 @@ function SpeczCatalogs() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
-  const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
+  const [resolveDuplicates, setResolveDuplicates] = useState('concatenate')
   const [search, setSearch] = useState('')
   const router = useRouter()
   const [filters] = useState({})
@@ -57,7 +56,9 @@ function SpeczCatalogs() {
   useEffect(() => {
     const fetchPipelineData = async () => {
       try {
-        const response = await getPipelineByName({ name: 'combine_specz' })
+        const response = await getPipelineByName({
+          name: 'combine_redshift_dedup'
+        })
         const pipelineData = response.data.results[0]
 
         setInitialData(pipelineData)
@@ -72,12 +73,11 @@ function SpeczCatalogs() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSelectedProducts([])
-    setUniqueGalaxies(false)
     setOutputFormat('parquet')
   }
 
-  const handleUniqueGalaxies = event => {
-    setUniqueGalaxies(event.target.checked)
+  const handleResolveDuplicates = event => {
+    setResolveDuplicates(event.target.value)
   }
 
   const handleSnackbarClose = () => {
@@ -126,8 +126,9 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            debug: true,
-            unique_galaxies: uniqueGalaxies
+            combine_type: resolveDuplicates,
+            flags_translation_file:
+              '/data/apps/app.orch/datasets/flags_translation.yaml'
           }
         },
         description: data.param.description,
@@ -279,15 +280,37 @@ function SpeczCatalogs() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ color: '#888' }}>
-              4. Select unique galaxies
-              <Checkbox
-                checked={uniqueGalaxies}
-                onChange={handleUniqueGalaxies}
-                inputProps={{ 'aria-label': 'controlled' }}
-                disabled
-              />
-              <Typography component="span">(soon)</Typography>
+            <Typography variant="body1">
+              4. Resolve duplicates**:
+              <Select
+                value={resolveDuplicates}
+                onChange={handleResolveDuplicates}
+              >
+                <MenuItem value="concatenate">
+                  No. (Concatenate catalogs stacking columns with the same
+                  name.)
+                </MenuItem>
+                <MenuItem value="concatenate_and_mark_duplicates">
+                  Yes, but keep all. (Use LSDB to find duplicates and provide
+                  information as an extra column.)
+                </MenuItem>
+                <MenuItem value="concatenate_and_remove_duplicates">
+                  Yes, and remove duplicates. (Use LSDB to find and remove
+                  duplicates. Provides a single redshift measurement for unique
+                  galaxies.)
+                </MenuItem>
+              </Select>
+              <Typography component="div" sx={{ margin: '12px' }}>
+                ** see methodology details and learn how to customize duplicates
+                resolution criteria in the{' '}
+                <Link
+                  color="inherit"
+                  href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+                >
+                  pipeline documentation
+                </Link>
+                .
+              </Typography>
             </Typography>
           </Grid>
 

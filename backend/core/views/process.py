@@ -140,13 +140,26 @@ class ProcessViewSet(viewsets.ModelViewSet):
                 ra = self.__get_mapped_column(_input, "RA")
                 dec = self.__get_mapped_column(_input, "Dec")
                 z = self.__get_mapped_column(_input, "z")
+                _id = self.__get_mapped_column(_input, "id")
+                z_flag = self.__get_mapped_column(_input, "z_flag")
+                z_err = self.__get_mapped_column(_input, "z_err")
+                survey = self.__get_mapped_column(_input, "survey")
 
                 ext = main_file.extension
 
                 _file = {
                     "path": str(filepath),
                     "format": ext.replace(".", ""),
-                    "columns": {"ra": ra, "dec": dec, "z": z},
+                    "columns": {
+                        "ra": ra,
+                        "dec": dec,
+                        "z": z,
+                        "id": _id,
+                        "z_flag": z_flag,
+                        "z_err": z_err,
+                        "survey": survey,
+                    },
+                    "internal_name": _input.internal_name,
                 }
                 inputfiles.append(_file)
 
@@ -195,7 +208,10 @@ class ProcessViewSet(viewsets.ModelViewSet):
         if columns.count() != 1:
             LOGGER.warning(f"Column {column} was not mapped for product {product}.")
             LOGGER.warning(f"Column {column}: value {column.lower()} will be used.")
-            value = column.lower()
+            if column.lower() in ("ra", "dec", "z"):
+                value = column.lower()
+            else:
+                value = None
         else:
             obj = columns[0]
             value = obj.column_name
