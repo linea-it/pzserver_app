@@ -217,6 +217,10 @@ export const createProductFile = (product_id, file, role, onUploadProgress) => {
   })
 }
 
+export const getAllProductsSpecz = async () => {
+  const res = await api.get('/api/products-specz/')
+  return res.data
+}
 
 export const getProductsSpecz = ({
   filters = {},

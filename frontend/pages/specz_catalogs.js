@@ -24,7 +24,6 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import SearchField from '../components/SearchField'
 import SpeczData from '../components/SpeczData'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
@@ -34,9 +33,9 @@ function SpeczCatalogs() {
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [resolveDuplicates, setResolveDuplicates] = useState('concatenate')
-  const [search, setSearch] = useState('')
+  // const [search, setSearch] = useState('')
   const router = useRouter()
-  const [filters] = useState({})
+  // const [filters] = useState({})
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -263,15 +262,15 @@ function SpeczCatalogs() {
               <Typography variant="body1" mb={1}>
                 3. Select the Redshift Catalogs to include in your sample:
               </Typography>
-              <SearchField onChange={query => setSearch(query)} />
+              {/* <SearchField onChange={query => setSearch(query)} /> */}
             </Box>
           </Grid>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <SpeczData
-                  query={search}
-                  filters={filters}
+                  // query={search}
+                  // filters={filters}
                   onSelectionChange={handleProductSelection}
                   clearSelection={selectedProducts.length === 0}
                 />
@@ -281,7 +280,7 @@ function SpeczCatalogs() {
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              4. Resolve duplicates**:
+              4. Resolve duplicates **:
               <Select
                 value={resolveDuplicates}
                 onChange={handleResolveDuplicates}
@@ -300,11 +299,15 @@ function SpeczCatalogs() {
                   galaxies.)
                 </MenuItem>
               </Select>
-              <Typography component="div" sx={{ margin: '12px' }}>
+              <Typography
+                component="div"
+                sx={{ margin: '12px' }}
+                variant="body2"
+              >
                 ** see methodology details and learn how to customize duplicates
                 resolution criteria in the{' '}
                 <Link
-                  color="inherit"
+                  underline="always"
                   href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
                 >
                   pipeline documentation
