@@ -1,4 +1,3 @@
-import GitHubIcon from '@mui/icons-material/GitHub'
 import {
   Alert,
   Box,
@@ -9,22 +8,13 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { styled } from '@mui/material/styles'
 import Image from 'next/image'
 import { parseCookies } from 'nookies'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
-const GitHubButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.getContrastText('#000'),
-  backgroundColor: '#000',
-  '&:hover': {
-    backgroundColor: '#333'
-  }
-}))
-
-function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
+function Login({ shibLoginUrl, CILogonUrl }) {
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
@@ -166,17 +156,6 @@ function Login({ shibLoginUrl, CILogonUrl, GithubUrl }) {
                     LOGIN LSST MEMBERS (RSP ACCOUNT)
                   </Button>
                 </Grid>
-                <Grid item xs={12}>
-                  <GitHubButton
-                    fullWidth
-                    variant="contained"
-                    startIcon={<GitHubIcon />}
-                    href={GithubUrl || shibLoginUrl}
-                    sx={{ bottom: 20 }}
-                  >
-                    LOGIN ADMIN
-                  </GitHubButton>
-                </Grid>
               </>
             )}
           </Grid>
@@ -241,29 +220,22 @@ export async function getServerSideProps({ ctx }) {
     ? process.env.AUTH_CILOGON_URL
     : null
 
-  const GithubLoginUrl = process.env.AUTH_GITHUB_URL
-    ? process.env.AUTH_GITHUB_URL
-    : null
-
   return {
     props: {
       shibLoginUrl: null,
-      CILogonUrl: CILogonLoginUrl,
-      GithubUrl: GithubLoginUrl
+      CILogonUrl: CILogonLoginUrl
     }
   }
 }
 
 Login.propTypes = {
   shibLoginUrl: PropTypes.string,
-  CILogonUrl: PropTypes.string,
-  GithubUrl: PropTypes.string
+  CILogonUrl: PropTypes.string
 }
 
 Login.defaultProps = {
   shibLoginUrl: null,
-  CILogonUrl: null,
-  GithubUrl: null
+  CILogonUrl: null
 }
 
 export default Login

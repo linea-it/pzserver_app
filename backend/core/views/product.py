@@ -5,9 +5,10 @@ import pathlib
 import secrets
 import tempfile
 import zipfile
-from json import loads
+from json import dumps, loads
 from pathlib import Path
 
+import yaml
 from core.models import Product, ProductContent, ProductStatus
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
@@ -152,11 +153,65 @@ class ProductViewSet(viewsets.ModelViewSet):
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def __get_product_contents(self, product):
+        """Get product contents"""
+        if not product.contents:
+            return []
+
+        contents = []
+        for content in product.contents.all():
+            if content.alias:
+                contents.append(
+                    {
+                        "column_name": content.column_name,
+                        "ucd": content.ucd,
+                        "alias": content.alias,
+                    }
+                )
+        return contents
+
+    def __get_full_product(self, product):
+        """Get full product data"""
+        product_full = self.get_serializer(instance=product).data
+
+        for file in product.files.all():
+            if file.role == 0:
+                product_full["main_file"] = {
+                    "name": file.name,
+                    "type": file.type,
+                    "extension": file.extension,
+                    "size": file.size,
+                    "n_rows": file.n_rows,
+                }
+                product_contents = self.__get_product_contents(product)
+                if product_contents:
+                    product_full["associated_columns"] = product_contents
+            else:
+                if not "attach_files" in product_full:
+                    product_full["attach_files"] = []
+                product_full["attach_files"].append(
+                    {"name": file.name, "type": file.type}
+                )
+
+        return product_full
+
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
         """Download product"""
         try:
             product = self.get_object()
+            product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
+            with open(
+                pathlib.Path(product_path, "product_metadata.yaml"), "w"
+            ) as yaml_file:
+                json_object = loads(dumps(self.__get_full_product(product)))
+                yaml.dump(
+                    json_object,
+                    yaml_file,
+                    default_flow_style=False,
+                    allow_unicode=False,
+                    encoding=None,
+                )
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 # Cria um arquivo zip no diretório tmp com os arquivos do produto
@@ -259,6 +314,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             main_file["extension"] = product_file.extension
             main_file["size"] = product_file.size
             main_file["n_rows"] = product_file.n_rows
+
+            product_contents = self.__get_product_contents(product)
+            if product_contents:
+                main_file["associated_columns"] = product_contents
 
             if product_file.extension == ".csv":
                 product_content = FileHandle(product_path)
