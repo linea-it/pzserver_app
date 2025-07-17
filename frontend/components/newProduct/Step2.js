@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
+import Link from '@mui/material/Link'
 import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React, { useEffect, useState } from 'react'
@@ -223,33 +224,45 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   return (
     <React.Fragment>
       {isLoading && <Loading isLoading={isLoading} />}
-      <Typography paragraph variant="body">
+      <Typography paragraph variant="body1">
         Please select the file(s) for the upload. The main file is the one
         containing the data. It must be a single file. For example, if the
         product type is Redshift Sample or Training Set, the data must be
         tabular, and the tool supports the formats: CSV, FITS, HDF5, and
-        parquet. Otherwise, if the product type is Validation Results or Photo-z
-        Table, the file format is free. Please provide them compressed in a
-        single .tar file in case of multiple files.
+        Parquet. Otherwise, if the product type is, e.g., Training Results or
+        Validation Results, the file format is free (in case of multiple files,
+        please provide them compressed in a .zip or .tar file).
+      </Typography>
+      <Typography paragraph variant="body1">
+        The maximum upload size is {MAX_UPLOAD_SIZE}MB. If your dataset is
+        larger, please contact the Photo-z Server team to request an exception.
+      </Typography>
+      <Typography paragraph variant="body1">
+        For text files, e.g., CSV, all commented lines are ignored. Index column
+        and header are optional (multiline headers are ignored).
+      </Typography>
+      <Typography paragraph variant="body1">
+        Note: If the files are meant to be used as input by the Photo-z Server
+        Pipelines, there are additional requirements regarding the file
+        contents. Please check out the{' '}
+        <Link
+          href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+          target="_blank"
+          rel="noreferrer"
+        >
+          documentation page
+        </Link>{' '}
+        for more details.
       </Typography>
       {/* <Typography paragraph variant="body">
         The description file is supposed to contain relevant information about
         the data product. It can be a PDF document, a Jupyter notebook, etc.
       </Typography> */}
-      <Typography paragraph variant="body">
+      <Typography paragraph variant="body1">
         The Auxiliary Files are in free format and can be multiple files (press
         the upload button as many times as necessary).
       </Typography>
-      <Typography paragraph variant="body">
-        The maximum upload size is {MAX_UPLOAD_SIZE}MB. For text files, e.g.,
-        CSV, all commented lines are ignored. Index column is optional.
-      </Typography>
-      <Typography paragraph variant="body">
-        For text files, the header is optional (multiline headers are ignored).
-      </Typography>
-      <Typography paragraph variant="body">
-        Index column is optional.
-      </Typography>
+
       <Box>
         <Grid container spacing={4}>
           <Grid item xs={6}>
