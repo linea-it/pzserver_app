@@ -264,8 +264,6 @@ function SpeczCatalogs() {
               </Typography>
               {/* <SearchField onChange={query => setSearch(query)} /> */}
             </Box>
-          </Grid>
-          <Grid item xs={12}>
             <Card>
               <CardContent>
                 <SpeczData
