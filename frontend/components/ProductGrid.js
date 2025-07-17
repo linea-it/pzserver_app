@@ -141,13 +141,6 @@ export default function ProductGrid(props) {
         sortable: false
       },
       {
-        field: 'release_year',
-        headerName: 'Release Year',
-        flex: 1,
-        maxWidth: 120,
-        sortable: true
-      },
-      {
         field: 'product_status',
         headerName: 'Status',
         flex: 1,

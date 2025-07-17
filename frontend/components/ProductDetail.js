@@ -465,7 +465,7 @@ export default function ProductDetail({ productId, internalName }) {
                 )}
               </Stack>
               <Box sx={{ m: 2 }}></Box>
-              {!hasHtmlFile && (
+              {product.description !== null && (
                 <Typography variant="body" color="textSecondary">
                   {product.description}
                 </Typography>

@@ -1,11 +1,9 @@
-import InfoIcon from '@mui/icons-material/Info'
 import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Checkbox from '@mui/material/Checkbox'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -13,7 +11,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
@@ -25,7 +22,6 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import SearchField from '../components/SearchField'
 import SpeczData from '../components/SpeczData'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
@@ -34,10 +30,10 @@ function SpeczCatalogs() {
   const theme = useTheme()
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
-  const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
-  const [search, setSearch] = useState('')
+  const [resolveDuplicates, setResolveDuplicates] = useState('concatenate')
+  // const [search, setSearch] = useState('')
   const router = useRouter()
-  const [filters] = useState({})
+  // const [filters] = useState({})
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -57,7 +53,9 @@ function SpeczCatalogs() {
   useEffect(() => {
     const fetchPipelineData = async () => {
       try {
-        const response = await getPipelineByName({ name: 'combine_specz' })
+        const response = await getPipelineByName({
+          name: 'combine_redshift_dedup'
+        })
         const pipelineData = response.data.results[0]
 
         setInitialData(pipelineData)
@@ -72,12 +70,11 @@ function SpeczCatalogs() {
   const handleClearForm = () => {
     setCombinedCatalogName('')
     setSelectedProducts([])
-    setUniqueGalaxies(false)
     setOutputFormat('parquet')
   }
 
-  const handleUniqueGalaxies = event => {
-    setUniqueGalaxies(event.target.checked)
+  const handleResolveDuplicates = event => {
+    setResolveDuplicates(event.target.value)
   }
 
   const handleSnackbarClose = () => {
@@ -126,8 +123,9 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            debug: true,
-            unique_galaxies: uniqueGalaxies
+            combine_type: resolveDuplicates,
+            flags_translation_file:
+              '/data/apps/app.orch/datasets/flags_translation.yaml'
           }
         },
         description: data.param.description,
@@ -225,13 +223,6 @@ function SpeczCatalogs() {
                     : ''
                 }
               />
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="the product name of the redshift catalog that will result from the process and be automatically registered as a new product on the PZ Server."
-              >
-                <InfoIcon />
-              </IconButton>
             </Box>
           </Grid>
           <Grid item xs={12}>
@@ -262,15 +253,15 @@ function SpeczCatalogs() {
               <Typography variant="body1" mb={1}>
                 3. Select the Redshift Catalogs to include in your sample:
               </Typography>
-              <SearchField onChange={query => setSearch(query)} />
+              {/* <SearchField onChange={query => setSearch(query)} /> */}
             </Box>
           </Grid>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <SpeczData
-                  query={search}
-                  filters={filters}
+                  // query={search}
+                  // filters={filters}
                   onSelectionChange={handleProductSelection}
                   clearSelection={selectedProducts.length === 0}
                 />
@@ -279,15 +270,41 @@ function SpeczCatalogs() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ color: '#888' }}>
-              4. Select unique galaxies
-              <Checkbox
-                checked={uniqueGalaxies}
-                onChange={handleUniqueGalaxies}
-                inputProps={{ 'aria-label': 'controlled' }}
-                disabled
-              />
-              <Typography component="span">(soon)</Typography>
+            <Typography variant="body1">
+              4. Resolve duplicates **:
+              <Select
+                value={resolveDuplicates}
+                onChange={handleResolveDuplicates}
+              >
+                <MenuItem value="concatenate">
+                  No. (Concatenate catalogs stacking columns with the same
+                  name.)
+                </MenuItem>
+                <MenuItem value="concatenate_and_mark_duplicates">
+                  Yes, but keep all. (Use LSDB to find duplicates and provide
+                  information as an extra column.)
+                </MenuItem>
+                <MenuItem value="concatenate_and_remove_duplicates">
+                  Yes, and remove duplicates. (Use LSDB to find and remove
+                  duplicates. Provides a single redshift measurement for unique
+                  galaxies.)
+                </MenuItem>
+              </Select>
+              <Typography
+                component="div"
+                sx={{ margin: '12px' }}
+                variant="body2"
+              >
+                ** see methodology details and learn how to customize duplicates
+                resolution criteria in the{' '}
+                <Link
+                  underline="always"
+                  href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+                >
+                  pipeline documentation
+                </Link>
+                .
+              </Typography>
             </Typography>
           </Grid>
 

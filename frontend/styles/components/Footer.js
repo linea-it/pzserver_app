@@ -4,7 +4,7 @@ const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
     float: 'right',
-    height: 64,
+    height: 85,
     position: 'relative',
     zIndex: 2,
     backgroundColor: theme.palette.grey[900],
@@ -27,19 +27,21 @@ const useStyles = makeStyles(theme => ({
   },
   logoFooter: {
     cursor: 'pointer',
-    marginLeft: '10px'
+    marginLeft: '10px',
+    marginRight: 0,
   },
   poweredBy: {
     display: 'inline-block',
     verticalAlign: 'middle',
     color: '#fff',
     marginRight: 16,
+    marginLeft: 50,
     fontFamily: 'Roboto Condensed'
   },
   marginItem: {
     marginLeft: 20,
     marginRight: 20,
-    marginTop: 8,
+    // marginTop: 8,
     display: 'flex',
     alignItems: 'center',
     gap: 16,
@@ -56,6 +58,9 @@ const useStyles = makeStyles(theme => ({
   images_credits: {
     color: '#fff',
     paddingTop: '15px'
+  },
+  idacLogo: {
+    marginBottom: '6px'
   }
 }))
 
