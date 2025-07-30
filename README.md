@@ -445,7 +445,7 @@ ssh login.linea.org.br
 ssh srvpz-dev
 ```
 
-Change user to `app.photoz` 
+Change user to `app.pzserver` 
 ```
 sudo -u app.pzserver -s /bin/bash
 ```
