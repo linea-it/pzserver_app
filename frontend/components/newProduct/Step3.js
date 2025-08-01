@@ -54,7 +54,6 @@ const ucds = [
 ]
 
 const ucdRaAndDec = ['pos.eq.ra;meta.main', 'pos.eq.dec;meta.main']
-
 const mandatoryUcds = ['src.redshift']
 mandatoryUcds.push.apply(mandatoryUcds, ucdRaAndDec)
 
@@ -199,7 +198,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
     setLoading(true)
     try {
       const res = await getProduct(productId)
-      setProductType(res.product_type_name)
+      setProductType(res.product_type_internal_name)
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -444,9 +443,9 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           color="primary"
           onClick={handleSubmit}
           disabled={
-            (productType === 'Redshift Catalog' && !isValid) ||
-            (productType === 'Training Set' && !isValidTrainingSet) ||
-            (productType === 'Objects Catalog' && !isValidObjectsCatalog)
+            (productType === 'redshift_catalog' && !isValid) ||
+            (productType === 'training_set' && !isValidTrainingSet) ||
+            (productType === 'objects_catalog' && !isValidObjectsCatalog)
           }
         >
           Next
