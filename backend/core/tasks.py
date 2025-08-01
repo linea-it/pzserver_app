@@ -30,43 +30,53 @@ def check_processes():
     if not processes:
         return False
 
-    maestro = Maestro(settings.ORCHEST_URL)
+    try:
+        maestro = Maestro(settings.ORCHEST_URL)
+    except Exception as e:
+        LOGGER.error(f"Failed to connect to Orchestration: {e}")
+        return False
 
     for process in processes:
         LOGGER.debug(f"Consulting the {process} process status.")
-        process_orch_id = process.orchestration_process_id  # type: ignore
+        process_orch_id = process.orchestration_process_id
+        process_orch = {}  # type: ignore
 
-        if not process_orch_id:
-            message = f"Process {str(process.pk)} without Orchestration ID."
-            LOGGER.error(message)
-            process = update_process_info(process, "Failed", {})
-            continue
+        try:
+            if not process_orch_id:
+                message = f"Process {str(process.pk)} without Orchestration ID."
+                LOGGER.error(message)
+                process = update_process_info(process, "Failed", process_orch)
+                continue
 
-        process_orch = maestro.status(process_orch_id)
-        process_orch_status = process_orch.get("status")  # type: ignore
+            process_orch = maestro.status(process_orch_id)
+            process_orch_status = process_orch.get("status")  # type: ignore
 
-        LOGGER.debug(f"-> Process orchestration ID: {process_orch_id}")
-        LOGGER.debug(f"-> Status: {process_orch_status}")
+            LOGGER.debug(f"-> Process orchestration ID: {process_orch_id}")
+            LOGGER.debug(f"-> Status: {process_orch_status}")
 
-        if process_orch_status == "Running" and process.status == "Pending":
-            started_at = process_orch.get("started_at", str(process.created_at))
-            process.started_at = dateparse.parse_datetime(started_at)
-            process.status = process_orch_status
-            process.save()
+            # if process_orch_status == "Running" and process.status == "Pending":
+            #     started_at = process_orch.get("started_at", str(process.created_at))
+            #     process.started_at = dateparse.parse_datetime(started_at)
+            #     process.status = process_orch_status
+            #     process.save()
+            #     continue
 
-        if process_orch_status == "Successful":
-            register_outputs(process.pk)
-        elif process_orch_status == "Failed":
-            process.upload.status = 9  # Failed status
-            process.upload.save()
-
-        if process_orch_status != process.status:
-            process = update_process_info(
+            if process_orch_status != process.status:
+                process = update_process_info(
+                    process=process,
+                    process_orch_status=process_orch_status,
+                    data=process_orch,
+                )
+                LOGGER.debug(
+                    f"{process} has been updated (new status: {process.status})"
+                )
+        except Exception as e:
+            LOGGER.error(f"Error processing {process}: {e}")
+            update_process_info(
                 process=process,
-                process_orch_status=process_orch_status,
+                process_orch_status="Failed",
                 data=process_orch,
             )
-            LOGGER.debug(f"{process} has been updated (new status: {process.status})")
 
     return True
 
@@ -83,13 +93,20 @@ def update_process_info(process, process_orch_status, data):
         Process: process object
     """
     started_at = data.get("started_at", str(process.created_at))
-    ended_at = data.get("ended_at", str(timezone.now()))
+    ended_at = data.get("ended_at", None)
 
     if not ended_at:
         ended_at = str(timezone.now())
 
+    if process_orch_status == "Successful":
+        register_outputs(process.pk)
+        process.ended_at = dateparse.parse_datetime(ended_at)
+    elif process_orch_status == "Failed":
+        process.upload.status = 9  # Failed status
+        process.upload.save()
+        process.ended_at = dateparse.parse_datetime(ended_at)
+
     process.started_at = dateparse.parse_datetime(started_at)
-    process.ended_at = dateparse.parse_datetime(ended_at)
     process.status = process_orch_status
     process.save()
     return process
