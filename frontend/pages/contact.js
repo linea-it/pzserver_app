@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import Link from '@mui/material/Link'
-import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
+import { useEffect, useState } from 'react'
 
 import { parseCookies } from 'nookies'
-import useStyles from '../styles/pages/contact'
 import Partnersfooter from '../components/Partnersfooter'
+import useStyles from '../styles/pages/contact'
 
 export default function Contact() {
   const classes = useStyles()
@@ -18,6 +18,7 @@ export default function Contact() {
   useEffect(() => {
     setEmails({
       lead: 'julia@linea.org.br',
+      admin: 'pzserver-admin@linea.org.br',
       support: 'helpdesk@linea.org.br'
     })
   }, [])
@@ -38,7 +39,9 @@ export default function Contact() {
           <Card>
             <CardContent>
               <Typography variant="body1" component="span">
-                <p>Comments, questions, suggestions?</p>
+                <p>
+                  <strong>Comments, questions, suggestions?</strong>
+                </p>
                 <p>
                   Be welcome to open an issue on the{' '}
                   <Link
@@ -54,6 +57,14 @@ export default function Contact() {
                   BRA-LIN-S4 Contribution Lead:{' '}
                   {emails.lead ? (
                     <Link href={`mailto:${emails.lead}`}>{emails.lead}</Link>
+                  ) : (
+                    'Loading...'
+                  )}
+                </p>
+                <p>
+                  Photo-z Server development team:{' '}
+                  {emails.lead ? (
+                    <Link href={`mailto:${emails.admin}`}>{emails.admin}</Link>
                   ) : (
                     'Loading...'
                   )}

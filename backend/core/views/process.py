@@ -115,8 +115,8 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
                 LOGGER.debug("Used release: %s", process.release)
 
-                if not release_path.is_dir() and not release_path.is_symlink():
-                    raise ValueError(f"Release path not found: {str(release_path)}")
+                # if not release_path.is_dir() and not release_path.is_symlink():
+                #     raise ValueError(f"Release path not found: {str(release_path)}")
 
                 used_config["inputs"]["dataset"] = {
                     "path": str(release_path),

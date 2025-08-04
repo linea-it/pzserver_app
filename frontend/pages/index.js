@@ -17,21 +17,21 @@ export default function Index() {
     {
       title: 'Rubin Observatory PZ Data Products',
       path: '/oficial_products',
-      background: '/interfaces/lsst-dp.jpg',
+      background: '/interfaces/first_look_medium_2.png',
       description:
-        'Official data products released by the LSST Data Management team.'
+        'Official data products released by Rubin Observatory Data Management team.'
     },
     {
       title: 'User-generated Data Products',
       path: '/user_products',
-      background: '/interfaces/user-dp.jpg',
+      background: '/interfaces/first_look_medium_3.png',
       description:
-        'User-generated data products shared by members of the LSST community.'
+        'User-generated data products shared by LSST Community members.'
     },
     {
       title: 'PZ Server Pipelines',
       path: '/pz_pipelines',
-      background: '/interfaces/gamma-ray-burst.jpg',
+      background: '/interfaces/first_look_medium_4.png',
       description:
         'Pipelines to create customized science-driven PZ-related data products.'
     }

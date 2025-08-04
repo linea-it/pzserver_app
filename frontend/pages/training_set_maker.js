@@ -1,4 +1,3 @@
-import InfoIcon from '@mui/icons-material/Info'
 import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
@@ -13,7 +12,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
@@ -321,13 +319,6 @@ function TrainingSetMaker() {
                     : ''
                 }
               />
-              <IconButton
-                color="primary"
-                aria-label="info"
-                title="Name to be displayed on the products list"
-              >
-                <InfoIcon />
-              </IconButton>
             </Box>
           </Grid>
 

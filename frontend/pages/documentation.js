@@ -36,12 +36,12 @@ export default function Documentation() {
               <Typography variant="body1" component="span">
                 <p>
                   Please find the complete documentation about how to use the
-                  Photo-z Server website, available in English, Spanish, and
-                  Brazilian Portuguese on its{' '}
+                  Photo-z Server website on its{' '}
                   <Link
                     href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
                     target="_blank"
                     rel="noreferrer"
+                    component="a"
                   >
                     documentation for users web page
                   </Link>
@@ -60,12 +60,13 @@ export default function Documentation() {
                     href="https://linea-it.github.io/pzserver"
                     target="_blank"
                     rel="noreferrer"
+                    component="a"
                   >
                     API&apos;s documentation page
                   </Link>
                   .
                 </p>
-                <p>Instalation:</p>
+                <p>Installation:</p>
                 <pre className={classes.codeBlock}>
                   <code>$ pip install pzserver </code>
                 </pre>
@@ -81,8 +82,9 @@ export default function Documentation() {
                     href="https://github.com/linea-it/pzserver/blob/main/docs/notebooks/pzserver_tutorial.ipynb"
                     target="_blank"
                     rel="noreferrer"
+                    component="a"
                   >
-                    it&apos;s repository on Github
+                    its repository on Github
                   </Link>
                   .
                 </p>
@@ -125,6 +127,19 @@ export default function Documentation() {
                     the description field.
                   </li>
                 </ul>
+              </Typography>
+              <Typography variant="body1" paragraph>
+                Further details including contents and format requirements are
+                available on the{' '}
+                <Link
+                  href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  component="a"
+                >
+                  documentation for users web page
+                </Link>
+                .
               </Typography>
             </CardContent>
           </Card>

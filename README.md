@@ -103,6 +103,11 @@ Finally, to start the whole application:
 docker compose up
 ```
 
+In case of errors due to lint issues: 
+```bash
+docker compose exec frontend yarn lint --fix
+``` 
+
 ### Setting Up a New Application to manage authentication
 
 Go to Django ADMIN (for local installation, open a web browser and go to the URL: http://localhost/admin/) and add a new Application with the following configuration:
@@ -428,6 +433,8 @@ drwx------ pg_data # Directory where postgresql files are in container
 drwxr-xr-x pg_backups # Directory where postgresql files are in container
 ```
 
+
+
 ## Update Testing Environment
 
 After merging new commits into the main branch, github workflow will create the new docker file and send it to [LIneA's repository on DockerHub](https://hub.docker.com/r/linea/pzserver) automatically. Copy the hash of the last commit to the clipboard. 
@@ -438,7 +445,7 @@ ssh login.linea.org.br
 ssh srvpz-dev
 ```
 
-Change user to `app.photoz` 
+Change user to `app.pzserver` 
 ```
 sudo -u app.pzserver -s /bin/bash
 ```
