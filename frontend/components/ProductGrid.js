@@ -38,7 +38,7 @@ export default function ProductGrid(props) {
   const [productName, setProductName] = React.useState('')
   const [pipelineOut, setPipelineOut] = React.useState('')
   const [schedulerOut, setSchedulerOut] = React.useState('')
-  const [isOpen, setOpen] = React.useState(false);
+  const [isOpen, setOpen] = React.useState(false)
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
@@ -88,13 +88,13 @@ export default function ProductGrid(props) {
         setProductName(row.display_name)
         const data = await getProcessLogs(row.process_id)
         console.log(data)
-        
+
         setPipelineOut(data.pipeline.content)
         setSchedulerOut(data.slurm.content)
         setOpen(true)
       } catch (error) {
         console.error(error)
-      } 
+      }
     }
 
     const handleDelete = row => {
@@ -176,7 +176,7 @@ export default function ProductGrid(props) {
         sortable: false,
         renderCell: params => (
           <>
-            { ["Queued", "Pending"].includes(params.row.process_status) ? (
+            {['Queued', 'Pending'].includes(params.row.process_status) ? (
               params.value
             ) : (
               <Link
@@ -324,14 +324,14 @@ export default function ProductGrid(props) {
         />
       )}
 
-      <ProcessLogs 
+      <ProcessLogs
         isOpen={isOpen}
         handleProcessLogsDialogOpen={() => setOpen(!isOpen)}
         productName={productName}
         pipelineOut={pipelineOut}
         schedulerOut={schedulerOut}
       />
-  
+
       <Snackbar
         open={copySnackbarOpen}
         autoHideDuration={3000}
