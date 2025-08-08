@@ -26,6 +26,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     process_status = serializers.SerializerMethodField()
 
+    process_id = serializers.SerializerMethodField()
+
     product_status = serializers.SerializerMethodField()
 
     can_delete = serializers.SerializerMethodField()
@@ -66,10 +68,15 @@ class ProductSerializer(serializers.ModelSerializer):
             return False
 
     def get_origin(self, obj):
-        return obj.upload.pipeline.display_name if hasattr(obj, "upload") else "Upload"
+        return (
+            obj.process.pipeline.display_name if hasattr(obj, "process") else "Upload"
+        )
 
     def get_process_status(self, obj):
-        return obj.upload.status if hasattr(obj, "upload") else None
+        return obj.process.status if hasattr(obj, "process") else None
+
+    def get_process_id(self, obj):
+        return obj.process.id if hasattr(obj, "process") else None
 
     def get_product_status(self, obj):
         pr = ProductStatus(obj.status)
