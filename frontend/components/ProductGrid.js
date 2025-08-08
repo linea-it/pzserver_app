@@ -13,9 +13,11 @@ import moment from 'moment'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
 import * as React from 'react'
+import { getProcessLogs } from '../services/process'
 import { getProducts } from '../services/product'
 
 import ProductRemove from '../components/ProductRemove'
+import ProcessLogs from './ProcessLogs'
 import ProductShare from './ProductShare'
 
 export default function ProductGrid(props) {
@@ -33,6 +35,10 @@ export default function ProductGrid(props) {
   const [copySnackbarOpen, setCopySnackbarOpen] = React.useState(false)
   const [snackbarOpen, setSnackbarOpen] = React.useState(false)
   const productShareRef = React.useRef(null)
+  const [productName, setProductName] = React.useState('')
+  const [pipelineOut, setPipelineOut] = React.useState('')
+  const [schedulerOut, setSchedulerOut] = React.useState('')
+  const [isOpen, setOpen] = React.useState(false);
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
@@ -74,6 +80,21 @@ export default function ProductGrid(props) {
   const columns = React.useMemo(() => {
     const handleDownload = row => {
       router.push(getProductUrl(row.internal_name))
+    }
+
+    const handleProcessLogs = async row => {
+      console.log(row)
+      try {
+        setProductName(row.display_name)
+        const data = await getProcessLogs(row.process_id)
+        console.log(data)
+        
+        setPipelineOut(data.pipeline.content)
+        setSchedulerOut(data.slurm.content)
+        setOpen(true)
+      } catch (error) {
+        console.error(error)
+      } 
     }
 
     const handleDelete = row => {
@@ -152,7 +173,21 @@ export default function ProductGrid(props) {
         headerName: 'Process Status',
         flex: 1,
         maxWidth: 130,
-        sortable: false
+        sortable: false,
+        renderCell: params => (
+          <>
+            { ["Queued", "Pending"].includes(params.row.process_status) ? (
+              params.value
+            ) : (
+              <Link
+                component="button"
+                onClick={() => handleProcessLogs(params.row)}
+              >
+                {params.value}
+              </Link>
+            )}
+          </>
+        )
       },
       {
         field: 'created_at',
@@ -289,6 +324,14 @@ export default function ProductGrid(props) {
         />
       )}
 
+      <ProcessLogs 
+        isOpen={isOpen}
+        handleProcessLogsDialogOpen={() => setOpen(!isOpen)}
+        productName={productName}
+        pipelineOut={pipelineOut}
+        schedulerOut={schedulerOut}
+      />
+  
       <Snackbar
         open={copySnackbarOpen}
         autoHideDuration={3000}
