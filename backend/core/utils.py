@@ -1,3 +1,4 @@
+import glob
 import importlib
 import importlib.util
 import json
@@ -10,6 +11,53 @@ from django.conf import settings
 from django.db.models import Q
 
 logger = logging.getLogger()
+
+
+def get_lognames():
+    """
+    Returns a dictionary of names and their corresponding log names.
+    """
+    return {
+        "pipeline": {"filename": ["pipeline.log", "*.log"]},
+        "slurm": {"filename": ["run.out"]},
+    }
+
+
+def get_logs(process_dir, product_dir):
+    """Returns a dictionary of log file paths for the given process or product directories.
+
+    Args:
+        process_dir (str): The directory where the process logs are stored.
+        product_dir (str): The directory where the product logs are stored.
+    Returns:
+        dict: A dictionary containing log names and their content.
+        If a log file is not found, its content will be an empty string.
+    """
+
+    logs = get_lognames()
+
+    process_dir = pathlib.Path(settings.PROCESSING_DIR, process_dir)
+    product_dir = pathlib.Path(settings.UPLOAD_DIR, product_dir)
+
+    for _, data in logs.items():
+        log = []
+        lognames = data.get("filename", [])
+        for fname in lognames:
+            print(f"Searching for log file: {fname}")
+            log = glob.glob(f"{process_dir}/**/{fname}", recursive=True)
+            if not log:
+                log = glob.glob(f"{product_dir}/**/{fname}", recursive=True)
+
+            if log:
+                break
+
+        if log:
+            with open(log[0], encoding="utf-8") as _file:
+                data["content"] = _file.read()  # type: ignore
+        else:
+            data["content"] = ""  # type: ignore
+
+    return logs
 
 
 def get_ucd_columns():
