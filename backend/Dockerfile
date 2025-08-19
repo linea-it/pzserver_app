@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # If this is set to a non-empty string, Python won’t try
 # to write .pyc files on the import of source modules
