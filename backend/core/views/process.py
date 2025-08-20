@@ -7,7 +7,7 @@ from core.maestro import Maestro
 from core.models import Pipeline, Process, ProductStatus
 from core.product_steps import CreateProduct
 from core.serializers import ProcessSerializer
-from core.utils import format_query_to_char
+from core.utils import format_query_to_char, get_logs
 from django.conf import settings
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
@@ -253,6 +253,22 @@ class ProcessViewSet(viewsets.ModelViewSet):
         meta = self.metadata_class()
         data = meta.determine_metadata(request, self)
         return Response(data)
+
+    @action(methods=["GET"], detail=True)
+    def logs(self, request, *args, **kwargs):
+        """Retrieve logs for a process"""
+
+        try:
+            process = self.get_object()
+            LOGGER.debug(f"Retrieving logs for process: {process}")
+            logs = get_logs(process.path, process.upload.path)
+            LOGGER.debug(f"Logs retrieved for process: {logs}")
+            return Response(logs, status=status.HTTP_200_OK)
+        except Exception as err:
+            LOGGER.error(f"Error retrieving logs for process: {str(err)}")
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(methods=["GET"], detail=True)
     def stop(self, request, *args, **kwargs):
