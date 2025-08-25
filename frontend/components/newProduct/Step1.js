@@ -215,8 +215,8 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
             helperText={fieldErrors.product_type}
           />
         </FormControl>
-        {/* Release necessário Product Type != redshift_catalog or objects_catalog */}
-        {!['objects_catalog', 'redshift_catalog', null].includes(prodType) && (
+        {/* Release necessário Product Type != redshift_catalog or object_catalog */}
+        {!['object_catalog', 'redshift_catalog', null].includes(prodType) && (
           <FormControl fullWidth>
             <ReleaseSelect
               name="release"
