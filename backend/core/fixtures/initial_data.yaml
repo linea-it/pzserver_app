@@ -49,7 +49,7 @@
 - model: core.producttype
   pk: 6
   fields:
-    name: objects_catalog
+    name: object_catalog
     display_name: Objects Catalog
     order: 6
     description: "Catalog of objects"
