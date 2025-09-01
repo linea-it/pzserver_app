@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bookworm
+FROM python:3.10-slim
 
 # If this is set to a non-empty string, Python won’t try
 # to write .pyc files on the import of source modules
@@ -13,8 +13,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     gcc \
     python3-dev \
     build-essential \
-    libpcre3 \
-    libpcre3-dev \
     iputils-ping \
     xmlsec1 \
     libssl-dev \

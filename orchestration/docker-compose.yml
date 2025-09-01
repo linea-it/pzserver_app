@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   orchestration-api: &orchestration
-    image: linea/orchestration:cdb4c5f
+    image: linea/orchestration:152180a
     command: /app/sh/start.sh
     user: "1000:1000"
     env_file:
