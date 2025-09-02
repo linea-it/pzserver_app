@@ -417,7 +417,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         is_published = ProductStatus(prodstatus).name == "PUBLISHED"
 
         is_specz = instance.product_type.name == "redshift_catalog"
-        is_object = instance.product_type.name == "objects_catalog"
+        is_object = instance.product_type.name == "object_catalog"
         is_train = instance.product_type.name == "training_set"
 
         logger.debug("Status: %s", prodstatus)

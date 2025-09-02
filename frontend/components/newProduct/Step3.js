@@ -192,7 +192,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   const [productType, setProductType] = useState(null)
   const [isValid, setIsValid] = useState(false)
   const [isValidTrainingSet, setIsValidTrainingSet] = useState(false)
-  const [isValidObjectsCatalog, setIsValidObjectsCatalog] = useState(false)
+  const [isValidObjectCatalog, setIsValidObjectCatalog] = useState(false)
 
   const loadProductById = useCallback(async () => {
     setLoading(true)
@@ -278,10 +278,10 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
   }, [usedUcds])
 
   useEffect(() => {
-    const checkValidObjectsCatalog = ucdRaAndDec.every(ucd =>
+    const checkValidObjectCatalog = ucdRaAndDec.every(ucd =>
       usedUcds.includes(ucd)
     )
-    setIsValidObjectsCatalog(checkValidObjectsCatalog)
+    setIsValidObjectCatalog(checkValidObjectCatalog)
   }, [usedUcds])
 
   const handleSubmit = () => {
@@ -445,7 +445,7 @@ export default function NewProductStep3({ productId, onNext, onPrev }) {
           disabled={
             (productType === 'redshift_catalog' && !isValid) ||
             (productType === 'training_set' && !isValidTrainingSet) ||
-            (productType === 'objects_catalog' && !isValidObjectsCatalog)
+            (productType === 'object_catalog' && !isValidObjectCatalog)
           }
         >
           Next

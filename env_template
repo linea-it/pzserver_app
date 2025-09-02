@@ -71,6 +71,9 @@ DJANGO_CSRF_TRUSTED_ORIGINS=${URI} http://127.0.0.1
 # Url para login utilizando Shibboleth
 # AUTH_SHIB_URL=
 
+UPLOAD_DIR=/archive/data/
+MEDIA_ROOT=/archive/data/
+
 # directory where it will contain the processing of the pipelines.
 PROCESSING_DIR=/processes
 

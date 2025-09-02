@@ -298,6 +298,7 @@ class ProductDetailAPIViewTestCase(APITestCase):
             "is_owner": True,
             "origin": "Upload",
             "process_status": None,
+            "process_id": None,
             "product_status": ProductStatus(self.product.status).label,
             "can_delete": True,
             "can_update": True,
