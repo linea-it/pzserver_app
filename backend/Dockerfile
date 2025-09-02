@@ -13,8 +13,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     gcc \
     python3-dev \
     build-essential \
-    libpcre3 \
-    libpcre3-dev \
     iputils-ping \
     xmlsec1 \
     libssl-dev \
