@@ -22,6 +22,11 @@ export const getProcess = process_id => {
     return api.get(`/api/processes/${process_id}/`).then(res => res.data)
 }
 
+export const getProcessLogs = async process_id => {
+    const res = await api.get(`/api/processes/${process_id}/logs/`)
+    return res.data
+}
+
 export const getProcessByUpload = (product_id) => {
     return api.get(`/api/processes/`, { params: { upload: product_id } }).then((res) => {
         if (res.data.count == 1) {

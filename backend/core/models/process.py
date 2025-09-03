@@ -28,7 +28,7 @@ class Process(models.Model):
     upload = models.OneToOneField(
         Product,
         on_delete=models.CASCADE,
-        related_name="upload",
+        related_name="process",
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="processes")
     created_at = models.DateTimeField(auto_now_add=True)
