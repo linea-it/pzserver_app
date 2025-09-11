@@ -116,12 +116,12 @@ function TrainingSetMaker() {
 
     const releaseList = releasesData || releases
     const currentRelease = releaseList.find(
-      release => release.name == releaseName
+      release => release.name === releaseName
     )
 
     if (!currentRelease) return
 
-    if (currentRelease.has_mag_hats == true) {
+    if (currentRelease.has_mag_hats === true) {
       setConvertFluxToMag(true)
       if (currentRelease.has_flux_hats) {
         setDisabledConvertFluxToMag(false)
@@ -150,9 +150,7 @@ function TrainingSetMaker() {
     const dereddeningRelease = currentRelease.dereddening
     setDereddening(dereddeningRelease)
 
-    const selectedDereddening = dereddeningRelease.find(
-      der => der.selected
-    )
+    const selectedDereddening = dereddeningRelease.find(der => der.selected)
     if (selectedDereddening) {
       setData(prevData => ({
         ...prevData,
