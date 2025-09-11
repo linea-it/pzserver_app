@@ -124,8 +124,8 @@ function SpeczCatalogs() {
         used_config: {
           param: {
             combine_type: resolveDuplicates,
-            flags_translation_file:
-              '/data/apps/app.orch/datasets/flags_translation.yaml'
+            // flags_translation_file:
+            //   '/data/apps/app.orch/datasets/flags_translation.yaml'
           }
         },
         description: data.param.description,

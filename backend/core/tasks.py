@@ -125,8 +125,8 @@ def register_outputs(process_id):
     file_roles = {str(v).lower(): k for k, v in file_roles.items()}
 
     process = Process.objects.get(pk=process_id)
-    process_dir = pathlib.Path(settings.PROCESSING_DIR, process.path)
-    process_file = process_dir.joinpath("process.yml")
+    upload_dir = pathlib.Path(settings.UPLOAD_DIR, process.upload.path)
+    process_file = upload_dir.joinpath("process.yml")
 
     LOGGER.debug(f"[process {process_id}]: info filepath {process_file}")
 
@@ -158,10 +158,11 @@ def register_outputs(process_id):
         process.upload.save()
         process.save()
         LOGGER.info(f"[process {process_id}]: registration completed!")
-    except Exception as _:
+    except Exception as error:
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.save()
+        LOGGER.error(f"[process {process_id}]: {error}")
         LOGGER.error(f"[process {process_id}]: Failed to upload register!")
 
 
