@@ -170,6 +170,7 @@ Still inside the container, installing pipelines (confirm default directories wi
 ``` bash
 cd /pipelines
 ./setup.sh
+./install_pipelines.sh
 ```
 
 Exit the container and start orchestration services:
