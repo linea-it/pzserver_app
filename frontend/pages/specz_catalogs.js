@@ -123,9 +123,9 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            combine_type: resolveDuplicates,
-            flags_translation_file:
-              '/data/apps/app.orch/datasets/flags_translation.yaml'
+            combine_type: resolveDuplicates
+            // flags_translation_file:
+            //   '/data/apps/app.orch/datasets/flags_translation.yaml'
           }
         },
         description: data.param.description,

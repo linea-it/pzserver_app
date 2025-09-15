@@ -49,6 +49,7 @@ function TrainingSetMaker() {
   const [isLoading, setIsLoading] = useState(false)
   const [releases, setReleases] = useState([])
   const [fluxes, setFluxes] = useState([])
+  const [dereddening, setDereddening] = useState([])
   const [outputFormat, setOutputFormat] = useState('specz')
   const [initialData, setInitialData] = useState({
     param: {
@@ -88,7 +89,7 @@ function TrainingSetMaker() {
           setReleases(fetchedReleases)
 
           if (fetchedReleases.length > 0) {
-            handleRelease(fetchedReleases[0].name)
+            handleRelease(fetchedReleases[0].name, fetchedReleases)
           }
         } else {
           console.error('No results found in the API response')
@@ -110,52 +111,54 @@ function TrainingSetMaker() {
     setIsSubmitting(false)
   }
 
-  const handleRelease = releaseName => {
+  const handleRelease = (releaseName, releasesData) => {
     setSelectedLsstCatalog(releaseName)
 
-    const fluxByRelease = {
-      dr2: [
-        { name: 'auto', display_name: 'auto', selected: true },
-        { name: 'wavg_psf', display_name: 'wavg_psf', disabled: true }
-      ],
-      dp02: [
-        { name: 'cmodel', display_name: 'cModel', selected: true },
-        { name: 'gaap1p0', display_name: 'gaap1p0' },
-        { name: 'free_cModel', display_name: 'free_cModel', disabled: true },
-        { name: 'free_psf', display_name: 'free_psf', disabled: true },
-        { name: 'gaap0p5', display_name: 'gaap0p5', disabled: true },
-        { name: 'gaap0p7', display_name: 'gaap0p7', disabled: true },
-        { name: 'gaap1p5', display_name: 'gaap1p5', disabled: true },
-        { name: 'gaap2p5', display_name: 'gaap2p5', disabled: true },
-        { name: 'gaap3p0', display_name: 'gaap3p0', disabled: true },
-        { name: 'aapOptimal', display_name: 'aapOptimal', disabled: true },
-        { name: 'gaapPsf', display_name: 'gaapPsf', disabled: true },
-        { name: 'psf', display_name: 'psf', disabled: true }
-      ]
-    }
+    const releaseList = releasesData || releases
+    const currentRelease = releaseList.find(
+      release => release.name === releaseName
+    )
 
-    if (releaseName === 'dr2') {
-      setDisabledConvertFluxToMag(true)
+    if (!currentRelease) return
+
+    if (currentRelease.has_mag_hats === true) {
       setConvertFluxToMag(true)
+      if (currentRelease.has_flux_hats) {
+        setDisabledConvertFluxToMag(false)
+      } else {
+        setDisabledConvertFluxToMag(true)
+      }
     } else {
-      setDisabledConvertFluxToMag(false)
+      setDisabledConvertFluxToMag(true)
+      setConvertFluxToMag(false)
     }
 
-    if (releaseName in fluxByRelease) {
-      const fluxRelease = fluxByRelease[releaseName]
-      setFluxes(fluxRelease)
+    const fluxRelease = currentRelease.fluxes
+    setFluxes(fluxRelease)
 
-      fluxRelease.forEach(flux => {
-        if (flux.selected) {
-          setData({
-            ...data,
-            param: {
-              ...data.param,
-              flux_type: flux.name
-            }
-          })
+    const selectedFlux = fluxRelease.find(flux => flux.selected)
+    if (selectedFlux) {
+      setData(prevData => ({
+        ...prevData,
+        param: {
+          ...prevData.param,
+          flux_type: selectedFlux.name
         }
-      })
+      }))
+    }
+
+    const dereddeningRelease = currentRelease.dereddening
+    setDereddening(dereddeningRelease)
+
+    const selectedDereddening = dereddeningRelease.find(der => der.selected)
+    if (selectedDereddening) {
+      setData(prevData => ({
+        ...prevData,
+        param: {
+          ...prevData.param,
+          dereddening: selectedDereddening.name
+        }
+      }))
     }
   }
 
@@ -439,51 +442,16 @@ function TrainingSetMaker() {
                     }}
                     sx={{ marginLeft: '16px' }}
                   >
-                    <MenuItem value="" disabled>
-                      None
-                    </MenuItem>
-                    <MenuItem value="sfd" selected>
-                      sfd
-                    </MenuItem>
-                    <MenuItem value="1" disabled>
-                      csfd
-                    </MenuItem>
-                    <MenuItem value="2" disabled>
-                      planck
-                    </MenuItem>
-                    <MenuItem value="3" disabled>
-                      planckGNILC
-                    </MenuItem>
-                    <MenuItem value="4" disabled>
-                      bayestar
-                    </MenuItem>
-                    <MenuItem value="5" disabled>
-                      iphas
-                    </MenuItem>
-                    <MenuItem value="6" disabled>
-                      marshall
-                    </MenuItem>
-                    <MenuItem value="7" disabled>
-                      chen2014
-                    </MenuItem>
-                    <MenuItem value="8" disabled>
-                      lenz2017
-                    </MenuItem>
-                    <MenuItem value="9" disabled>
-                      leikeensslin2019
-                    </MenuItem>
-                    <MenuItem value="0" disabled>
-                      leike2020
-                    </MenuItem>
-                    <MenuItem value="0" disabled>
-                      edenhofer2023
-                    </MenuItem>
-                    <MenuItem value="0" disabled>
-                      gaia_tge
-                    </MenuItem>
-                    <MenuItem value="0" disabled>
-                      decaps
-                    </MenuItem>
+                    {dereddening.map(der => (
+                      <MenuItem
+                        key={der.name}
+                        value={der.name}
+                        selected={!!der.selected}
+                        disabled={!!der.disabled}
+                      >
+                        {der.display_name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </Typography>
               </Box>

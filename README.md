@@ -155,9 +155,9 @@ git submodule init
 git submodule update
 ```
 
-Enter the orchestration-api container:
+Enter the orchestration-local-worker container:
 ``` bash
-docker compose run orchestration-api bash
+docker compose run orchestration-local-worker bash
 ```
 
 Inside the container, create the database and an admin user:
@@ -170,6 +170,7 @@ Still inside the container, installing pipelines (confirm default directories wi
 ``` bash
 cd /pipelines
 ./setup.sh
+./install_pipelines.sh
 ```
 
 Exit the container and start orchestration services:
