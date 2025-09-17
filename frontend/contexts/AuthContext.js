@@ -5,6 +5,7 @@ import Router from 'next/router'
 import { signInRequest, csrfToOauth, backendLogout } from '../services/auth'
 import { api } from '../services/api'
 import { recoverUserInformation } from '../services/user'
+import { sanitizeRedirectUrl } from '../utils/redirect'
 import PropTypes from 'prop-types'
 
 export const AuthContext = createContext({})
@@ -19,50 +20,65 @@ export function AuthProvider({ children }) {
     const { 'pzserver.access_token': access_token } = parseCookies()
 
     if (access_token) {
-      recoverUserInformation().then(user => setUser(user))
+      recoverUserInformation()
+        .then(user => {
+          setUser(user)
+        })
+        .catch(error => {
+          console.error('AuthContext: Failed to recover user data:', error)
+        })
     } else {
-      // console.log('Não tem access token')
       const { 'pzserver.csrftoken': csrftoken } = parseCookies()
       if (csrftoken) {
-        // console.log('Pode estar logado no Django')
         csrfToOauth()
           .then(res => {
-            // Carrega os dados do usuario logo apos o login
-            // Evita que no primeiro render do index o nome de usuario esteja em branco
+            // Load user data after login to avoid blank username on first render
             recoverUserInformation().then(loggedUser => {
               setUser(loggedUser)
-              Router.push('/')
+              setTimeout(() => {
+                Router.push('/')
+              }, 100)
             })
           })
           .catch(res => {
-            console.log(res)
+            console.log('AuthContext: CSRF to OAuth conversion failed')
           })
       }
     }
   }, [])
 
-  async function signIn({ username, password }) {
-    const { access_token, refresh_token, expires_in } = await signInRequest({
-      username,
-      password
-    })
-    setCookie('undefined', 'pzserver.access_token', access_token, {
-      maxAge: expires_in
-    })
+  async function signIn({ username, password, returnUrl = '/' }) {
+    try {
+      const { access_token, refresh_token, expires_in } = await signInRequest({
+        username,
+        password
+      })
+      
+      setCookie(undefined, 'pzserver.access_token', access_token, {
+        maxAge: expires_in
+      })
 
-    setCookie('undefined', 'pzserver.refresh_token', refresh_token, {
-      maxAge: 30 * 24 * 60 * 60 // 30 days
-    })
+      setCookie(undefined, 'pzserver.refresh_token', refresh_token, {
+        maxAge: 30 * 24 * 60 * 60 // 30 days
+      })
 
-    // Atualiza a instancia Api com o novo token
-    api.defaults.headers.Authorization = `Bearer ${access_token}`
+      // Update API instance with new token
+      api.defaults.headers.Authorization = `Bearer ${access_token}`
 
-    // Carrega os dados do usuario logo apos o login
-    // Evita que no primeiro render do index o nome de usuario esteja em branco
-    const loggedUser = await recoverUserInformation()
-    setUser(loggedUser)
+      // Load user data after login to avoid blank username on first render
+      const loggedUser = await recoverUserInformation()
+      setUser(loggedUser)
 
-    Router.push('/')
+      // Wait for React to process state before redirecting
+      const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
+      console.log('Login successful, redirecting to:', sanitizedReturnUrl)
+      setTimeout(() => {
+        Router.push(sanitizedReturnUrl)
+      }, 100)
+    } catch (error) {
+      console.error('Login process failed:', error)
+      throw error
+    }
   }
 
   function logout() {

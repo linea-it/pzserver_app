@@ -68,7 +68,7 @@ export function getAPIClient(ctx) {
           const response = await refreshToken(refresh_token)
 
           setCookie(
-            'undefined',
+            undefined,
             'pzserver.access_token',
             response.access_token,
             {
@@ -77,7 +77,7 @@ export function getAPIClient(ctx) {
           )
 
           setCookie(
-            'undefined',
+            undefined,
             'pzserver.refresh_token',
             response.refresh_token,
             {
