@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
 import ProductDetail from '../../components/ProductDetail'
 import useStyles from '../../styles/pages/product'
+import { buildLoginUrl } from '../../utils/redirect'
 
 export default function Product() {
   const classes = useStyles()
@@ -27,9 +28,18 @@ export const getServerSideProps = async ctx => {
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:
   if (!token) {
+    // Captura a URL atual para redirecionamento pós-login
+    const currentUrl = ctx.resolvedUrl || ctx.req.url
+    const loginUrl = buildLoginUrl(currentUrl)
+
+    console.log(
+      'Página protegida: Redirecionando para login com returnUrl:',
+      currentUrl
+    )
+    console.log('Página protegida: URL de login:', loginUrl)
     return {
       redirect: {
-        destination: '/login',
+        destination: loginUrl,
         permanent: false
       }
     }

@@ -21,8 +21,8 @@ import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
-import useStyles from '../styles/pages/products'
-
+import useStyles from '../styles/pages/userProducts'
+import { buildLoginUrl } from '../utils/redirect'
 export default function Products() {
   const classes = useStyles()
   const router = useRouter()
@@ -175,9 +175,12 @@ export const getServerSideProps = async ctx => {
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:
   if (!token) {
+    // Captura a URL atual para redirecionamento pós-login
+    const currentUrl = ctx.resolvedUrl || ctx.req.url
+    const loginUrl = buildLoginUrl(currentUrl)
     return {
       redirect: {
-        destination: '/login',
+        destination: loginUrl,
         permanent: false
       }
     }
