@@ -77,10 +77,10 @@ services:
       file: ./orchestration/docker-compose.yml
       service: orchestration-local-worker
 
-  orchestration-flower:
-    extends:
-      file: ./orchestration/docker-compose.yml
-      service: orchestration-flower
+  # orchestration-flower:
+  #   extends:
+  #     file: ./orchestration/docker-compose.yml
+  #     service: orchestration-flower
 
   rabbitmq:
     extends:
@@ -106,7 +106,7 @@ services:
       - backend
       - frontend
       - rabbitmq
-      - orchestration-flower
+      # - orchestration-flower
 
 networks:
   orchestration-network:
