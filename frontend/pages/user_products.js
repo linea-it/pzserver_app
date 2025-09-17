@@ -21,7 +21,7 @@ import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
-import useStyles from '../styles/pages/userProducts'
+import useStyles from '../styles/pages/products'
 import { buildLoginUrl } from '../utils/redirect'
 export default function Products() {
   const classes = useStyles()
