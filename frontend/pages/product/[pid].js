@@ -10,6 +10,8 @@ export default function Product() {
   const router = useRouter()
   const { pid } = router.query
 
+  const isNumeric = pid && /^\d+$/.test(pid)
+
   return (
     <Container className={classes.root}>
       {/* <Box className={classes.pageHeader}>
@@ -18,6 +20,10 @@ export default function Product() {
       <Box component="form" noValidate autoComplete="off"> */}
       <ProductDetail internalName={pid}></ProductDetail>
       {/* </Box> */}
+      <ProductDetail
+        productId={isNumeric ? parseInt(pid, 10) : null}
+        internalName={!isNumeric ? pid : null}
+      />
     </Container>
   )
 }
