@@ -86,10 +86,15 @@ function TrainingSetMaker() {
 
         if (Array.isArray(releasesData.results)) {
           const fetchedReleases = releasesData.results
-          setReleases(fetchedReleases)
 
-          if (fetchedReleases.length > 0) {
-            handleRelease(fetchedReleases[0].name, fetchedReleases)
+          // Remove releases that have neither mag_hats nor flux_hats
+          const filteredReleases = fetchedReleases.filter(
+            release => release.has_mag_hats === true || release.has_flux_hats === true
+          )
+          setReleases(filteredReleases)
+
+          if (filteredReleases.length > 0) {
+            handleRelease(filteredReleases[0].name, filteredReleases)
           }
         } else {
           console.error('No results found in the API response')
