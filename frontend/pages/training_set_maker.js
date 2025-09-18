@@ -89,7 +89,8 @@ function TrainingSetMaker() {
 
           // Remove releases that have neither mag_hats nor flux_hats
           const filteredReleases = fetchedReleases.filter(
-            release => release.has_mag_hats === true || release.has_flux_hats === true
+            release =>
+              release.has_mag_hats === true || release.has_flux_hats === true
           )
           setReleases(filteredReleases)
 
