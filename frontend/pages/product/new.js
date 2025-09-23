@@ -18,6 +18,7 @@ import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
 import React from 'react'
 import Loading from '../../components/Loading'
+import { buildLoginUrl } from '../../utils/redirect'
 import NewProductStep1 from '../../components/newProduct/Step1'
 import NewProductStep2 from '../../components/newProduct/Step2'
 import NewProductStep3 from '../../components/newProduct/Step3'
@@ -257,9 +258,12 @@ export const getServerSideProps = async ctx => {
   // A better way to validate this is to have
   // an endpoint to verify the validity of the token:
   if (!token) {
+    // Captura a URL atual para redirecionamento pós-login
+    const currentUrl = ctx.resolvedUrl || ctx.req.url
+    const loginUrl = buildLoginUrl(currentUrl)
     return {
       redirect: {
-        destination: '/login',
+        destination: loginUrl,
         permanent: false
       }
     }

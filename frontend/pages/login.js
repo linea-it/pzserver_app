@@ -13,8 +13,9 @@ import { parseCookies } from 'nookies'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { sanitizeRedirectUrl } from '../utils/redirect'
 
-function Login({ shibLoginUrl, CILogonUrl }) {
+function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
@@ -34,9 +35,16 @@ function Login({ shibLoginUrl, CILogonUrl }) {
     }
 
     try {
-      await signIn({ username, password })
+      const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
+      await signIn({ username, password, returnUrl: sanitizedReturnUrl })
     } catch (error) {
-      setFormError('Authentication failed. Please try again.')
+      console.error('Login form error:', error)
+      const errorMessage =
+        error.response?.data?.error_description ||
+        error.response?.data?.detail ||
+        error.message ||
+        'Authentication failed. Please try again.'
+      setFormError(errorMessage)
     }
   }
 
@@ -202,17 +210,41 @@ function Login({ shibLoginUrl, CILogonUrl }) {
   )
 }
 
-export async function getServerSideProps({ ctx }) {
+export async function getServerSideProps(ctx) {
   const { 'pzserver.access_token': token } = parseCookies(ctx)
+  // Capture returnUrl from query string
+  const returnUrl = ctx.query.returnUrl || '/'
 
-  // A better way to validate this is to have
-  // an endpoint to verify the validity of the token:
+  // Validação melhorada do token
   if (token) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false
+    try {
+      // Tenta fazer uma requisição simples para validar o token
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/logged_user/`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      if (response.ok) {
+        // Valid token, redirect to returnUrl or home
+        const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
+        return {
+          redirect: {
+            destination: sanitizedReturnUrl,
+            permanent: false
+          }
+        }
+      } else {
+        // Invalid token, allow access to login page
+        console.log('Invalid token detected on server')
       }
+    } catch (error) {
+      // Validation error, allow access to login page
+      console.log('Token validation error:', error.message)
     }
   }
 
@@ -223,19 +255,22 @@ export async function getServerSideProps({ ctx }) {
   return {
     props: {
       shibLoginUrl: null,
-      CILogonUrl: CILogonLoginUrl
+      CILogonUrl: CILogonLoginUrl,
+      returnUrl: returnUrl
     }
   }
 }
 
 Login.propTypes = {
   shibLoginUrl: PropTypes.string,
-  CILogonUrl: PropTypes.string
+  CILogonUrl: PropTypes.string,
+  returnUrl: PropTypes.string
 }
 
 Login.defaultProps = {
   shibLoginUrl: null,
-  CILogonUrl: null
+  CILogonUrl: null,
+  returnUrl: null
 }
 
 export default Login

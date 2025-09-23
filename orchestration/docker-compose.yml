@@ -27,14 +27,14 @@ services:
     depends_on:
       - orchestration-api
 
-  orchestration-flower: &celery_flower
-    <<: *orchestration
-    hostname: "flower"
-    command: /app/sh/flower.sh
-    ports:
-      - 5555:5555
-    depends_on:
-      - orchestration-local-worker
+  # orchestration-flower: &celery_flower
+  #  <<: *orchestration
+  #  hostname: "flower"
+  #  command: /app/sh/flower.sh
+  #  ports:
+  #    - 5555:5555
+  #  depends_on:
+  #    - orchestration-local-worker
 
   rabbitmq:
     image: "rabbitmq:3.12.12-management"
@@ -63,7 +63,7 @@ services:
       - orchestration-network
     depends_on:
       - orchestration-api
-      - orchestration-flower
+      # - orchestration-flower
       - rabbitmq
 
 networks:

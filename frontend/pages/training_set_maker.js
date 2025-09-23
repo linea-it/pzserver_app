@@ -22,7 +22,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
@@ -67,54 +67,10 @@ function TrainingSetMaker() {
   const [data, setData] = useState(initialData)
   const [fieldErrors] = useState({})
 
-  useEffect(() => {
-    const fetchPipelineData = async () => {
-      try {
-        const response = await getPipelineByName({ name: 'training_set_maker' })
-        const pipelineData = response.data.results[0]
-
-        setInitialData(pipelineData)
-        setData(pipelineData.system_config)
-      } catch (error) {
-        console.error('Error fetching pipeline data from API', error)
-      }
-    }
-
-    const fetchReleases = async () => {
-      try {
-        const releasesData = await getReleases()
-
-        if (Array.isArray(releasesData.results)) {
-          const fetchedReleases = releasesData.results
-          setReleases(fetchedReleases)
-
-          if (fetchedReleases.length > 0) {
-            handleRelease(fetchedReleases[0].name, fetchedReleases)
-          }
-        } else {
-          console.error('No results found in the API response')
-        }
-      } catch (error) {
-        console.error('Error fetching releases from API', error)
-      }
-    }
-
-    fetchPipelineData()
-    fetchReleases()
-  }, [])
-
-  const handleClearForm = () => {
-    setCombinedCatalogName('')
-    setData(initialData.system_config)
-    setSelectedLsstCatalog('')
-    setOutputFormat('specz')
-    setIsSubmitting(false)
-  }
-
-  const handleRelease = (releaseName, releasesData) => {
+  const handleRelease = useCallback((releaseName, releasesData) => {
     setSelectedLsstCatalog(releaseName)
 
-    const releaseList = releasesData || releases
+    const releaseList = releasesData
     const currentRelease = releaseList.find(
       release => release.name === releaseName
     )
@@ -160,6 +116,50 @@ function TrainingSetMaker() {
         }
       }))
     }
+  }, [])
+
+  useEffect(() => {
+    const fetchPipelineData = async () => {
+      try {
+        const response = await getPipelineByName({ name: 'training_set_maker' })
+        const pipelineData = response.data.results[0]
+
+        setInitialData(pipelineData)
+        setData(pipelineData.system_config)
+      } catch (error) {
+        console.error('Error fetching pipeline data from API', error)
+      }
+    }
+
+    const fetchReleases = async () => {
+      try {
+        const releasesData = await getReleases()
+
+        if (Array.isArray(releasesData.results)) {
+          const fetchedReleases = releasesData.results
+          setReleases(fetchedReleases)
+
+          if (fetchedReleases.length > 0) {
+            handleRelease(fetchedReleases[0].name, fetchedReleases)
+          }
+        } else {
+          console.error('No results found in the API response')
+        }
+      } catch (error) {
+        console.error('Error fetching releases from API', error)
+      }
+    }
+
+    fetchPipelineData()
+    fetchReleases()
+  }, [handleRelease])
+
+  const handleClearForm = () => {
+    setCombinedCatalogName('')
+    setData(initialData.system_config)
+    setSelectedLsstCatalog('')
+    setOutputFormat('specz')
+    setIsSubmitting(false)
   }
 
   const handleDialogClose = () => {
@@ -374,7 +374,7 @@ function TrainingSetMaker() {
               4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
-                onChange={event => handleRelease(event.target.value)}
+                onChange={event => handleRelease(event.target.value, releases)}
                 sx={{ marginLeft: '16px' }}
               >
                 {releases.map(release => (
