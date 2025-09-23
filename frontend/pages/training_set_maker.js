@@ -383,7 +383,7 @@ function TrainingSetMaker() {
               4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
-                onChange={event => handleRelease(event.target.value)}
+                onChange={event => handleRelease(event.target.value, releases)}
                 sx={{ marginLeft: '16px' }}
               >
                 {releases.map(release => (
