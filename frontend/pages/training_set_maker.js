@@ -22,7 +22,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
@@ -67,60 +67,6 @@ function TrainingSetMaker() {
   const [data, setData] = useState(initialData)
   const [fieldErrors] = useState({})
 
-  const handleRelease = useCallback(
-    (releaseName, releasesData) => {
-      setSelectedLsstCatalog(releaseName)
-
-      const releaseList = releasesData || releases
-      const currentRelease = releaseList.find(
-        release => release.name === releaseName
-      )
-
-      if (!currentRelease) return
-
-      if (currentRelease.has_mag_hats === true) {
-        setConvertFluxToMag(true)
-        if (currentRelease.has_flux_hats) {
-          setDisabledConvertFluxToMag(false)
-        } else {
-          setDisabledConvertFluxToMag(true)
-        }
-      } else {
-        setDisabledConvertFluxToMag(true)
-        setConvertFluxToMag(false)
-      }
-
-      const fluxRelease = currentRelease.fluxes
-      setFluxes(fluxRelease)
-
-      const selectedFlux = fluxRelease.find(flux => flux.selected)
-      if (selectedFlux) {
-        setData(prevData => ({
-          ...prevData,
-          param: {
-            ...prevData.param,
-            flux_type: selectedFlux.name
-          }
-        }))
-      }
-
-      const dereddeningRelease = currentRelease.dereddening
-      setDereddening(dereddeningRelease)
-
-      const selectedDereddening = dereddeningRelease.find(der => der.selected)
-      if (selectedDereddening) {
-        setData(prevData => ({
-          ...prevData,
-          param: {
-            ...prevData.param,
-            dereddening: selectedDereddening.name
-          }
-        }))
-      }
-    },
-    [releases]
-  )
-
   useEffect(() => {
     const fetchPipelineData = async () => {
       try {
@@ -161,7 +107,7 @@ function TrainingSetMaker() {
 
     fetchPipelineData()
     fetchReleases()
-  }, [handleRelease])
+  }, [])
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
@@ -169,6 +115,57 @@ function TrainingSetMaker() {
     setSelectedLsstCatalog('')
     setOutputFormat('specz')
     setIsSubmitting(false)
+  }
+
+  const handleRelease = (releaseName, releasesData) => {
+    setSelectedLsstCatalog(releaseName)
+
+    const releaseList = releasesData || releases
+    const currentRelease = releaseList.find(
+      release => release.name === releaseName
+    )
+
+    if (!currentRelease) return
+
+    if (currentRelease.has_mag_hats === true) {
+      setConvertFluxToMag(true)
+      if (currentRelease.has_flux_hats) {
+        setDisabledConvertFluxToMag(false)
+      } else {
+        setDisabledConvertFluxToMag(true)
+      }
+    } else {
+      setDisabledConvertFluxToMag(true)
+      setConvertFluxToMag(false)
+    }
+
+    const fluxRelease = currentRelease.fluxes
+    setFluxes(fluxRelease)
+
+    const selectedFlux = fluxRelease.find(flux => flux.selected)
+    if (selectedFlux) {
+      setData(prevData => ({
+        ...prevData,
+        param: {
+          ...prevData.param,
+          flux_type: selectedFlux.name
+        }
+      }))
+    }
+
+    const dereddeningRelease = currentRelease.dereddening
+    setDereddening(dereddeningRelease)
+
+    const selectedDereddening = dereddeningRelease.find(der => der.selected)
+    if (selectedDereddening) {
+      setData(prevData => ({
+        ...prevData,
+        param: {
+          ...prevData.param,
+          dereddening: selectedDereddening.name
+        }
+      }))
+    }
   }
 
   const handleDialogClose = () => {
@@ -383,7 +380,7 @@ function TrainingSetMaker() {
               4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
-                onChange={event => handleRelease(event.target.value, releases)}
+                onChange={event => handleRelease(event.target.value)}
                 sx={{ marginLeft: '16px' }}
               >
                 {releases.map(release => (
