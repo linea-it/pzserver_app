@@ -15,14 +15,19 @@ class Profile(models.Model):
     )
 
     def is_admin(self):
-        is_admin = False
+        # Superusuários são sempre admins
+        if self.user.is_superuser:
+            return True
+        
+        # Verificar se pertence ao grupo Admin
         try:
             group = self.user.groups.get(name="Admin")
             if group:
-                is_admin = True
-        except Group.DoesNotExist as e:
-            is_admin = False
-        return is_admin
+                return True
+        except Group.DoesNotExist:
+            pass
+        
+        return False
 
     def __str__(self):
         return str(self.display_name)
