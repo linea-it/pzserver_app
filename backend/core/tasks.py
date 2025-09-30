@@ -54,12 +54,11 @@ def check_processes():
             LOGGER.debug(f"-> Process orchestration ID: {process_orch_id}")
             LOGGER.debug(f"-> Status: {process_orch_status}")
 
-            # if process_orch_status == "Running" and process.status == "Pending":
-            #     started_at = process_orch.get("started_at", str(process.created_at))
-            #     process.started_at = dateparse.parse_datetime(started_at)
-            #     process.status = process_orch_status
-            #     process.save()
-            #     continue
+            process_real_time = Process.objects.get(pk=process.pk)
+
+            if process_real_time.status == "Successful":
+                LOGGER.debug(f"{process} already has status Successful.")
+                continue
 
             if process_orch_status != process.status:
                 process = update_process_info(
@@ -99,16 +98,27 @@ def update_process_info(process, process_orch_status, data):
         ended_at = str(timezone.now())
 
     if process_orch_status == "Successful":
-        register_outputs(process.pk)
         process.ended_at = dateparse.parse_datetime(ended_at)
-    elif process_orch_status == "Failed":
+        if process.upload.status != process.status:
+            process.started_at = dateparse.parse_datetime(started_at)
+            process.status = process_orch_status
+            process.save()
+            register_outputs(process.pk)
+        LOGGER.info(f"Process {process.pk} finished successfully in Orchestration.")
+        return process
+    if process_orch_status == "Failed":
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.ended_at = dateparse.parse_datetime(ended_at)
+        process.status = process_orch_status
+        process.save()
+        LOGGER.error(f"Process {process.pk} failed in Orchestration.")
+        return process
 
     process.started_at = dateparse.parse_datetime(started_at)
     process.status = process_orch_status
     process.save()
+    LOGGER.info(f"Process {process.pk} is {process_orch_status} in Orchestration.")
     return process
 
 
@@ -151,6 +161,7 @@ def register_outputs(process_id):
 
             role_id = file_roles.get(rolename, file_roles.get("description"))
             reg_product.create_product_file(filepath, relative_path, role_id)
+            LOGGER.debug(f"--> created file: {filepath}")
             process.upload.save()
 
         reg_product.registry()
