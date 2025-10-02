@@ -1,9 +1,19 @@
-from core.models import (Pipeline, Process, Product, ProductContent,
-                         ProductFile, ProductType, Profile, Release)
+from core.models import (
+    GroupMembership,
+    GroupMetadata,
+    Pipeline,
+    Process,
+    Product,
+    ProductContent,
+    ProductFile,
+    ProductType,
+    Profile,
+    Release,
+)
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 
 
 @admin.register(Process)
@@ -22,9 +32,19 @@ class ProductTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "display_name", "created_at")
-
+    list_display = ("id", "name", "display_name", "is_public", "created_at")
+    list_filter = ("is_public", "created_at")
+    filter_horizontal = ("access_groups",)
     search_fields = ("name", "display_name")
+
+    fieldsets = (
+        (None, {"fields": ("name", "display_name", "description", "indexing_column")}),
+        (
+            "Data Configuration",
+            {"fields": ("has_mag_hats", "has_flux_hats", "dereddening", "fluxes")},
+        ),
+        ("Access Control", {"fields": ("is_public", "access_groups")}),
+    )
 
 
 @admin.register(Pipeline)
@@ -83,8 +103,18 @@ class ProductContentAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "file", "role", "type", "size",
-                    "n_rows", "extension", "created", "updated")
+    list_display = (
+        "id",
+        "product",
+        "file",
+        "role",
+        "type",
+        "size",
+        "n_rows",
+        "extension",
+        "created",
+        "updated",
+    )
 
     def has_add_permission(self, request):
         return False
@@ -103,8 +133,15 @@ class ProfileInline(admin.StackedInline):
     fk_name = "user"
 
 
+class GroupMembershipInline(admin.TabularInline):
+    model = GroupMembership
+    extra = 0
+    readonly_fields = ("first_seen", "last_seen")
+    fields = ("group", "first_seen", "last_seen")
+
+
 class CustomUserAdmin(UserAdmin):
-    inlines = (ProfileInline,)
+    inlines = (ProfileInline, GroupMembershipInline)
     list_display = (
         "id",
         "username",
@@ -137,6 +174,39 @@ class CustomUserAdmin(UserAdmin):
         if not obj:
             return list()
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
+
+
+@admin.register(GroupMetadata)
+class GroupMetadataAdmin(admin.ModelAdmin):
+    list_display = ("id", "group", "source", "display_name", "last_sync")
+    list_filter = ("source", "last_sync")
+    search_fields = ("group__name", "display_name", "description")
+    readonly_fields = ("created_at", "updated_at", "last_sync")
+
+    fieldsets = (
+        (None, {"fields": ("group", "source", "display_name", "description")}),
+        ("LIneA Info", {"fields": ("last_sync",), "classes": ("collapse",)}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
+
+
+@admin.register(GroupMembership)
+class GroupMembershipAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "group", "first_seen", "last_seen")
+    list_filter = ("group", "first_seen")
+    search_fields = ("user__username", "user__email", "group__name")
+    readonly_fields = ("first_seen", "last_seen")
+
+    fieldsets = (
+        (None, {"fields": ("user", "group")}),
+        (
+            "Timestamps",
+            {"fields": ("first_seen", "last_seen"), "classes": ("collapse",)},
+        ),
+    )
 
 
 admin.site.unregister(User)
