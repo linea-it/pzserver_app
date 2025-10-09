@@ -78,3 +78,29 @@ class Product(models.Model):
         if self.user.id == user.id or user.profile.is_admin():
             return True
         return False
+    
+    def user_has_access(self, user) -> bool:
+        """
+        Checks if the user has access to this product based on the access
+        control of the associated release.
+        
+        Args:
+            user: User model instance
+            
+        Returns:
+            bool: True if the user has access, False otherwise
+        """
+        # Administrators always have access
+        if user.profile.is_admin():
+            return True
+            
+        # The product creator always has access
+        if self.user.id == user.id:
+            return True
+            
+        # If there's no associated release, apply default rule
+        if not self.release:
+            return True  # or False, depending on desired policy
+            
+        # Use the release's access control
+        return self.release.user_has_access(user)

@@ -97,7 +97,8 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
 
         url = reverse("product_contents-list")
         # Make request
-        response = self.client.get(url, {"product": pcontent["id"]})
+        response = self.client.get(url, {"product": self.product.pk})
+        
         # Check status response
         self.assertEqual(200, response.status_code)
 
@@ -105,7 +106,7 @@ class ProductContentListCreateAPIViewTestCase(APITestCase):
         data = json.loads(response.content)
         self.assertEqual(
             len(data["results"]),
-            ProductContent.objects.filter(product_id=pcontent["id"]).count(),
+            ProductContent.objects.filter(product_id=self.product.pk).count(),
         )
 
 

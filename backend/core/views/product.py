@@ -10,9 +10,11 @@ from pathlib import Path
 
 import yaml
 from core.models import Product, ProductContent, ProductStatus
+from core.permissions import AccessControlMixin, ProductAccessPermission
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
+from core.services import AccessControlService
 from core.utils import format_query_to_char
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -75,7 +77,7 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(query)
 
 
-class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
+class ProductSpeczViewSet(AccessControlMixin, viewsets.ReadOnlyModelViewSet):
     """
     This endpoint returns only those products whose
     product type = 'redshift_catalog' and status = 1
@@ -83,6 +85,7 @@ class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Product.objects.filter(product_type__name="redshift_catalog", status=1)
     serializer_class = ProductSerializer
+    permission_classes = [ProductAccessPermission]
     search_fields = [
         "display_name",
         "user__username",
@@ -98,10 +101,22 @@ class ProductSpeczViewSet(viewsets.ReadOnlyModelViewSet):
     ]
     ordering = ["-created_at"]
 
+    def get_queryset(self):
+        """
+        Filters products based on the authenticated user's access groups.
+        """
+        base_queryset = Product.objects.filter(
+            product_type__name="redshift_catalog", status=1
+        )
+        return AccessControlService.filter_accessible_products(
+            self.request.user, base_queryset
+        )
 
-class ProductViewSet(viewsets.ModelViewSet):
+
+class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [ProductAccessPermission]
     search_fields = [
         "display_name",
         "user__username",
@@ -117,9 +132,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     ]
     ordering = ["-created_at"]
 
-    def create(self, request):
+    def get_queryset(self):
+        """
+        Filtra produtos baseado nos grupos de acesso do usuário autenticado.
+        """
+        return self.get_accessible_products_queryset()
 
-        logger.debug("PRODUCT -> %s", request.data)
+    def create(self, request):
 
         try:
             product = CreateProduct(request.data, request.user)
