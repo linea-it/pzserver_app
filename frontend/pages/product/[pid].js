@@ -18,7 +18,6 @@ export default function Product() {
         <Typography variant="h6">Product</Typography>
       </Box>
       <Box component="form" noValidate autoComplete="off"> */}
-      <ProductDetail internalName={pid}></ProductDetail>
       {/* </Box> */}
       <ProductDetail
         productId={isNumeric ? parseInt(pid, 10) : null}

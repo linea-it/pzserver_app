@@ -1,6 +1,8 @@
 import axios from 'axios'
 const apiAuth = axios.create({
   timeout: 5000,
+  maxContentLength: 230 * 1024 * 1024, // 230MB limit
+  maxBodyLength: 230 * 1024 * 1024,    // 230MB limit
   headers: {
     'Content-Type': 'application/json',
     accept: 'application/json'
@@ -42,6 +44,8 @@ export async function csrfToOauth() {
 
   const ax = axios.create({
     timeout: 5000,
+    maxContentLength: 230 * 1024 * 1024, // 230MB limit
+    maxBodyLength: 230 * 1024 * 1024,    // 230MB limit
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'
@@ -66,6 +70,8 @@ export async function csrfToOauth() {
 export async function backendLogout() {
   const ax = axios.create({
     timeout: 5000,
+    maxContentLength: 230 * 1024 * 1024, // 230MB limit
+    maxBodyLength: 230 * 1024 * 1024,    // 230MB limit
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'

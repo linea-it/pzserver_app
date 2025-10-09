@@ -11,6 +11,8 @@ export function whichEnvironment() {
 
   let api = axios.create({
     timeout: 30000,
+    maxContentLength: 230 * 1024 * 1024, // 230MB limit
+    maxBodyLength: 230 * 1024 * 1024,    // 230MB limit
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'
@@ -26,6 +28,8 @@ export function whichEnvironment() {
 export function getAPIClient(ctx) {
   const api = axios.create({
     timeout: 30000,
+    maxContentLength: 230 * 1024 * 1024, // 230MB limit
+    maxBodyLength: 230 * 1024 * 1024,    // 230MB limit
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json'
