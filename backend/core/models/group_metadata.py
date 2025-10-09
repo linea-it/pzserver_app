@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.db import models
 
 
@@ -58,31 +58,3 @@ class GroupMetadata(models.Model):
     def is_local_group(self):
         """Checks if it's a local group."""
         return self.source == self.GroupSource.LOCAL
-
-
-class GroupMembership(models.Model):
-    """
-    Tracks user associations to groups for synchronization control.
-    Used mainly for groups originating from Linea IdP to track when the user
-    was last seen with this group.
-    """
-
-    class Meta:
-        verbose_name = "Group Membership"
-        verbose_name_plural = "Group Memberships"
-        unique_together = ("user", "group")
-
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="group_memberships"
-    )
-    group = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name="tracked_memberships"
-    )
-    first_seen = models.DateTimeField(auto_now_add=True)
-    last_seen = models.DateTimeField(
-        auto_now=True,
-        help_text="Last time the user was seen with this group in the IdP",
-    )
-
-    def __str__(self):
-        return f"{self.user.username} -> {self.group.name}"

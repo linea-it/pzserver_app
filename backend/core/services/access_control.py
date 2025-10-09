@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from core.models import Product, Release
+from core.services.group_management import GroupManagementService
 from django.contrib.auth.models import Group, User
 from django.db.models import Q, QuerySet
 
@@ -137,7 +138,7 @@ class AccessControlService:
     @staticmethod
     def add_user_to_group(user: User, group: Group) -> bool:
         """
-        Adds a user to a Django group.
+        Adds a user to a Django group using unified service.
 
         Args:
             user: User model instance
@@ -147,40 +148,25 @@ class AccessControlService:
             bool: True if the addition was successful
         """
         try:
-            if not user.groups.filter(id=group.id).exists():
-                user.groups.add(group)
-                return True
-            return True  # Already in the group
+            GroupManagementService.add_user_to_group(user, group)
+            return True
         except Exception:
             return False
 
     @staticmethod
-    def remove_user_from_group(user: User, group: Group, force: bool = False) -> bool:
+    def remove_user_from_group(user: User, group: Group) -> bool:
         """
-        Removes a user from a Django group.
+        Removes a user from a Django group using unified service.
         WARNING: For Linea groups, this may be reverted in the next synchronization.
 
         Args:
             user: User model instance
             group: Group model instance
-            force: If True, removes even if it's a Linea group
 
         Returns:
             bool: True if the removal was successful
         """
         try:
-            # Check if it's a Linea group
-            if (
-                hasattr(group, "metadata")
-                and group.metadata.is_linea_group
-                and not force
-            ):
-                raise ValueError(
-                    f"Cannot remove user from Linea group '{group.name}' "
-                    "without force=True. The removal will be reverted in the next synchronization."
-                )
-
-            user.groups.remove(group)
-            return True
+            return GroupManagementService.remove_user_from_group(user, group)
         except Exception:
             return False

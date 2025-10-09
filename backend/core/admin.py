@@ -1,5 +1,4 @@
 from core.models import (
-    GroupMembership,
     GroupMetadata,
     Pipeline,
     Process,
@@ -7,13 +6,12 @@ from core.models import (
     ProductContent,
     ProductFile,
     ProductType,
-    Profile,
     Release,
 )
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 
 
 @admin.register(Process)
@@ -26,7 +24,6 @@ class ProcessAdmin(admin.ModelAdmin):
 @admin.register(ProductType)
 class ProductTypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "display_name", "created_at")
-
     search_fields = ("name", "display_name")
 
 
@@ -126,22 +123,7 @@ class ProductFileAdmin(admin.ModelAdmin):
         return False
 
 
-class ProfileInline(admin.StackedInline):
-    model = Profile
-    can_delete = False
-    verbose_name_plural = "Profile"
-    fk_name = "user"
-
-
-class GroupMembershipInline(admin.TabularInline):
-    model = GroupMembership
-    extra = 0
-    readonly_fields = ("first_seen", "last_seen")
-    fields = ("group", "first_seen", "last_seen")
-
-
 class CustomUserAdmin(UserAdmin):
-    inlines = (ProfileInline, GroupMembershipInline)
     list_display = (
         "id",
         "username",
@@ -170,11 +152,6 @@ class CustomUserAdmin(UserAdmin):
 
     get_group.short_description = "Groups"
 
-    def get_inline_instances(self, request, obj=None):
-        if not obj:
-            return list()
-        return super(CustomUserAdmin, self).get_inline_instances(request, obj)
-
 
 @admin.register(GroupMetadata)
 class GroupMetadataAdmin(admin.ModelAdmin):
@@ -189,22 +166,6 @@ class GroupMetadataAdmin(admin.ModelAdmin):
         (
             "Timestamps",
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
-        ),
-    )
-
-
-@admin.register(GroupMembership)
-class GroupMembershipAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "group", "first_seen", "last_seen")
-    list_filter = ("group", "first_seen")
-    search_fields = ("user__username", "user__email", "group__name")
-    readonly_fields = ("first_seen", "last_seen")
-
-    fieldsets = (
-        (None, {"fields": ("user", "group")}),
-        (
-            "Timestamps",
-            {"fields": ("first_seen", "last_seen"), "classes": ("collapse",)},
         ),
     )
 
