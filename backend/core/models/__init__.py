@@ -6,3 +6,4 @@ from core.models.product_file import ProductFile, FileRoles
 from core.models.user_profile import Profile
 from core.models.pipeline import Pipeline
 from core.models.process import Process
+from core.models.group_metadata import GroupMetadata

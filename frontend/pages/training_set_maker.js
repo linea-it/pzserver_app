@@ -96,6 +96,13 @@ function TrainingSetMaker() {
 
           if (filteredReleases.length > 0) {
             handleRelease(filteredReleases[0].name, filteredReleases)
+          } else {
+            setSelectedLsstCatalog('')
+            setFluxes([])
+            setDereddening([])
+            setSnackbarMessage('No permission to access the objects catalogs.')
+            setSnackbarColor(theme.palette.warning.main)
+            setSnackbarOpen(true)
           }
         } else {
           console.error('No results found in the API response')

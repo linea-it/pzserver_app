@@ -1,5 +1,13 @@
-from core.models import (Pipeline, Process, Product, ProductContent,
-                         ProductFile, ProductType, Profile, Release)
+from core.models import (
+    GroupMetadata,
+    Pipeline,
+    Process,
+    Product,
+    ProductContent,
+    ProductFile,
+    ProductType,
+    Release,
+)
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
@@ -16,15 +24,24 @@ class ProcessAdmin(admin.ModelAdmin):
 @admin.register(ProductType)
 class ProductTypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "display_name", "created_at")
-
     search_fields = ("name", "display_name")
 
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "display_name", "created_at")
-
+    list_display = ("id", "name", "display_name", "is_public", "created_at")
+    list_filter = ("is_public", "created_at")
+    filter_horizontal = ("access_groups",)
     search_fields = ("name", "display_name")
+
+    fieldsets = (
+        (None, {"fields": ("name", "display_name", "description", "indexing_column")}),
+        (
+            "Data Configuration",
+            {"fields": ("has_mag_hats", "has_flux_hats", "dereddening", "fluxes")},
+        ),
+        ("Access Control", {"fields": ("is_public", "access_groups")}),
+    )
 
 
 @admin.register(Pipeline)
@@ -83,8 +100,18 @@ class ProductContentAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFile)
 class ProductFileAdmin(admin.ModelAdmin):
-    list_display = ("id", "product", "file", "role", "type", "size",
-                    "n_rows", "extension", "created", "updated")
+    list_display = (
+        "id",
+        "product",
+        "file",
+        "role",
+        "type",
+        "size",
+        "n_rows",
+        "extension",
+        "created",
+        "updated",
+    )
 
     def has_add_permission(self, request):
         return False
@@ -96,15 +123,7 @@ class ProductFileAdmin(admin.ModelAdmin):
         return False
 
 
-class ProfileInline(admin.StackedInline):
-    model = Profile
-    can_delete = False
-    verbose_name_plural = "Profile"
-    fk_name = "user"
-
-
 class CustomUserAdmin(UserAdmin):
-    inlines = (ProfileInline,)
     list_display = (
         "id",
         "username",
@@ -133,10 +152,22 @@ class CustomUserAdmin(UserAdmin):
 
     get_group.short_description = "Groups"
 
-    def get_inline_instances(self, request, obj=None):
-        if not obj:
-            return list()
-        return super(CustomUserAdmin, self).get_inline_instances(request, obj)
+
+@admin.register(GroupMetadata)
+class GroupMetadataAdmin(admin.ModelAdmin):
+    list_display = ("id", "group", "source", "display_name", "last_sync")
+    list_filter = ("source", "last_sync")
+    search_fields = ("group__name", "display_name", "description")
+    readonly_fields = ("created_at", "updated_at", "last_sync")
+
+    fieldsets = (
+        (None, {"fields": ("group", "source", "display_name", "description")}),
+        ("LIneA Info", {"fields": ("last_sync",), "classes": ("collapse",)}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
 
 
 admin.site.unregister(User)

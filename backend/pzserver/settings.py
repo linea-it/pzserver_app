@@ -68,6 +68,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+SAML_ACS_FAILURE_RESPONSE_FUNCTION = "core.views.saml2_template_failure"
+
 ROOT_URLCONF = "pzserver.urls"
 
 TEMPLATES = [
@@ -220,7 +222,7 @@ JSON_EDITOR = True
 AUTHENTICATION_BACKENDS = (
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "core.saml2.ModifiedSaml2Backend",
+    "core.saml2.LineaSaml2Backend",
 )
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
@@ -328,6 +330,13 @@ PIPELINES_DIR = os.getenv("PIPELINES_DIR", "/pipelines")
 
 # directory where it will contain the datasets.
 DATASETS_DIR = os.getenv("DATASETS_DIR", "/datasets")
+
+# Url de registro para os diferentes idps.
+# LINEA_REGISTER_URL = os.getenv("LINEA_REGISTER_URL", "https://register-dev.linea.org.br/Shibboleth.sso/Login?SAMLDS=1&target=https://register-dev.linea.org.br/registry/co_petitions/start/coef:155&entityID=https://satosa.linea.org.br/linea/proxy/aHR0cHM6Ly9jaWxvZ29uLm9yZw==")
+RUBIN_REGISTER_URL = os.getenv(
+    "RUBIN_REGISTER_URL",
+    "https://register-dev.linea.org.br/Shibboleth.sso/Login?SAMLDS=1&target=https://register-dev.linea.org.br/registry/co_petitions/start/coef:231&entityID=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cHM6Ly9kYXRhLmxzc3QuY2xvdWQ=",
+)
 
 if os.getenv("AUTH_SHIB_URL", None):
     FQDN = os.getenv("URI", "http://localhost")
