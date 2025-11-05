@@ -64,6 +64,14 @@ def saml2_template_failure(request, exception=None, status=403, **kwargs):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def teste(request):
+    if request.method == "GET":
+        return render(request, "djangosaml2/login_error.html")
+    return None
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def which_environment(request):
 
     if request.method == "GET":
