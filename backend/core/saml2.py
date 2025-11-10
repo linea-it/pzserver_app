@@ -131,6 +131,16 @@ class CustomSaml2Backend(Saml2Backend):
             log.debug(f"No groups found in 'isMemberOf' key for user {user.username}")
             return
 
+        if isinstance(member_groups, list) and len(member_groups) == 1:
+            member_groups = member_groups[0].split(
+                " "
+            )  # Split if single string with spaces
+
+        elif isinstance(member_groups, str):
+            member_groups = member_groups.split(
+                " "
+            )  # Split if single string with spaces
+
         log.debug(f"LIneA groups found for {user.username}: {member_groups}")
 
         try:
