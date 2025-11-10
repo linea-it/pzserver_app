@@ -18,7 +18,6 @@ export default function Contact() {
   useEffect(() => {
     setEmails({
       lead: 'julia@linea.org.br',
-      admin: 'pzserver-admin@linea.org.br',
       support: 'helpdesk@linea.org.br'
     })
   }, [])
@@ -57,14 +56,6 @@ export default function Contact() {
                   BRA-LIN-S4 Contribution Lead:{' '}
                   {emails.lead ? (
                     <Link href={`mailto:${emails.lead}`}>{emails.lead}</Link>
-                  ) : (
-                    'Loading...'
-                  )}
-                </p>
-                <p>
-                  Photo-z Server development team:{' '}
-                  {emails.lead ? (
-                    <Link href={`mailto:${emails.admin}`}>{emails.admin}</Link>
                   ) : (
                     'Loading...'
                   )}
