@@ -61,14 +61,6 @@ export default function Contact() {
                   )}
                 </p>
                 <p>
-                  Photo-z Server development team:{' '}
-                  {emails.lead ? (
-                    <Link href={`mailto:${emails.admin}`}>{emails.admin}</Link>
-                  ) : (
-                    'Loading...'
-                  )}
-                </p>
-                <p>
                   Technical support:{' '}
                   {emails.support ? (
                     <Link href={`mailto:${emails.support}`}>
