@@ -232,7 +232,7 @@ JSON_EDITOR = True
 AUTHENTICATION_BACKENDS = (
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "core.saml2.LineaSaml2Backend",
+    "core.saml2.CustomSaml2Backend",
 )
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
