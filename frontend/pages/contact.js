@@ -18,7 +18,6 @@ export default function Contact() {
   useEffect(() => {
     setEmails({
       lead: 'julia@linea.org.br',
-      admin: 'pzserver-admin@linea.org.br',
       support: 'helpdesk@linea.org.br'
     })
   }, [])
