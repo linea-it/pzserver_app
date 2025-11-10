@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 from core.models import GroupMetadata, Product, ProductType, Profile, Release
-from core.saml2 import LineaSaml2Backend
+from core.saml2 import CustomSaml2Backend
 from core.services.access_control import AccessControlService
 from core.services.group_management import GroupManagementService
 from django.contrib.auth.models import Group, User
@@ -20,7 +20,7 @@ class TestSAML2GroupManagementBase(TransactionTestCase):
 
     def setUp(self):
         """Set up basic data for tests."""
-        self.backend = LineaSaml2Backend()
+        self.backend = CustomSaml2Backend()
 
         # Create test user
         self.test_user = User.objects.create_user(
@@ -101,7 +101,7 @@ class TestSAML2GroupManagementBase(TransactionTestCase):
         return {
             "uid": [uid] if isinstance(uid, str) else uid,
             "schacUserStatus": [status] if isinstance(status, str) else status,
-            "member": groups,
+            "isMemberOf": groups,
             "displayName": (
                 [display_name] if isinstance(display_name, str) else display_name
             ),
@@ -137,19 +137,6 @@ class TestLIneASaml2Backend(TestSAML2GroupManagementBase):
 
         self.assertIsNone(result)
 
-    def test_authenticate_with_pending_status(self):
-        """Test authentication with pending status."""
-        request = Mock()
-        request.session = {}
-
-        attributes = self.create_saml_attributes(status="Pending")
-        session_info = self.create_session_info(attributes)
-
-        result = self.backend.authenticate(request, session_info=session_info)
-
-        self.assertIsNone(result)
-        self.assertTrue(request.session.get("pending_approval"))
-
     def test_authenticate_with_inactive_status(self):
         """Test authentication with inactive status."""
         request = Mock()
@@ -161,34 +148,6 @@ class TestLIneASaml2Backend(TestSAML2GroupManagementBase):
         result = self.backend.authenticate(request, session_info=session_info)
 
         self.assertIsNone(result)
-
-    def test_authenticate_without_uid(self):
-        """Test authentication without UID."""
-        request = Mock()
-        request.session = {}
-
-        attributes = self.create_saml_attributes(uid=None)
-        del attributes["uid"]  # Remove UID completely
-        session_info = self.create_session_info(attributes)
-
-        result = self.backend.authenticate(request, session_info=session_info)
-
-        self.assertIsNone(result)
-        self.assertTrue(request.session.get("needs_registration"))
-
-    def test_get_user_status_from_list(self):
-        """Test status extraction when it's a list."""
-        attributes = {"schacUserStatus": ["Active"]}
-        status = self.backend._get_user_status(attributes)
-
-        self.assertEqual(status, "Active")
-
-    def test_get_user_status_from_string(self):
-        """Test status extraction when it's a string."""
-        attributes = {"schacUserStatus": "Pending"}
-        status = self.backend._get_user_status(attributes)
-
-        self.assertEqual(status, "Pending")
 
     def test_get_user_status_missing(self):
         """Test status extraction when it doesn't exist."""

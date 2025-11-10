@@ -8,23 +8,13 @@ from djangosaml2.backends import Saml2Backend
 log = logging.getLogger("saml")
 
 
-class LineaSaml2Backend(Saml2Backend):
+class CustomSaml2Backend(Saml2Backend):
     """
     Custom SAML backend for LIneA that:
         - Validates user status (active, pending, etc.)
         - Synchronizes groups based on the 'member' key
         - Redirects inactive users to registration
     """
-
-    # Statuses that indicate pending registration
-    PENDING_STATUSES = [
-        "Pending",
-        "PendingApproval",
-        "PendingConfirmation",
-        "PendingVetting",
-    ]
-
-    ACTIVE_STATUS = "Active"
 
     def authenticate(
         self, request, session_info=None, attribute_mapping=None, **kwargs
@@ -47,31 +37,6 @@ class LineaSaml2Backend(Saml2Backend):
         auth_info = attributes.get("knowledgeInformation", "Not informed")
         log.info(f"User knowledgeInformation: {auth_info}")
 
-        # get uid
-        uid = attributes.get("uid", None)
-        if uid and isinstance(uid, list):
-            uid = uid[0]
-
-        if not uid:
-            log.warning("No UID found in SAML attributes")
-            request.session["needs_registration"] = True
-            return None
-
-        if user_status in self.PENDING_STATUSES:
-            log.info(
-                (
-                    "Your registration is pending approval. "
-                    "Please wait for confirmation or contact support."
-                )
-            )
-            request.session["pending_approval"] = True
-            return None
-
-        elif user_status != self.ACTIVE_STATUS:
-            log.error(f"User with inactive status: {user_status}")
-            return None
-
-        # If user is active, proceed with normal authentication
         return super().authenticate(request, session_info, attribute_mapping, **kwargs)
 
     def _get_user_status(self, attributes: Dict) -> str:
@@ -161,9 +126,9 @@ class LineaSaml2Backend(Saml2Backend):
             user: User model instance
             attributes: Dictionary with SAML attributes
         """
-        member_groups = attributes.get("member", [])
+        member_groups = attributes.get("isMemberOf", [])
         if not member_groups:
-            log.debug(f"No groups found in 'member' key for user {user.username}")
+            log.debug(f"No groups found in 'isMemberOf' key for user {user.username}")
             return
 
         log.debug(f"LIneA groups found for {user.username}: {member_groups}")

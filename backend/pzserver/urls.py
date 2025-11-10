@@ -13,18 +13,35 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from core.api import viewsets as products_viewsets
-from core.views import (CsrfToOauth, GetToken, LoggedUserView, Logout,
-                        OrchestrationInfoView, OrchestrationPipelinesView,
-                        PipelineViewSet, ProcessViewSet, ProductContentViewSet,
-                        ProductFileViewSet, ProductTypeViewSet, ProductViewSet,
-                        ProductSpeczViewSet, ReleaseViewSet, UserViewSet, which_environment)
-from django.conf import settings
 
+# from core.api import viewsets as products_viewsets
+from core.views import (
+    CsrfToOauth,
+    GetToken,
+    LoggedUserView,
+    Logout,
+    OrchestrationInfoView,
+    OrchestrationPipelinesView,
+    PipelineViewSet,
+    ProcessViewSet,
+    ProductContentViewSet,
+    ProductFileViewSet,
+    ProductSpeczViewSet,
+    ProductTypeViewSet,
+    ProductViewSet,
+    ReleaseViewSet,
+    UserViewSet,
+    teste,
+    which_environment,
+)
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
-                                   SpectacularSwaggerView)
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from rest_framework import routers
 
 route = routers.DefaultRouter()
@@ -46,6 +63,7 @@ from rest_framework.authtoken import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("which_environment/", which_environment),
+    path("api/teste/", teste, name="teste"),
     path("api/", include(route.urls)),
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
@@ -62,9 +80,11 @@ urlpatterns = [
         name="swagger",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path(r"saml2/", include('djangosaml2.urls')),
+    path(r"saml2/", include("djangosaml2.urls")),
 ]
 
 if settings.ORCHEST_URL:
     urlpatterns.append(path("api/sysinfo/", OrchestrationInfoView.as_view()))
-    urlpatterns.append(path("api/orch_pipelines/", OrchestrationPipelinesView.as_view()))
+    urlpatterns.append(
+        path("api/orch_pipelines/", OrchestrationPipelinesView.as_view())
+    )

@@ -11,12 +11,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+from pathlib import Path
 
 import saml2
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+APPS_DIR = Path(BASE_DIR) / "core"
 
 LOG_DIR = os.getenv("LOG_DIR", "/archive/log")
 LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
@@ -75,7 +77,7 @@ ROOT_URLCONF = "pzserver.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [str(APPS_DIR / "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -157,6 +159,14 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
+# # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+# STATICFILES_DIRS = [str(APPS_DIR / "static")]
+# # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
+# STATICFILES_FINDERS = [
+#     "django.contrib.staticfiles.finders.FileSystemFinder",
+#     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+# ]
+
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/archive/data/")
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
@@ -222,7 +232,7 @@ JSON_EDITOR = True
 AUTHENTICATION_BACKENDS = (
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "core.saml2.LineaSaml2Backend",
+    "core.saml2.CustomSaml2Backend",
 )
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
