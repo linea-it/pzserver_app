@@ -31,7 +31,7 @@ function SpeczCatalogs() {
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [resolveDuplicates, setResolveDuplicates] = useState('concatenate')
-  const [flagToCut, setFlagToCut] = useState('0.0')
+  const [flagToCut, setFlagToCut] = useState('3.0')
   const router = useRouter()
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,7 +68,7 @@ function SpeczCatalogs() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setFlagToCut('0.0')
+    setFlagToCut('3.0')
     setSelectedProducts([])
     setOutputFormat('parquet')
   }
