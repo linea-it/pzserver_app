@@ -31,9 +31,8 @@ function SpeczCatalogs() {
 
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [resolveDuplicates, setResolveDuplicates] = useState('concatenate')
-  // const [search, setSearch] = useState('')
+  const [flagToCut, setFlagToCut] = useState('3.0')
   const router = useRouter()
-  // const [filters] = useState({})
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -69,6 +68,7 @@ function SpeczCatalogs() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
+    setFlagToCut('3.0')
     setSelectedProducts([])
     setOutputFormat('parquet')
   }
@@ -123,9 +123,8 @@ function SpeczCatalogs() {
         pipeline: pipelineId,
         used_config: {
           param: {
-            combine_type: resolveDuplicates
-            // flags_translation_file:
-            //   '/data/apps/app.orch/datasets/flags_translation.yaml'
+            combine_type: resolveDuplicates,
+            z_flag_homogenized_value_to_cut: parseFloat(flagToCut)
           }
         },
         description: data.param.description,
@@ -167,6 +166,10 @@ function SpeczCatalogs() {
 
   const handleOutputFormatChange = event => {
     setOutputFormat(event.target.value)
+  }
+
+  const handleFlagToCutChange = event => {
+    setFlagToCut(event.target.value)
   }
 
   const styles = {
@@ -269,7 +272,35 @@ function SpeczCatalogs() {
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              4. Resolve duplicates **:
+              4. Filter by homogenized flag (greater than or equal to):
+              <Select value={flagToCut} onChange={handleFlagToCutChange}>
+                <MenuItem value="0.0">0.0</MenuItem>
+                <MenuItem value="1.0">1.0</MenuItem>
+                <MenuItem value="2.0">2.0</MenuItem>
+                <MenuItem value="3.0">3.0</MenuItem>
+                <MenuItem value="4.0">4.0</MenuItem>
+              </Select>
+              <Typography
+                component="div"
+                sx={{ margin: '12px' }}
+                variant="body2"
+              >
+                ** see the definition of the standardized flag system in the{' '}
+                <Link
+                  underline="always"
+                  href="https://docs.linea.org.br/en/sci-platforms/pz_server_crc.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  pipeline documentation
+                </Link>
+              </Typography>
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              5. Resolve duplicates **:
               <Select
                 value={resolveDuplicates}
                 onChange={handleResolveDuplicates}
@@ -297,18 +328,19 @@ function SpeczCatalogs() {
                 resolution criteria in the{' '}
                 <Link
                   underline="always"
-                  href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
+                  href="https://docs.linea.org.br/en/sci-platforms/pz_server_crc.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   pipeline documentation
                 </Link>
-                .
               </Typography>
             </Typography>
           </Grid>
 
           <Grid item xs={12}>
             <Typography variant="body1">
-              5. Output format:
+              6. Output format:
               <Select value={outputFormat} onChange={handleOutputFormatChange}>
                 <MenuItem value="parquet">parquet</MenuItem>
                 <MenuItem value="csv">csv</MenuItem>
