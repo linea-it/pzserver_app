@@ -166,13 +166,6 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-Still inside the container, installing pipelines (confirm default directories with 'yes'):
-``` bash
-cd /pipelines
-./setup.sh
-./install_pipelines.sh
-```
-
 Exit the container and start orchestration services:
 ``` bash
 exit

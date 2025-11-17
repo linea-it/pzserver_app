@@ -1,0 +1,17 @@
+training_set_maker:
+  display_name: "Training Set Maker"
+  path: "/pipelines/training_set_maker"
+  executor: "local" # only to orchestration
+  runner: "bash"
+  executable: "run.sh"
+  schema_config: "/pipelines/training_set_maker/config.py"
+  version: "v1.0.0"
+
+combine_redshift_dedup:
+  display_name: "Combine Redshift Catalogs"
+  path: "/pipelines/combine_redshift_dedup"
+  executor: "local" # only to orchestration
+  runner: "bash"
+  executable: "run.sh"
+  schema_config: "/pipelines/combine_redshift_dedup/config.py"
+  version: "v1.0.0"
