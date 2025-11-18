@@ -274,11 +274,11 @@ function SpeczCatalogs() {
             <Typography variant="body1">
               4. Filter by homogenized flag (greater than or equal to):
               <Select value={flagToCut} onChange={handleFlagToCutChange}>
-                <MenuItem value="0.0">0.0</MenuItem>
-                <MenuItem value="1.0">1.0</MenuItem>
-                <MenuItem value="2.0">2.0</MenuItem>
-                <MenuItem value="3.0">3.0</MenuItem>
-                <MenuItem value="4.0">4.0</MenuItem>
+                <MenuItem value="0.0">0</MenuItem>
+                <MenuItem value="1.0">1</MenuItem>
+                <MenuItem value="2.0">2</MenuItem>
+                <MenuItem value="3.0">3</MenuItem>
+                <MenuItem value="4.0">4</MenuItem>
               </Select>
               <Typography
                 component="div"
