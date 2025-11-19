@@ -33,6 +33,7 @@ import { getReleases } from '../services/release'
 
 function TrainingSetMaker() {
   const theme = useTheme()
+  const warningColor = theme.palette.warning.main
   const [openDialog, setOpenDialog] = useState(false)
   const router = useRouter()
   const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
@@ -44,7 +45,7 @@ function TrainingSetMaker() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarColor, setSnackbarColor] = useState(theme.palette.warning.main)
+  const [snackbarColor, setSnackbarColor] = useState(warningColor)
   const [selectedLsstCatalog, setSelectedLsstCatalog] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [releases, setReleases] = useState([])
@@ -68,6 +69,56 @@ function TrainingSetMaker() {
   const [fieldErrors] = useState({})
 
   useEffect(() => {
+    const handleReleaseInternal = (releaseName, releasesData) => {
+      setSelectedLsstCatalog(releaseName)
+
+      const currentRelease = releasesData.find(
+        release => release.name === releaseName
+      )
+
+      if (!currentRelease) return
+
+      if (currentRelease.has_mag_hats === true) {
+        setConvertFluxToMag(true)
+        if (currentRelease.has_flux_hats) {
+          setDisabledConvertFluxToMag(false)
+        } else {
+          setDisabledConvertFluxToMag(true)
+        }
+      } else {
+        setDisabledConvertFluxToMag(true)
+        setConvertFluxToMag(false)
+      }
+
+      const fluxRelease = currentRelease.fluxes
+      setFluxes(fluxRelease)
+
+      const selectedFlux = fluxRelease.find(flux => flux.selected)
+      if (selectedFlux) {
+        setData(prevData => ({
+          ...prevData,
+          param: {
+            ...prevData.param,
+            flux_type: selectedFlux.name
+          }
+        }))
+      }
+
+      const dereddeningRelease = currentRelease.dereddening
+      setDereddening(dereddeningRelease)
+
+      const selectedDereddening = dereddeningRelease.find(der => der.selected)
+      if (selectedDereddening) {
+        setData(prevData => ({
+          ...prevData,
+          param: {
+            ...prevData.param,
+            dereddening: selectedDereddening.name
+          }
+        }))
+      }
+    }
+
     const fetchPipelineData = async () => {
       try {
         const response = await getPipelineByName({ name: 'training_set_maker' })
@@ -95,13 +146,13 @@ function TrainingSetMaker() {
           setReleases(filteredReleases)
 
           if (filteredReleases.length > 0) {
-            handleRelease(filteredReleases[0].name, filteredReleases)
+            handleReleaseInternal(filteredReleases[0].name, filteredReleases)
           } else {
             setSelectedLsstCatalog('')
             setFluxes([])
             setDereddening([])
             setSnackbarMessage('No permission to access the objects catalogs.')
-            setSnackbarColor(theme.palette.warning.main)
+            setSnackbarColor(warningColor)
             setSnackbarOpen(true)
           }
         } else {
@@ -114,7 +165,7 @@ function TrainingSetMaker() {
 
     fetchPipelineData()
     fetchReleases()
-  }, [])
+  }, [warningColor])
 
   const handleClearForm = () => {
     setCombinedCatalogName('')

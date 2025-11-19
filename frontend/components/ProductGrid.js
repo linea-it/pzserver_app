@@ -129,10 +129,7 @@ export default function ProductGrid(props) {
               <Tooltip
                 title={params.row.description || 'No description available'}
               >
-                <Link
-                  component="button"
-                  onClick={() => handleDownload(params.row)}
-                >
+                <Link href={getProductUrl(params.row.internal_name)}>
                   {params.value}
                 </Link>
               </Tooltip>
