@@ -20,14 +20,13 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const encodedReturnUrl = encodeURIComponent(returnUrl)
 
   // Substituir o parâmetro 'next' na CILogonUrl com encodedReturnUrl
   const modifiedCILogonUrl = CILogonUrl
     ? (() => {
         try {
           const url = new URL(CILogonUrl)
-          url.searchParams.set('next', encodedReturnUrl)
+          url.searchParams.set('next', returnUrl)
           return url.toString()
         } catch (e) {
           return CILogonUrl
@@ -35,6 +34,7 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
       })()
     : null
 
+  console.log('Return URL:', returnUrl)
   console.log('Modified CILogon URL:', modifiedCILogonUrl)
 
   const handleSnackbarErrorClose = (_, reason) => {
