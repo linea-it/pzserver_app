@@ -20,7 +20,19 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
+  const encodedReturnUrl = encodeURIComponent(returnUrl)
+  
+  // Substituir o parâmetro 'next' na CILogonUrl com encodedReturnUrl
+  const modifiedCILogonUrl = CILogonUrl ? (() => {
+    try {
+      const url = new URL(CILogonUrl)
+      url.searchParams.set('next', encodedReturnUrl)
+      return url.toString()
+    } catch (e) {
+      return CILogonUrl
+    }
+  })() : null
+  
   const handleSnackbarErrorClose = (_, reason) => {
     if (reason === 'clickaway') return
     setFormError('')
@@ -33,6 +45,7 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
       setFormError('Username and Password are required')
       return
     }
+
 
     try {
       const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
@@ -151,7 +164,7 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
                         height={20}
                       />
                     }
-                    href={CILogonUrl || shibLoginUrl}
+                    href={modifiedCILogonUrl || shibLoginUrl}
                     sx={{
                       backgroundColor: '#283663',
                       color: '#fff',
