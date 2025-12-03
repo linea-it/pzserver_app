@@ -38,7 +38,7 @@ export async function refreshToken(token) {
   return res.data
 }
 
-export async function csrfToOauth() {
+export async function csrfToOauth(returnUrl = null) {
   const response = await fetch('/front-api/config')
   const oauthSecret = await response.json()
 
@@ -55,10 +55,17 @@ export async function csrfToOauth() {
   ax.defaults.xsrfHeaderName = 'X-CSRFToken'
   ax.defaults.withCredentials = true
 
+  const requestData = {
+    client_id: oauthSecret.client_id
+  }
+
+  // Add returnUrl if provided
+  if (returnUrl) {
+    requestData.returnUrl = returnUrl
+  }
+
   return ax
-    .post('/api/csrf_oauth/', {
-      client_id: oauthSecret.client_id
-    })
+    .post('/api/csrf_oauth/', requestData)
     .then(res => res.data)
     .catch(res => {
       if (res.status === 401) {

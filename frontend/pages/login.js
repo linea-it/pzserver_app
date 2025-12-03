@@ -21,43 +21,9 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  // Converter returnUrl relativa em URL absoluta
-  const absoluteReturnUrl = (() => {
-    if (!returnUrl) return '/'
-
-    // Se já for uma URL absoluta, retorna como está
-    if (returnUrl.startsWith('http://') || returnUrl.startsWith('https://')) {
-      return returnUrl
-    }
-
-    // Converter URL relativa em absoluta
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}${
-        returnUrl.startsWith('/') ? '' : '/'
-      }${returnUrl}`
-    }
-
-    // No servidor, retornar a URL relativa
-    return returnUrl
+  const encodedReturnUrl = (() => {
+    return encodeURIComponent(returnUrl)
   })()
-
-  const encodedReturnUrl = encodeURIComponent(absoluteReturnUrl)
-
-  // Substituir o parâmetro 'next' na CILogonUrl com encodedReturnUrl
-  const modifiedCILogonUrl = CILogonUrl
-    ? (() => {
-        try {
-          const url = new URL(CILogonUrl)
-          url.searchParams.set('next', encodedReturnUrl)
-          return url.toString()
-        } catch (e) {
-          return CILogonUrl
-        }
-      })()
-    : null
-
-  console.log('Return URL:', returnUrl)
-  console.log('Modified CILogon URL:', modifiedCILogonUrl)
 
   const handleSnackbarErrorClose = (_, reason) => {
     if (reason === 'clickaway') return
@@ -189,7 +155,13 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
                         height={20}
                       />
                     }
-                    href={modifiedCILogonUrl || shibLoginUrl}
+                    onClick={() => {
+                      // Store returnUrl in sessionStorage before redirecting to SAML2
+                      if (returnUrl && returnUrl !== '/') {
+                        sessionStorage.setItem('saml_return_url', returnUrl)
+                      }
+                      window.location.href = CILogonUrl
+                    }}
                     sx={{
                       backgroundColor: '#283663',
                       color: '#fff',
