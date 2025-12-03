@@ -21,10 +21,6 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const encodedReturnUrl = (() => {
-    return encodeURIComponent(returnUrl)
-  })()
-
   const handleSnackbarErrorClose = (_, reason) => {
     if (reason === 'clickaway') return
     setFormError('')
