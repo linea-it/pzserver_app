@@ -23,17 +23,86 @@ import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import useStyles from '../styles/pages/products'
 import { buildLoginUrl } from '../utils/redirect'
+
 export default function Products() {
   const classes = useStyles()
   const router = useRouter()
 
-  const [search, setSearch] = React.useState('')
-  const [filters, setFilters] = React.useState({
-    release: '',
-    product_type: '',
-    official_product: false,
-    status__in: '0, 1, 3, 9'
+  const applySearch = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(sessionStorage.getItem('apply_search') || 'false')
+    } else {
+      return false
+    }
+  }, [])
+
+  const applyPagination = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(sessionStorage.getItem('apply_pagination') || 'false')
+    } else {
+      return false
+    }
+  }, [])
+
+  // Clear flags after they are used
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('apply_search', 'false')
+      sessionStorage.setItem('apply_pagination', 'false')
+    }
+  }, [])
+
+  // Load initial state from sessionStorage only if apply_search is true
+  const [search, setSearch] = React.useState(() => {
+    if (typeof window !== 'undefined' && applySearch) {
+      const value = sessionStorage.getItem('user_products_search') || ''
+      console.log('Loading search from sessionStorage: ', value)
+      return value
+    }
+    return ''
   })
+
+  const [filters, setFilters] = React.useState(() => {
+    if (typeof window !== 'undefined' && applySearch) {
+      const saved = sessionStorage.getItem('user_products_filters')
+      if (saved) {
+        try {
+          return {
+            ...JSON.parse(saved),
+            official_product: false,
+            status__in: '0, 1, 3, 9'
+          }
+        } catch (e) {
+          console.error('Error parsing saved filters:', e)
+        }
+      }
+    }
+    return {
+      release: '',
+      product_type: '',
+      official_product: false,
+      status__in: '0, 1, 3, 9'
+    }
+  })
+
+  // Save to sessionStorage when filters or search change
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('user_products_search', search)
+    }
+  }, [search])
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(
+        'user_products_filters',
+        JSON.stringify({
+          release: filters.release,
+          product_type: filters.product_type
+        })
+      )
+    }
+  }, [filters.release, filters.product_type])
 
   const [errorSnackbar, setErrorSnackbar] = React.useState({
     open: false,
@@ -134,13 +203,18 @@ export default function Products() {
                   />
                 </FormControl>
                 {/* TODO: Empurrar o Search para a direita */}
-                <SearchField onChange={query => setSearch(query)} />
+                <SearchField
+                  initialValue={search}
+                  onChange={query => setSearch(query)}
+                />
               </Box>
             </Grid>
             <Grid item xs={12}>
               <ProductGrid
                 query={search}
                 filters={filters}
+                storageKey="user_products"
+                applyPagination={applyPagination}
                 onError={error => {
                   console.error('Error loading products:', error)
                   handleOpenErrorSnackbar(

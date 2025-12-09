@@ -6,8 +6,8 @@ import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 
-export default function SearchField({ onChange }) {
-  const [inputValue, setInputValue] = useState('')
+export default function SearchField({ initialValue, onChange }) {
+  const [inputValue, setInputValue] = useState(initialValue || '')
 
   const sendQuery = query => {
     onChange(query)
@@ -51,5 +51,6 @@ export default function SearchField({ onChange }) {
 }
 
 SearchField.propTypes = {
+  initialValue: PropTypes.string,
   onChange: PropTypes.func.isRequired
 }

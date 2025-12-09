@@ -2,19 +2,19 @@ import * as React from 'react'
 
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Paper from '@mui/material/Paper'
-import Link from '@mui/material/Link'
-import Stack from '@mui/material/Stack'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
+import Link from '@mui/material/Link'
+import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 
 import { useRouter } from 'next/router'
 import { parseCookies } from 'nookies'
@@ -30,13 +30,75 @@ export default function Products() {
   const router = useRouter()
   const { user } = useAuth()
 
-  const [search, setSearch] = React.useState('')
-  const [filters, setFilters] = React.useState({
-    release: '',
-    product_type: '',
-    official_product: true,
-    status: 1 // Published
+  const applySearch = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(sessionStorage.getItem('apply_search') || 'false')
+    } else {
+      return false
+    }
+  }, [])
+
+  const applyPagination = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(sessionStorage.getItem('apply_pagination') || 'false')
+    } else {
+      return false
+    }
+  }, [])
+
+  // Clear flags after they are used
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('apply_search', 'false')
+      sessionStorage.setItem('apply_pagination', 'false')
+    }
+  }, [])
+
+  // Load initial state from sessionStorage only if apply_search is true
+  const [search, setSearch] = React.useState(() => {
+    if (typeof window !== 'undefined' && applySearch) {
+      return sessionStorage.getItem('oficial_products_search') || ''
+    }
+    return ''
   })
+
+  const [filters, setFilters] = React.useState(() => {
+    if (typeof window !== 'undefined' && applySearch) {
+      const saved = sessionStorage.getItem('oficial_products_filters')
+      if (saved) {
+        try {
+          return { ...JSON.parse(saved), official_product: true, status: 1 }
+        } catch (e) {
+          console.error('Error parsing saved filters:', e)
+        }
+      }
+    }
+    return {
+      release: '',
+      product_type: '',
+      official_product: true,
+      status: 1 // Published
+    }
+  })
+
+  // Save to sessionStorage when filters or search change
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('oficial_products_search', search)
+    }
+  }, [search])
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(
+        'oficial_products_filters',
+        JSON.stringify({
+          release: filters.release,
+          product_type: filters.product_type
+        })
+      )
+    }
+  }, [filters.release, filters.product_type])
 
   const [errorSnackbar, setErrorSnackbar] = React.useState({
     open: false,
@@ -140,13 +202,18 @@ export default function Products() {
                   />
                 </FormControl>
                 {/* TODO: Empurrar o Search para a direita */}
-                <SearchField onChange={query => setSearch(query)} />
+                <SearchField
+                  initialValue={search}
+                  onChange={query => setSearch(query)}
+                />
               </Box>
             </Grid>
             <Grid item xs={12}>
               <ProductGrid
                 query={search}
                 filters={filters}
+                storageKey="oficial_products"
+                applyPagination={applyPagination}
                 onError={error => {
                   console.error('Error loading products:', error)
                   handleOpenErrorSnackbar(

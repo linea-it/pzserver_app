@@ -323,6 +323,8 @@ export default function ProductDetail({ productId, internalName }) {
           >
             <ArrowBackIosIcon
               onClick={() => {
+                sessionStorage.setItem('apply_search', true)
+                sessionStorage.setItem('apply_pagination', true)
                 const returnPath = product.official_product
                   ? '/oficial_products'
                   : '/user_products'
