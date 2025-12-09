@@ -96,12 +96,23 @@ export default function ProductGrid(props) {
     }
 
     setPage(0)
+    setSortModel([{ field: 'created_at', sort: 'desc' }])
     if (typeof window !== 'undefined' && props.storageKey) {
       sessionStorage.setItem(`${props.storageKey}_page`, '0')
+      sessionStorage.setItem(
+        `${props.storageKey}_sortModel`,
+        JSON.stringify([{ field: 'created_at', sort: 'desc' }])
+      )
     }
   }, [props.filters, props.query, props.storageKey])
 
   const handleSortModelChange = newModel => {
+    if (typeof window !== 'undefined' && props.storageKey) {
+      sessionStorage.setItem(
+        `${props.storageKey}_sortModel`,
+        JSON.stringify(newModel)
+      )
+    }
     setSortModel(newModel)
   }
 
