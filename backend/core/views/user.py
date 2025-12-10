@@ -123,8 +123,18 @@ class CsrfToOauth(APIView):
         )
         log.debug(f"Refresh Token: {refresh_token}")
 
+        # Get redirect URL from request (next or returnUrl parameters)
+        redirect_url = request.data.get("next") or request.data.get("returnUrl") or "/"
+        log.debug(f"Redirect URL: {redirect_url}")
+
+        # Validate redirect URL to prevent open redirect vulnerabilities
+        # Only allow relative URLs starting with / (not //)
+        if not redirect_url.startswith("/") or redirect_url.startswith("//"):
+            log.warning(f"Invalid redirect URL attempted: {redirect_url}. Using default.")
+            redirect_url = "/"
+
         # Usando O Backend para criar os tokens no cookie
-        response = HttpResponseRedirect(redirect_to="/")
+        response = HttpResponseRedirect(redirect_to=redirect_url)
 
         response.set_cookie(
             "pzserver.access_token",

@@ -151,7 +151,13 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
                         height={20}
                       />
                     }
-                    href={CILogonUrl || shibLoginUrl}
+                    onClick={() => {
+                      // Store returnUrl in sessionStorage before redirecting to SAML2
+                      if (returnUrl && returnUrl !== '/') {
+                        sessionStorage.setItem('saml_return_url', returnUrl)
+                      }
+                      window.location.href = CILogonUrl
+                    }}
                     sx={{
                       backgroundColor: '#283663',
                       color: '#fff',

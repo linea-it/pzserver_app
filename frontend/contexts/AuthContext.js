@@ -30,13 +30,25 @@ export function AuthProvider({ children }) {
     } else {
       const { 'pzserver.csrftoken': csrftoken } = parseCookies()
       if (csrftoken) {
-        csrfToOauth()
+        // Check if there's a returnUrl stored in sessionStorage (from SAML2 login redirect)
+        let returnUrl = '/'
+        if (typeof window !== 'undefined') {
+          const storedReturnUrl = sessionStorage.getItem('saml_return_url')
+          if (storedReturnUrl) {
+            returnUrl = storedReturnUrl
+            sessionStorage.removeItem('saml_return_url')
+          }
+        }
+        
+        csrfToOauth(returnUrl)
           .then(res => {
             // Load user data after login to avoid blank username on first render
             recoverUserInformation().then(loggedUser => {
               setUser(loggedUser)
+              const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
+              console.log('SAML2 login successful, redirecting to:', sanitizedReturnUrl)
               setTimeout(() => {
-                Router.push('/')
+                Router.push(sanitizedReturnUrl)
               }, 100)
             })
           })
