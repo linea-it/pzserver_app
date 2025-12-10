@@ -24,11 +24,49 @@ export default function ProductGrid(props) {
   const router = useRouter()
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(0)
-  const [page, setPage] = React.useState(0)
-  const [pageSize, setPageSize] = React.useState(25)
-  const [sortModel, setSortModel] = React.useState([
-    { field: 'created_at', sort: 'desc' }
-  ])
+
+  // Load pagination state from sessionStorage
+  const [page, setPage] = React.useState(() => {
+    if (
+      typeof window !== 'undefined' &&
+      props.storageKey &&
+      props.applyPagination
+    ) {
+      const saved = sessionStorage.getItem(`${props.storageKey}_page`)
+      return saved ? parseInt(saved, 10) : 0
+    }
+    return 0
+  })
+
+  const [pageSize, setPageSize] = React.useState(() => {
+    if (
+      typeof window !== 'undefined' &&
+      props.storageKey &&
+      props.applyPagination
+    ) {
+      const saved = sessionStorage.getItem(`${props.storageKey}_pageSize`)
+      return saved ? parseInt(saved, 10) : 25
+    }
+    return 25
+  })
+
+  const [sortModel, setSortModel] = React.useState(() => {
+    if (
+      typeof window !== 'undefined' &&
+      props.storageKey &&
+      props.applyPagination
+    ) {
+      const saved = sessionStorage.getItem(`${props.storageKey}_sortModel`)
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing saved sortModel:', e)
+        }
+      }
+    }
+    return [{ field: 'created_at', sort: 'desc' }]
+  })
   const [loading, setLoading] = React.useState(false)
   const [delRecord, setDelRecord] = React.useState(null)
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
@@ -40,7 +78,41 @@ export default function ProductGrid(props) {
   const [schedulerOut, setSchedulerOut] = React.useState('')
   const [isOpen, setOpen] = React.useState(false)
 
+  // Track if this is the first render to avoid resetting page on mount
+  const isFirstRender = React.useRef(true)
+
+  // Save pagination state to sessionStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && props.storageKey) {
+      sessionStorage.setItem(`${props.storageKey}_page`, page.toString())
+    }
+  }, [page, props.storageKey])
+
+  // Reset pagination when filters or search change (but not on mount)
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    setPage(0)
+    setSortModel([{ field: 'created_at', sort: 'desc' }])
+    if (typeof window !== 'undefined' && props.storageKey) {
+      sessionStorage.setItem(`${props.storageKey}_page`, '0')
+      sessionStorage.setItem(
+        `${props.storageKey}_sortModel`,
+        JSON.stringify([{ field: 'created_at', sort: 'desc' }])
+      )
+    }
+  }, [props.filters, props.query, props.storageKey])
+
   const handleSortModelChange = newModel => {
+    if (typeof window !== 'undefined' && props.storageKey) {
+      sessionStorage.setItem(
+        `${props.storageKey}_sortModel`,
+        JSON.stringify(newModel)
+      )
+    }
     setSortModel(newModel)
   }
 
@@ -285,6 +357,7 @@ export default function ProductGrid(props) {
         rowCount={rowCount}
         pagination
         paginationMode="server"
+        page={page}
         pageSize={pageSize}
         onPageChange={newPage => setPage(newPage)}
         onPageSizeChange={newPageSize => setPageSize(newPageSize)}
@@ -348,10 +421,14 @@ export default function ProductGrid(props) {
 
 ProductGrid.propTypes = {
   filters: PropTypes.object,
-  query: PropTypes.string
+  query: PropTypes.string,
+  storageKey: PropTypes.string,
+  applyPagination: PropTypes.bool
 }
 
 ProductGrid.defaultProps = {
   filters: {},
-  query: ''
+  query: '',
+  storageKey: null,
+  applyPagination: false
 }
