@@ -8,32 +8,6 @@
 	],
 	"service": "app",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {
-			"installZsh": true,
-			"installOhMyZsh": true,
-			"upgradePackages": true
-		},
-		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-			"plugins": "ssh-agent npm",
-			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions"
-		},
-		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
-		"ghcr.io/devcontainers/features/node:1": {
-			"nodeGypDependencies": true,
-			"version": "lts"
-		},
-		// "ghcr.io/devcontainers-contrib/features/black:2": {
-		// 	"version": "latest"
-		// },
-		// "ghcr.io/devcontainers-contrib/features/isort:2": {
-		// 	"version": "latest"
-		// },
-		// "ghcr.io/devcontainers-contrib/features/pre-commit:2": {
-		// 	"version": "latest"
-		// },
-		"ghcr.io/dhoeric/features/act:1": {}
-	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
