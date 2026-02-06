@@ -1,0 +1,3 @@
+[submodule "orchestration"]
+	path = orchestration
+	url = https://github.com/linea-it/orchestration.git
