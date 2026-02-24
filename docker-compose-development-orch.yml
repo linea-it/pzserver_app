@@ -34,7 +34,7 @@ services:
       - ./archive/data:/archive/data
       - ./orchestration/pipelines:/pipelines
       - ./orchestration/processes:/processes
-      - ./orchestration/datasets:/datasets
+      - ./orchestration/pipelines/training_set_maker/data-example:/datasets
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -69,27 +69,22 @@ services:
 
   orchestration-api:
     extends:
-      file: ./orchestration/docker-compose.yml
+      file: ./orchestration/docker-compose-app.yml
       service: orchestration-api
 
   orchestration-local-worker:
     extends:
-      file: ./orchestration/docker-compose.yml
+      file: ./orchestration/docker-compose-app.yml
       service: orchestration-local-worker
-
-  # orchestration-flower:
-  #   extends:
-  #     file: ./orchestration/docker-compose.yml
-  #     service: orchestration-flower
 
   rabbitmq:
     extends:
-      file: ./orchestration/docker-compose.yml
+      file: ./orchestration/docker-compose-app.yml
       service: rabbitmq
 
   orchestrator:
     extends:
-      file: ./orchestration/docker-compose.yml
+      file: ./orchestration/docker-compose-app.yml
       service: orchestrator
 
   nginx:
@@ -106,7 +101,6 @@ services:
       - backend
       - frontend
       - rabbitmq
-      # - orchestration-flower
 
 networks:
   orchestration-network:

@@ -1,6 +1,3 @@
-[submodule "orchestration/pipelines/training_set_maker"]
-	path = orchestration/pipelines/training_set_maker
-	url = https://github.com/linea-it/pzserver_training_set_maker.git
-[submodule "orchestration/pipelines/combine_redshift_dedup"]
-	path = orchestration/pipelines/combine_redshift_dedup
-	url = https://github.com/linea-it/pzserver_combine_redshift_dedup.git
+[submodule "orchestration"]
+	path = orchestration
+	url = https://github.com/linea-it/orchestration.git
