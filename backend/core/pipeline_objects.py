@@ -4,7 +4,7 @@ from core.utils import get_pipeline, get_pipelines
 from pydantic import BaseModel, validator
 
 
-class Pipeline():
+class Pipeline:
     def __init__(self):
         self.__raw_pipelines = get_pipelines()
 
@@ -14,7 +14,7 @@ class Pipeline():
             data["name"] = pipename
             pipelines.append(PipelineModel(**data))
         return pipelines
-    
+
     def get(self, name):
         data = self.__raw_pipelines.get("name", {})
         data["name"] = name
@@ -31,18 +31,17 @@ class PipelineModel(BaseModel):
     display_name: str | None
     schema_config: str | None
 
-    @validator('path', pre=True)
+    @validator("path", pre=True)
     def validate_path(cls, value):
         assert Path(value).is_dir(), f"Folder '{value}' not found."
         return value
-    
-    @validator('schema_config', pre=True)
+
+    @validator("schema_config", pre=True)
     def validate_config(cls, value):
         assert Path(value).is_file(), f"File '{value}' not found."
         return value
 
 
 if __name__ == "__main__":
-    from core.utils import get_pipeline
-    pipe_info = get_pipeline('cross_lsdb')
-    pipeline = Pipeline(**pipe_info)
+    pipelines = Pipeline()
+    print(pipelines.all())
