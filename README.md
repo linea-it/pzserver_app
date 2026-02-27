@@ -170,6 +170,14 @@ Exit the container and start orchestration services:
 ``` bash
 exit
 ```
+
+Synchronize pipelines in the database:
+
+```
+docker compose run backend python manage.py sync_pipelines 
+```
+
+Initialize orchestrator:
 ```
 docker compose up orchestrator
 ```

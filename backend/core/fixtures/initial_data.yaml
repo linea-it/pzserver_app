@@ -90,33 +90,7 @@
     version: 0.0.1
     description: Training Set Maker pipeline
     created_at: 2022-05-18 15:36:59.830913+00:00
-    system_config:
-      executor:
-        name: "local"
-        args:
-          n_workers: 2
-          threads_per_worker: 2
-          memory_limit: "1GiB"
-      inputs:
-        dataset:
-          path: "/datasets/data-example/dr2"
-          columns:
-            id: "id"
-        specz:
-          - path: "/datasets/data-example/specz.parquet"
-            columns:
-              ra: "ra"
-              dec: "dec"
-      output_dir: "outputs"
-      param:
-        duplicate_criteria: "closest"
-        flux_type: "auto"
-        convert_flux_to_mag: false
-        dereddening: "sfd"
-        crossmatch:
-          output_catalog_name: "tsm_cross_001"
-          radius_arcsec: 1.0
-          n_neighbors: 1
+    system_config: null
     product_types_accepted: [1]
     output_product_type: 2
 - model: core.pipeline
@@ -127,42 +101,6 @@
     version: 0.0.1
     description: Combine Redshift Catalogs pipeline
     created_at: 2022-05-18 15:36:59.830913+00:00
-    system_config:
-      executor:
-        args:
-          memory_limit: 1GiB
-          n_workers: 2
-          threads_per_worker: 2
-        name: local
-      inputs:
-        specz:
-          - columns:
-              dec: dec
-              id: null
-              ra: ra
-              survey: null
-              z: z
-              z_err: null
-              z_flag: null
-            format: parquet
-            internal_name: 00_specz
-            path: /datasets/specz.parquet
-          - columns:
-              dec: dec
-              id: null
-              ra: ra
-              survey: null
-              z: z
-              z_err: null
-              z_flag: null
-            format: parquet
-            internal_name: 00_specz
-            path: /datasets/specz.parquet
-      output_dir: outputs
-      output_format: parquet
-      output_name: crd
-      output_root_dir: .
-      param:
-        combine_type: concatenate
+    system_config: null
     product_types_accepted: [1]
     output_product_type: 1
