@@ -12,6 +12,7 @@ from django.conf import settings
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 LOGGER = logging.getLogger("django")
@@ -56,6 +57,8 @@ class ProcessFilter(filters.FilterSet):
 class ProcessViewSet(viewsets.ModelViewSet):
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
     search_fields = [
         "pipeline_name",
         "pipeline_display_name",
@@ -104,10 +107,30 @@ class ProcessViewSet(viewsets.ModelViewSet):
             LOGGER.error(err)
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        try:
-            if process.used_config:
-                used_config = process.used_config
+        uploaded_flags = request.FILES.get("flags_translation", None)
 
+        if uploaded_flags:
+            upload_base = pathlib.Path(settings.UPLOAD_DIR, process.upload.path)
+            upload_base.mkdir(parents=True, exist_ok=True)
+
+            flags_path = upload_base / uploaded_flags.name
+
+            with open(flags_path, "wb+") as destination:
+                for chunk in uploaded_flags.chunks():
+                    destination.write(chunk)
+
+            LOGGER.debug(f"Flags translation file saved at {flags_path}")
+
+            # inicializa used_config se necessário
+            if not process.used_config:
+                process.used_config = {}
+
+            process.used_config["flags_translation"] = str(flags_path)
+            process.save(update_fields=["used_config"])
+
+        try:
+
+            used_config = process.used_config or {}
             used_config["inputs"] = {}
 
             if process.release:

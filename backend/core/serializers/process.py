@@ -14,6 +14,7 @@ class ProcessSerializer(serializers.ModelSerializer):
     owned_by = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
     provenance_inputs = ProductSerializer(source="inputs", many=True, read_only=True)
+    flags_translation = serializers.FileField(write_only=True, required=False)
 
     class Meta:
         model = Process
