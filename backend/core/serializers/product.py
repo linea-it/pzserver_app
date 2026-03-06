@@ -1,5 +1,4 @@
 from core.models import Product, ProductStatus, ProductType, Release
-from pkg_resources import require
 from rest_framework import serializers
 
 
