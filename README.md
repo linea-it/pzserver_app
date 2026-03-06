@@ -171,9 +171,15 @@ Exit the container and start orchestration services:
 exit
 ```
 
-Synchronize pipelines in the database:
+Copy, edit and leave only the PzServer pipelines uncommented:
+``` bash
+cp orchestration/pipelines/pipelines.yaml.template orchestration/pipelines/pipelines.yaml
 
+### EDIT: orchestration/pipelines/pipelines.yaml
 ```
+
+Synchronize pipelines in the database:
+``` bash
 docker compose run backend python manage.py sync_pipelines 
 ```
 
