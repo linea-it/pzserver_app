@@ -1,6 +1,10 @@
+import ast
+
 from core.models import Process, Release
 from core.serializers.product import ProductSerializer
 from rest_framework import serializers
+from core.serializers.jsonfield import FlexibleJSONField
+
 
 
 class ProcessSerializer(serializers.ModelSerializer):
@@ -14,6 +18,8 @@ class ProcessSerializer(serializers.ModelSerializer):
     owned_by = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
     provenance_inputs = ProductSerializer(source="inputs", many=True, read_only=True)
+    used_config = FlexibleJSONField(required=False)
+    flags_translation = serializers.FileField(write_only=True, required=False)
 
     class Meta:
         model = Process
