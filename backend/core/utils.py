@@ -19,7 +19,7 @@ def get_lognames():
     """
     return {
         "pipeline": {"filename": ["pipeline.log", "*.log"]},
-        "slurm": {"filename": ["run.out"]},
+        "slurm": {"filename": ["run.out", "run.err"]},
     }
 
 
@@ -39,14 +39,17 @@ def get_logs(process_dir, product_dir):
     process_dir = pathlib.Path(settings.PROCESSING_DIR, process_dir)
     product_dir = pathlib.Path(settings.UPLOAD_DIR, product_dir)
 
-    for _, data in logs.items():
+    for key, data in logs.items():
         log = []
         lognames = data.get("filename", [])
+        logger.debug(f"Searching for log files: {key}")
+
         for fname in lognames:
-            print(f"Searching for log file: {fname}")
             log = glob.glob(f"{process_dir}/**/{fname}", recursive=True)
+            logger.debug(f"process_dir: {process_dir}/**/{fname} -> {log}")
             if not log:
                 log = glob.glob(f"{product_dir}/**/{fname}", recursive=True)
+                logger.debug(f"product_dir: {product_dir}/**/{fname} -> {log}")
 
             if log:
                 break
