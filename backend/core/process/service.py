@@ -22,6 +22,7 @@ class ProcessService:
         handler_cls = BasePipelineHandler.get_handler(self.process.pipeline.name)
         handler = handler_cls(self.request, self.process)
         used_config = handler.build_config()
+
         inputs = InputsBuilder(self.process).build()
 
         used_config.setdefault("inputs", {})
