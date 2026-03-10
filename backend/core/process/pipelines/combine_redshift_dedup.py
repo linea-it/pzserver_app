@@ -2,6 +2,9 @@ import pathlib
 
 from core.process.pipelines.base import BasePipelineHandler
 from django.conf import settings
+import logging
+
+LOGGER = logging.getLogger("django")
 
 
 class CombineRedshiftHandler(BasePipelineHandler):
@@ -13,6 +16,7 @@ class CombineRedshiftHandler(BasePipelineHandler):
         uploaded_flags = self.request.FILES.get("flags_translation_file")
 
         if uploaded_flags:
+            LOGGER.debug("Received uploaded flags_translation_file: %s", uploaded_flags.name)
             upload_base = pathlib.Path(
                 settings.UPLOAD_DIR,
                 self.process.upload.path,
@@ -28,5 +32,7 @@ class CombineRedshiftHandler(BasePipelineHandler):
 
             used_config.setdefault("param", {})
             used_config["param"]["flags_translation_file"] = str(filepath)
+        else:
+            LOGGER.debug("No flags_translation_file uploaded")
 
         return used_config
