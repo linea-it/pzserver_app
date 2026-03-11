@@ -13,13 +13,14 @@ import { parseCookies } from 'nookies'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { sanitizeRedirectUrl } from '../utils/redirect'
+import { buildSamlLoginUrl, sanitizeRedirectUrl } from '../utils/redirect'
 
 function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const samlLoginUrl = buildSamlLoginUrl(CILogonUrl || shibLoginUrl, returnUrl)
 
   const handleSnackbarErrorClose = (_, reason) => {
     if (reason === 'clickaway') return
@@ -156,7 +157,7 @@ function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
                       if (returnUrl && returnUrl !== '/') {
                         sessionStorage.setItem('saml_return_url', returnUrl)
                       }
-                      window.location.href = CILogonUrl
+                      window.location.href = samlLoginUrl || CILogonUrl
                     }}
                     sx={{
                       backgroundColor: '#283663',

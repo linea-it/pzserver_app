@@ -24,8 +24,9 @@ export function isValidRedirectUrl(url) {
 
     // Para URLs absolutas, verificar se são do mesmo domínio
     const urlObj = new URL(url)
-    const currentHost = typeof window !== 'undefined' ? window.location.host : 'localhost'
-    
+    const currentHost =
+      typeof window !== 'undefined' ? window.location.host : 'localhost'
+
     return urlObj.host === currentHost
   } catch (error) {
     // URL malformada
@@ -45,12 +46,17 @@ export function sanitizeRedirectUrl(url, fallback = '/') {
   }
 
   const decodedUrl = decodeURIComponent(url)
-  
+
   if (isValidRedirectUrl(decodedUrl)) {
     return decodedUrl
   }
 
-  console.warn('URL de redirecionamento inválida:', url, 'usando fallback:', fallback)
+  console.warn(
+    'URL de redirecionamento inválida:',
+    url,
+    'usando fallback:',
+    fallback
+  )
   return fallback
 }
 
@@ -66,4 +72,42 @@ export function buildLoginUrl(returnUrl) {
 
   const encodedReturnUrl = encodeURIComponent(returnUrl)
   return `/login?returnUrl=${encodedReturnUrl}`
+}
+
+/**
+ * Constrói uma URL de login SAML com o parâmetro next dinâmico.
+ * @param {string} loginUrl - URL base de login SAML/SATOSA
+ * @param {string} returnUrl - URL para retornar após autenticação
+ * @returns {string|null} - URL final de login SAML
+ */
+export function buildSamlLoginUrl(loginUrl, returnUrl = '/') {
+  if (!loginUrl) {
+    return null
+  }
+
+  const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
+
+  try {
+    const baseOrigin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'http://localhost'
+    const parsedUrl = new URL(loginUrl, baseOrigin)
+
+    parsedUrl.searchParams.set('next', sanitizedReturnUrl)
+
+    // Preserve relative URLs when the configured login URL is relative.
+    if (loginUrl.startsWith('/')) {
+      return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+    }
+
+    return parsedUrl.toString()
+  } catch (error) {
+    console.warn(
+      'Falha ao montar URL de login SAML, usando URL original:',
+      loginUrl,
+      error
+    )
+    return loginUrl
+  }
 }
