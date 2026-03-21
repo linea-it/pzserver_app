@@ -303,8 +303,17 @@ export default function ProductDetail({ productId, internalName }) {
           <Link color="inherit" href="/">
             Home
           </Link>
-          <Typography>Data Products</Typography>
-          <Typography color="textPrimary">Product</Typography>
+          <Link
+            color="inherit"
+            href={
+              product.official_product ? '/oficial_products' : '/user_products'
+            }
+          >
+            {product.official_product
+              ? 'Rubin Observatory PZ Data Products'
+              : 'User-generated Data Products'}
+          </Link>
+          <Typography color="textPrimary">{product.display_name}</Typography>
         </Breadcrumbs>
         <Box
           sx={{
@@ -323,12 +332,7 @@ export default function ProductDetail({ productId, internalName }) {
           >
             <ArrowBackIosIcon
               onClick={() => {
-                sessionStorage.setItem('apply_search', true)
-                sessionStorage.setItem('apply_pagination', true)
-                const returnPath = product.official_product
-                  ? '/oficial_products'
-                  : '/user_products'
-                router.push(returnPath)
+                router.back()
               }}
               color="primary"
               cursor="pointer"
