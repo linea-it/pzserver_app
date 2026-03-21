@@ -62,7 +62,15 @@ const DataTableWrapper = ({ onSelectionChange, clearSelection }) => {
   ]
 
   return (
-    <Box sx={{ height: 300, width: '100%' }}>
+    <Box
+      sx={{
+        height: 300,
+        minHeight: 200,
+        width: '100%',
+        resize: 'vertical',
+        overflow: 'auto'
+      }}
+    >
       <DataGrid
         checkboxSelection
         getRowId={row => row.id || row.unique_key}
