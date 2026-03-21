@@ -53,7 +53,7 @@ export const patchProduct = data => {
   }
 
   if (data.release !== '' && data.release !== null) {
-      formData.append('release', data.release)
+    formData.append('release', data.release)
   }
 
   if (data.product_type !== '' && data.product_type !== null) {
@@ -118,22 +118,16 @@ export const getProducts = ({
   // Filtros no DRF
   // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
   // cada filtro que tiver valor deve virar uma propriedade no objeto params
-  // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
-  // o filtro official_product deve ser enviado no search também.
-  if (search === '') {
-    forIn(filters, function (value, key) {
-      if (key === 'release' && value === '0') {
-        params.release__isnull = true
-        params.release = null
-      } else {
-        if (value != null) {
-          params[key] = value
-        }
+  forIn(filters, function (value, key) {
+    if (key === 'release' && value === '0') {
+      params.release__isnull = true
+      params.release = null
+    } else {
+      if (value != null) {
+        params[key] = value
       }
-    })
-  }
-
-  params.official_product = filters.official_product
+    }
+  })
 
   return api.get('/api/products/', { params }).then(res => res.data)
 }
@@ -252,22 +246,16 @@ export const getProductsSpecz = ({
   // Filtros no DRF
   // https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
   // cada filtro que tiver valor deve virar uma propriedade no objeto params
-  // Só aplica os filtros caso não tenha um search dessa forma a busca é feita em todos os registros.
-  // o filtro official_product deve ser enviado no search também.
-  if (search === '') {
-    forIn(filters, function (value, key) {
-      if (key === 'release' && value === '0') {
-        params.release__isnull = true
-        params.release = null
-      } else {
-        if (value != null) {
-          params[key] = value
-        }
+  forIn(filters, function (value, key) {
+    if (key === 'release' && value === '0') {
+      params.release__isnull = true
+      params.release = null
+    } else {
+      if (value != null) {
+        params[key] = value
       }
-    })
-  }
-
-  params.official_product = filters.official_product
+    }
+  })
 
   return api.get('/api/products-specz/', { params }).then(res => res.data)
 }
