@@ -169,10 +169,25 @@ function TrainingSetMaker() {
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
-    setData(initialData.system_config)
+    setData(prevData => ({
+      ...initialData.system_config,
+      param: {
+        ...initialData.system_config.param,
+        description: '',
+        flux_type: '',
+        dereddening: ''
+      }
+    }))
     setSelectedLsstCatalog('')
     setOutputFormat('specz')
     setIsSubmitting(false)
+    setSelectedProductId(null)
+    setConvertFluxToMag(true)
+    setDisabledConvertFluxToMag(false)
+    setUniqueGalaxies(false)
+    setSearch('')
+    setFluxes([])
+    setDereddening([])
   }
 
   const handleRelease = (releaseName, releasesData) => {
@@ -428,6 +443,7 @@ function TrainingSetMaker() {
                 <TsmData
                   query={search}
                   onProductSelect={setSelectedProductId}
+                  selectedProductId={selectedProductId}
                 />
               </CardContent>
             </Card>
