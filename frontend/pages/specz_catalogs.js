@@ -71,6 +71,14 @@ function SpeczCatalogs() {
     setFlagToCut('3.0')
     setSelectedProducts([])
     setOutputFormat('parquet')
+    setResolveDuplicates('concatenate')
+    setData(prevData => ({
+      ...initialData.system_config,
+      param: {
+        ...initialData.system_config.param,
+        description: ''
+      }
+    }))
   }
 
   const handleResolveDuplicates = event => {

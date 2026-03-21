@@ -7,10 +7,19 @@ import * as React from 'react'
 import { useQuery } from 'react-query'
 import { getProductsSpecz } from '../services/product'
 
-const DataTableWrapper = ({ filters, query, onProductSelect }) => {
+const DataTableWrapper = ({
+  filters,
+  query,
+  onProductSelect,
+  selectedProductId
+}) => {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [selectedRowId, setSelectedRowId] = React.useState(null)
+
+  React.useEffect(() => {
+    setSelectedRowId(selectedProductId)
+  }, [selectedProductId])
 
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
@@ -102,7 +111,8 @@ const DataTableWrapper = ({ filters, query, onProductSelect }) => {
 DataTableWrapper.propTypes = {
   filters: PropTypes.object,
   query: PropTypes.string,
-  onProductSelect: PropTypes.func
+  onProductSelect: PropTypes.func,
+  selectedProductId: PropTypes.number
 }
 
 DataTableWrapper.defaultProps = {
