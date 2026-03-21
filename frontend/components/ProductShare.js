@@ -37,7 +37,7 @@ export default function ProductShare({
       }}
     >
       <DialogTitle style={{ fontSize: '16px' }}>
-        Copy the data product's URL:
+        Copy the data product&apos;s URL:
       </DialogTitle>
       <DialogContent>
         <TextField
