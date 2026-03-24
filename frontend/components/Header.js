@@ -51,18 +51,6 @@ function Header(props) {
       href: '/'
     },
     {
-      description: 'Data Products',
-      href: '/user_products'
-    },
-    {
-      description: 'Upload',
-      href: '/product/new'
-    },
-    {
-      description: 'Pipelines',
-      href: '/pz_pipelines'
-    },
-    {
       description: 'About',
       href: '/about'
     },

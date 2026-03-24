@@ -166,17 +166,7 @@ export default function Products() {
               router.push('/product/new')
             }}
           >
-            Upload
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ ml: 1 }}
-            onClick={() => {
-              router.push('/pz_pipelines')
-            }}
-          >
-            Create
+            New Product
           </Button>
         </Grid>
       </Grid>
