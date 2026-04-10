@@ -1,4 +1,6 @@
 import React from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos'
 import EditIcon from '@mui/icons-material/Edit'
@@ -472,8 +474,25 @@ export default function ProductDetail({ productId, internalName }) {
               </Stack>
               <Box sx={{ m: 2 }}></Box>
               {product.description !== null && (
-                <Typography variant="body" color="textSecondary">
-                  {product.description}
+                <Typography
+                  variant="body"
+                  color="textSecondary"
+                  component="div"
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ node, ...props }) => (
+                        <a
+                          {...props}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      )
+                    }}
+                  >
+                    {product.description}
+                  </ReactMarkdown>
                 </Typography>
               )}
               <ProductShare
