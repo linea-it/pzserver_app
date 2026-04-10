@@ -9,7 +9,6 @@ import DialogActions from '@mui/material/DialogActions'
 import InputAdornment from '@mui/material/InputAdornment'
 
 import PropTypes from 'prop-types'
-import React from 'react'
 
 export default function ProductShare({
   isOpen,
@@ -38,7 +37,7 @@ export default function ProductShare({
       }}
     >
       <DialogTitle style={{ fontSize: '16px' }}>
-        Copy the download URL:
+        Copy the data product&apos;s URL:
       </DialogTitle>
       <DialogContent>
         <TextField
