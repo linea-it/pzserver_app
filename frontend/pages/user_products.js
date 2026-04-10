@@ -194,7 +194,7 @@ export default function Products() {
                         release: value
                       })
                     }}
-                    disabled={search !== ''}
+                    disabled={false}
                     allowAll={true}
                     noRelease={true}
                   />
@@ -208,7 +208,7 @@ export default function Products() {
                         product_type: value
                       })
                     }}
-                    disabled={search !== ''}
+                    disabled={false}
                     allowAll={true}
                   />
                 </FormControl>
