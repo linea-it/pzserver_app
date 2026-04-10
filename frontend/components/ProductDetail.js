@@ -346,44 +346,55 @@ export default function ProductDetail({ productId, internalName }) {
       <Box component="form" noValidate autoComplete="off">
         <Grid
           container
-          spacing={3}
+          spacing={{ xs: 2, md: 3 }}
           direction="row"
           justifyContent="flex-start"
           alignItems="stretch"
         >
-          <Grid item xs={8}>
+          <Grid item xs={12} md={8}>
             <Paper elevation={2} className={classes.paper}>
+              <Typography
+                variant="h4"
+                sx={{
+                  wordBreak: 'break-word',
+                  fontSize: { xs: '1.25rem', md: '2.125rem' },
+                  mb: 1
+                }}
+              >
+                {product.display_name}
+              </Typography>
               <Stack
                 direction="row"
-                justifyContent="flex-start"
                 alignItems="center"
-                spacing={2}
+                spacing={1}
+                sx={{ mb: 2 }}
               >
-                <Typography variant="h4">{product.display_name}</Typography>
-                {product.status === 1 && (
-                  <IconButton onClick={handleShareDialogOpen}>
-                    <ShareIcon />
-                  </IconButton>
-                )}
-                {product.can_update === true && (
-                  <IconButton onClick={handleEdit}>
-                    <EditIcon />
-                  </IconButton>
-                )}
                 {product.official_product === true && (
                   <Chip
                     variant="outlined"
                     color="success"
                     label="Official Product"
                     icon={<VerifiedIcon />}
+                    size="small"
                   />
                 )}
+                {product.status === 1 && (
+                  <IconButton onClick={handleShareDialogOpen} size="small">
+                    <ShareIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {product.can_update === true && (
+                  <IconButton onClick={handleEdit} size="small">
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Stack>
+              <Divider sx={{ mb: 2 }} />
               <Stack
-                direction="row"
+                direction={{ xs: 'column', md: 'row' }}
                 justifyContent="flex-start"
                 alignItems="flex-start"
-                spacing={2}
+                spacing={{ xs: 0.5, md: 2 }}
               >
                 <Typography variant="subtitle1" color="textSecondary">
                   <strong>Created at:</strong>{' '}
@@ -396,12 +407,12 @@ export default function ProductDetail({ productId, internalName }) {
                   <strong>Origin:</strong> {product.origin}
                 </Typography>
               </Stack>
-              <Box sx={{ m: 2 }}></Box>
+              <Box sx={{ m: { xs: 1, md: 2 } }}></Box>
               <Stack
-                direction="row"
+                direction={{ xs: 'column', md: 'row' }}
                 justifyContent="flex-start"
                 alignItems="flex-start"
-                spacing={2}
+                spacing={{ xs: 0.5, md: 2 }}
               >
                 <Typography variant="subtitle1" color="textSecondary">
                   <strong>Product Type:</strong> {product.product_type_name}
@@ -472,7 +483,7 @@ export default function ProductDetail({ productId, internalName }) {
                   </>
                 )}
               </Stack>
-              <Box sx={{ m: 2 }}></Box>
+              <Box sx={{ m: { xs: 1, md: 2 } }}></Box>
               {product.description !== null && (
                 <Typography
                   variant="body"
@@ -504,7 +515,7 @@ export default function ProductDetail({ productId, internalName }) {
               />
             </Paper>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} md={4}>
             <Paper elevation={2} className={classes.paper}>
               <Stack divider={<Divider flexItem />} spacing={2}>
                 {product.status === 1 && (
@@ -513,6 +524,7 @@ export default function ProductDetail({ productId, internalName }) {
                       loading={isDownloading}
                       variant="contained"
                       onClick={downloadFile}
+                      fullWidth
                     >
                       Download
                     </LoadingButton>
