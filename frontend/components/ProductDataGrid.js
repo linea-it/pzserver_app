@@ -48,7 +48,8 @@ export default function ProductDataGrid(props) {
         field: name,
         headerName: name,
         sortable: false,
-        flex: 1
+        flex: 1,
+        minWidth: 100
       }
     })
     setColumns(cols)
