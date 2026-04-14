@@ -211,6 +211,11 @@ export const createProductFile = (product_id, file, role, onUploadProgress) => {
   })
 }
 
+export const getProductConfigFiles = async productId => {
+  const res = await api.get(`/api/products/${productId}/config_files/`)
+  return res.data
+}
+
 export const getAllProductsSpecz = async () => {
   const res = await api.get('/api/products-specz/')
   return res.data

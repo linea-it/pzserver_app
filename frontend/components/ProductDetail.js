@@ -41,6 +41,7 @@ import { getProcessByUpload } from '../services/process'
 import {
   downloadProduct,
   getProduct,
+  getProductConfigFiles,
   getProductFiles,
   getProducts
 } from '../services/product'
@@ -63,6 +64,7 @@ export default function ProductDetail({ productId, internalName }) {
   const [activeTab, setActiveTab] = React.useState(0)
   const [hasHtmlFile, setHasHtmlFile] = React.useState(false)
   const [isTabular, setIsTabular] = React.useState(false)
+  const [configFiles, setConfigFiles] = React.useState(null)
 
   const loadProductById = React.useCallback(async () => {
     setLoading(true)
@@ -147,6 +149,19 @@ export default function ProductDetail({ productId, internalName }) {
       loadProcessByUpload()
     }
   }, [loadProcessByUpload, product])
+
+  const loadConfigFiles = React.useCallback(async () => {
+    if (!product?.id) return
+    getProductConfigFiles(product.id)
+      .then(res => setConfigFiles(res))
+      .catch(() => setConfigFiles(null))
+  }, [product])
+
+  React.useEffect(() => {
+    if (product) {
+      loadConfigFiles()
+    }
+  }, [loadConfigFiles, product])
 
   const loadFiles = React.useCallback(async () => {
     if (!product.id) {
@@ -544,7 +559,7 @@ export default function ProductDetail({ productId, internalName }) {
               </Stack>
             </Paper>
           </Grid>
-          {isTabular && (
+          {(isTabular || configFiles) && (
             <Grid item xs={12}>
               <Card elevation={2}>
                 <CardContent>
@@ -553,9 +568,11 @@ export default function ProductDetail({ productId, internalName }) {
                     onChange={(event, newValue) => setActiveTab(newValue)}
                   >
                     {hasHtmlFile && <Tab label="Description File" value={1} />}
-                    <Tab label="Table Preview" value={0} />
+                    {isTabular && <Tab label="Table Preview" value={0} />}
+                    {configFiles && <Tab label="Config" value={2} />}
+                    {configFiles && <Tab label="Flags Translation" value={3} />}
                   </Tabs>
-                  {activeTab === 0 && (
+                  {activeTab === 0 && isTabular && (
                     <ProductDataGrid productId={product.id} />
                   )}
                   {activeTab === 1 && hasHtmlFile && (
@@ -574,6 +591,56 @@ export default function ProductDetail({ productId, internalName }) {
                         }
                         return null
                       })}
+                    </Box>
+                  )}
+                  {activeTab === 2 && configFiles && (
+                    <Box sx={{ p: 2 }}>
+                      {configFiles.config_yaml ? (
+                        <Box
+                          component="pre"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.85rem',
+                            overflowX: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                            maxHeight: 500,
+                            overflowY: 'auto',
+                            m: 0
+                          }}
+                        >
+                          {configFiles.config_yaml}
+                        </Box>
+                      ) : (
+                        <Typography color="text.secondary">
+                          Config file not available.
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                  {activeTab === 3 && configFiles && (
+                    <Box sx={{ p: 2 }}>
+                      {configFiles.flags_translation_yaml ? (
+                        <Box
+                          component="pre"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.85rem',
+                            overflowX: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                            maxHeight: 500,
+                            overflowY: 'auto',
+                            m: 0
+                          }}
+                        >
+                          {configFiles.flags_translation_yaml}
+                        </Box>
+                      ) : (
+                        <Typography color="text.secondary">
+                          Flags translation file not available.
+                        </Typography>
+                      )}
                     </Box>
                   )}
                 </CardContent>
