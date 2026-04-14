@@ -173,21 +173,21 @@ function TrainingSetMaker() {
       ...initialData.system_config,
       param: {
         ...initialData.system_config.param,
-        description: '',
-        flux_type: '',
-        dereddening: ''
+        description: ''
       }
     }))
-    setSelectedLsstCatalog('')
+    if (releases.length > 0) {
+      handleRelease(releases[0].name)
+    } else {
+      setSelectedLsstCatalog('')
+      setFluxes([])
+      setDereddening([])
+    }
     setOutputFormat('specz')
     setIsSubmitting(false)
     setSelectedProductId(null)
-    setConvertFluxToMag(true)
-    setDisabledConvertFluxToMag(false)
     setUniqueGalaxies(false)
     setSearch('')
-    setFluxes([])
-    setDereddening([])
   }
 
   const handleRelease = (releaseName, releasesData) => {
