@@ -211,9 +211,30 @@ export const createProductFile = (product_id, file, role, onUploadProgress) => {
   })
 }
 
+const serializeConfigPayload = value => {
+  if (value == null) {
+    return ''
+  }
+
+  if (typeof value === 'string') {
+    return value
+  }
+
+  return JSON.stringify(value, null, 2)
+}
+
 export const getProductConfigFiles = async productId => {
-  const res = await api.get(`/api/products/${productId}/config_files/`)
-  return res.data
+  const res = await api.get(`/api/products/${productId}/process_config/`)
+  const data = res.data
+
+  if (!data || Object.keys(data).length === 0) {
+    return null
+  }
+
+  return {
+    config_yaml: serializeConfigPayload(data.config),
+    flags_translation_yaml: serializeConfigPayload(data.flag_translation)
+  }
 }
 
 export const getAllProductsSpecz = async () => {

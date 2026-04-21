@@ -5,7 +5,7 @@ import shutil
 from unittest import mock
 
 import pytest
-from core.models import Product, ProductStatus, ProductType, Release
+from core.models import Pipeline, Process, Product, ProductStatus, ProductType, Release
 from core.serializers import ProductSerializer
 from core.views import ProductViewSet
 from django.conf import settings
@@ -384,6 +384,60 @@ class ProductDetailAPIViewTestCase(APITestCase):
         response = self.client.get(self.url)
         response_data = json.loads(response.content)
         self.assertFalse(response_data["is_owner"])
+
+    def test_process_config_returns_empty_for_upload_products(self):
+        response = self.client.get(
+            reverse("products-process-config", kwargs={"pk": self.product.pk})
+        )
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({}, json.loads(response.content))
+
+    def test_process_config_returns_config_and_flag_translation(self):
+        pipeline = Pipeline.objects.create(
+            name="combine_redshift_dedup",
+            display_name="Combine Redshift Dedup",
+            version="1.0.0",
+            output_product_type=self.product_type,
+        )
+        pipeline.product_types_accepted.add(self.product_type)
+
+        flag_name = "flags_translation.csv"
+        Process.objects.create(
+            display_name="Process Upload",
+            pipeline=pipeline,
+            used_config={
+                "param": {
+                    "flags_translation_file": f"/tmp/original/location/{flag_name}"
+                }
+            },
+            release=self.release,
+            upload=self.product,
+            user=self.user,
+        )
+
+        flag_path = pathlib.Path(settings.MEDIA_ROOT, self.product.path, flag_name)
+        flag_content = "translation_rules:\n  TEST:\n    default: s\n"
+        flag_path.write_text(flag_content)
+        self.addCleanup(flag_path.unlink)
+
+        response = self.client.get(
+            reverse("products-process-config", kwargs={"pk": self.product.pk})
+        )
+        response_data = json.loads(response.content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            {
+                "config": {
+                    "flags_translation_file": f"/tmp/original/location/{flag_name}"
+                },
+                "flag_translation": {
+                    "translation_rules": {"TEST": {"default": "s"}}
+                },
+            },
+            response_data,
+        )
 
     # def test_delete_product_oserror(self):
 
