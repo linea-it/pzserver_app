@@ -214,6 +214,53 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
 
         return product_full
 
+    def __get_flag_translation_name(self, config):
+        """Extract the flags translation filename from a nested config."""
+        if isinstance(config, dict):
+            filepath = config.get("flags_translation_file")
+            if filepath:
+                return Path(filepath).name
+
+            for value in config.values():
+                filename = self.__get_flag_translation_name(value)
+                if filename:
+                    return filename
+
+        if isinstance(config, list):
+            for value in config:
+                filename = self.__get_flag_translation_name(value)
+                if filename:
+                    return filename
+
+        return None
+
+    @action(methods=["GET"], detail=True)
+    def process_config(self, request, **kwargs):
+        product = self.get_object()
+
+        if not hasattr(product, "process"):
+            return Response({})
+
+        config = product.process.used_config or {}
+        response = {"config": config.get("param", {})}
+
+        flag_translation_name = self.__get_flag_translation_name(config)
+        if not flag_translation_name:
+            return Response(response)
+
+        flag_translation_path = pathlib.Path(
+            settings.MEDIA_ROOT,
+            product.path,
+            flag_translation_name,
+        )
+
+        if flag_translation_path.exists():
+            response["flag_translation"] = yaml.safe_load(
+                flag_translation_path.read_text(encoding="utf-8")
+            )
+
+        return Response(response)
+
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
         """Download product"""
