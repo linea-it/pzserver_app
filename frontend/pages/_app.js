@@ -3,6 +3,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import Script from 'next/script'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
@@ -16,6 +17,7 @@ import darkTheme from '../themes/dark'
 import lightTheme from '../themes/light'
 
 const queryClient = new QueryClient()
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 export default function MyApp(props) {
   const { Component, pageProps } = props
@@ -62,6 +64,24 @@ export default function MyApp(props) {
 
   return (
     <>
+      {/* Google Analytics (GA4) */}
+      {GA_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="ga4-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);} 
+              gtag('js', new Date());
+              // Evita page_view inicial duplicado; Enhanced Measurement cuidará dos page_views
+              gtag('config', '${GA_ID}', { send_page_view: false });
+            `}
+          </Script>
+        </>
+      )}
       <Head>
         <title>Photo-z Server</title>
         <meta
