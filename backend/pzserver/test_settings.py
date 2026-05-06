@@ -129,6 +129,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
 MEDIA_URL = os.path.join(BASE_DIR, "archive/data/")
 MEDIA_ROOT = os.path.join(BASE_DIR, "archive/data/")
+PRODUCT_DOWNLOAD_COMPRESSION_LEVEL = int(
+    os.getenv("PRODUCT_DOWNLOAD_COMPRESSION_LEVEL", "6")
+)
 
 
 # Default primary key field type

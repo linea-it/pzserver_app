@@ -170,6 +170,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/archive/data/")
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
+PRODUCT_DOWNLOAD_COMPRESSION_LEVEL = int(
+    os.getenv("PRODUCT_DOWNLOAD_COMPRESSION_LEVEL", "6")
+)
 
 # Criando VA APPEND
 APPEND_SLASH = False

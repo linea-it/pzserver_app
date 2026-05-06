@@ -1,10 +1,7 @@
 import logging
 import mimetypes
-import os
 import pathlib
-import secrets
 import tempfile
-import zipfile
 from json import dumps, loads
 from pathlib import Path
 
@@ -14,7 +11,7 @@ from core.permissions import AccessControlMixin, ProductAccessPermission
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
-from core.services import AccessControlService
+from core.services import AccessControlService, ProductDownloadArchiveService
 from core.utils import format_query_to_char
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -267,22 +264,12 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         try:
             product = self.get_object()
             product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
-            with open(
-                pathlib.Path(product_path, "product_metadata.yaml"), "w"
-            ) as yaml_file:
-                json_object = loads(dumps(self.__get_full_product(product)))
-                yaml.dump(
-                    json_object,
-                    yaml_file,
-                    default_flow_style=False,
-                    allow_unicode=False,
-                    encoding=None,
-                )
+            product_metadata = loads(dumps(self.__get_full_product(product)))
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 # Cria um arquivo zip no diretório tmp com os arquivos do produto
-                zip_file = self.zip_product(
-                    product.internal_name, product.path, tmpdirname
+                zip_file = ProductDownloadArchiveService.build_zip(
+                    product.internal_name, product_path, product_metadata, tmpdirname
                 )
 
                 # Abre o arquivo e envia em bites para o navegador
@@ -440,28 +427,6 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def zip_product(self, internal_name, path, tmpdir):
-
-        product_path = pathlib.Path(settings.MEDIA_ROOT, path)
-        thash = "".join(secrets.choice(secrets.token_hex(16)) for i in range(5))
-        zip_name = f"{internal_name}_{thash}.zip"
-        zip_path = pathlib.Path(tmpdir, zip_name)
-
-        with zipfile.ZipFile(
-            zip_path,
-            "w",
-            compression=zipfile.ZIP_DEFLATED,
-            compresslevel=9,
-        ) as ziphandle:
-            for root, dirs, files in os.walk(product_path):
-                for file in files:
-                    origin_file = os.path.join(root, file)
-                    ziphandle.write(origin_file, arcname=file)
-
-        ziphandle.close()
-
-        return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
         """Product can only be deleted by the OWNER or if the user has an
