@@ -72,3 +72,55 @@ class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
                     zip_file_mock.call_args.kwargs["compresslevel"],
                     3,
                 )
+
+    def test_build_source_snapshot_uses_only_files_included_in_archive(self):
+        with tempfile.TemporaryDirectory() as product_dir:
+            product_path = Path(product_dir)
+            nested_path = product_path / "nested"
+            nested_path.mkdir()
+
+            (product_path / "root.txt").write_text("root", encoding="utf-8")
+            (nested_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+            (product_path / "product_metadata.yaml").write_text(
+                "stale: true\n", encoding="utf-8"
+            )
+
+            snapshot = ProductDownloadArchiveService.build_source_snapshot(
+                product_path
+            )
+
+        self.assertEqual(
+            [entry["path"] for entry in snapshot],
+            ["nested/data.csv", "root.txt"],
+        )
+        for entry in snapshot:
+            self.assertEqual(
+                set(entry.keys()),
+                {"path", "size", "mtime_ns"},
+            )
+
+    def test_build_source_signature_changes_when_source_files_change(self):
+        with tempfile.TemporaryDirectory() as product_dir:
+            product_path = Path(product_dir)
+            source_file = product_path / "data.csv"
+            metadata_file = product_path / "product_metadata.yaml"
+
+            source_file.write_text("a,b\n1,2\n", encoding="utf-8")
+            metadata_file.write_text("stale: true\n", encoding="utf-8")
+
+            original_signature = ProductDownloadArchiveService.build_source_signature(
+                product_path
+            )
+
+            metadata_file.write_text("stale: false\n", encoding="utf-8")
+            metadata_signature = ProductDownloadArchiveService.build_source_signature(
+                product_path
+            )
+
+            source_file.write_text("a,b\n1,2\n3,4\n", encoding="utf-8")
+            changed_signature = ProductDownloadArchiveService.build_source_signature(
+                product_path
+            )
+
+        self.assertEqual(original_signature, metadata_signature)
+        self.assertNotEqual(original_signature, changed_signature)
