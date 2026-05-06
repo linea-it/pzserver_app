@@ -4,8 +4,16 @@ from pathlib import Path
 from unittest import mock
 
 import yaml
+from core.models import (
+    Product,
+    ProductDownloadArchive,
+    ProductDownloadArchiveStatus,
+    ProductType,
+)
 from core.services.product_download import ProductDownloadArchiveService
-from django.test import SimpleTestCase, override_settings
+from django.contrib.auth.models import User
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 
 
 class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
@@ -124,3 +132,59 @@ class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
 
         self.assertEqual(original_signature, metadata_signature)
         self.assertNotEqual(original_signature, changed_signature)
+
+
+class ProductDownloadArchiveModelTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="john", email="john@snow.com", password="you_know_nothing"
+        )
+        self.product_type = ProductType.objects.create(
+            name="validation_results",
+            display_name="Validation Results",
+            description="Validation product type.",
+        )
+        self.product = Product.objects.create(
+            product_type=self.product_type,
+            user=self.user,
+            internal_name="sample_product",
+            display_name="Sample Product",
+            path="validation_results/sample_product",
+        )
+
+    def test_archive_defaults_to_pending_status(self):
+        archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            filename="sample_product.zip",
+            source_signature="a" * 64,
+        )
+
+        self.assertEqual(archive.status, ProductDownloadArchiveStatus.PENDING)
+        self.assertFalse(archive.is_ready)
+        self.assertFalse(archive.is_expired)
+        self.assertEqual(self.product.download_archives.count(), 1)
+        self.assertEqual(self.user.product_download_archives.count(), 1)
+
+    def test_archive_state_helpers(self):
+        ready_archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            status=ProductDownloadArchiveStatus.READY,
+            filename="ready.zip",
+            source_signature="b" * 64,
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
+        )
+        expired_archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            status=ProductDownloadArchiveStatus.READY,
+            filename="expired.zip",
+            source_signature="c" * 64,
+            expires_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+
+        self.assertTrue(ready_archive.is_ready)
+        self.assertFalse(ready_archive.is_expired)
+        self.assertTrue(expired_archive.is_ready)
+        self.assertTrue(expired_archive.is_expired)
