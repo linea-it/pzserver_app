@@ -5,11 +5,55 @@ import secrets
 import zipfile
 
 import yaml
+from core.models import ProductDownloadArchiveStatus, ProductStatus
 from django.conf import settings
+from django.utils import timezone
 
 
 class ProductDownloadArchiveService:
     metadata_filename = "product_metadata.yaml"
+
+    @classmethod
+    def prepare_archive(cls, archive):
+        product = archive.product
+        product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
+        output_dir = cls.get_archive_output_dir(product)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        source_signature = cls.build_source_signature(product_path)
+        metadata = cls.build_product_metadata(product)
+        zip_path = cls.build_zip(
+            product.internal_name,
+            product_path,
+            metadata,
+            output_dir,
+        )
+        archive_path = cls.get_archive_relative_path(zip_path)
+        now = timezone.now()
+
+        archive.status = ProductDownloadArchiveStatus.READY
+        archive.archive_path = archive_path
+        archive.filename = zip_path.name
+        archive.size = zip_path.stat().st_size
+        archive.checksum = cls.build_file_checksum(zip_path)
+        archive.source_signature = source_signature
+        archive.source_updated_at = now
+        archive.error_message = None
+        archive.save(
+            update_fields=[
+                "status",
+                "archive_path",
+                "filename",
+                "size",
+                "checksum",
+                "source_signature",
+                "source_updated_at",
+                "error_message",
+                "updated_at",
+            ]
+        )
+
+        return archive
 
     @classmethod
     def build_zip(cls, internal_name, product_path, metadata, output_dir):
@@ -29,6 +73,76 @@ class ProductDownloadArchiveService:
                 zip_handle.write(file_path, arcname=arcname)
 
         return zip_path
+
+    @classmethod
+    def build_product_metadata(cls, product):
+        metadata = {
+            "id": product.pk,
+            "release": product.release.pk if product.release else None,
+            "release_name": product.release.display_name if product.release else None,
+            "release_year": product.release_year,
+            "product_type": product.product_type.pk,
+            "product_type_name": product.product_type.display_name,
+            "product_type_internal_name": product.product_type.name,
+            "uploaded_by": product.user.username,
+            "origin": (
+                product.process.pipeline.display_name
+                if hasattr(product, "process")
+                else "Upload"
+            ),
+            "process_status": (
+                product.process.status if hasattr(product, "process") else None
+            ),
+            "process_id": product.process.pk if hasattr(product, "process") else None,
+            "product_status": ProductStatus(product.status).label,
+            "internal_name": product.internal_name,
+            "display_name": product.display_name,
+            "official_product": product.official_product,
+            "pz_code": product.pz_code,
+            "description": product.description,
+            "created_at": product.created_at.isoformat(),
+            "status": product.status,
+            "updated_at": product.updated_at.isoformat(),
+        }
+
+        for product_file in product.files.all().order_by("role", "name"):
+            file_data = {
+                "name": product_file.name,
+                "type": product_file.type,
+                "extension": product_file.extension,
+                "size": product_file.size,
+                "n_rows": product_file.n_rows,
+            }
+
+            if product_file.role == 0:
+                metadata["main_file"] = file_data
+                product_contents = cls.build_product_contents_metadata(product)
+                if product_contents:
+                    metadata["associated_columns"] = product_contents
+            else:
+                metadata.setdefault("attach_files", []).append(
+                    {"name": product_file.name, "type": product_file.type}
+                )
+
+        return metadata
+
+    @classmethod
+    def build_product_contents_metadata(cls, product):
+        contents = []
+
+        for content in product.contents.all():
+            if not content.alias:
+                continue
+
+            contents.append(
+                {
+                    "column_name": content.column_name,
+                    "ucd": content.ucd,
+                    "alias": content.alias,
+                }
+            )
+
+        return contents
 
     @classmethod
     def build_source_snapshot(cls, product_path):
@@ -52,6 +166,33 @@ class ProductDownloadArchiveService:
         payload = json.dumps(snapshot, sort_keys=True, separators=(",", ":"))
 
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    @classmethod
+    def build_file_checksum(cls, file_path):
+        digest = hashlib.sha256()
+
+        with open(file_path, "rb") as file_handle:
+            for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+
+        return digest.hexdigest()
+
+    @classmethod
+    def get_archive_output_dir(cls, product):
+        return cls.get_archive_root() / "products" / str(product.pk)
+
+    @classmethod
+    def get_archive_root(cls):
+        return pathlib.Path(settings.PRODUCT_DOWNLOAD_ROOT)
+
+    @classmethod
+    def get_archive_relative_path(cls, archive_path):
+        archive_path = pathlib.Path(archive_path)
+
+        try:
+            return archive_path.relative_to(settings.MEDIA_ROOT).as_posix()
+        except ValueError:
+            return archive_path.as_posix()
 
     @classmethod
     def iter_source_files(cls, product_path):

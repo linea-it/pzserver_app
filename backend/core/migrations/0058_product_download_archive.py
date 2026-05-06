@@ -32,7 +32,6 @@ class Migration(migrations.Migration):
                             ("running", "Running"),
                             ("ready", "Ready"),
                             ("failed", "Failed"),
-                            ("expired", "Expired"),
                         ],
                         default="pending",
                         max_length=20,
@@ -48,7 +47,6 @@ class Migration(migrations.Migration):
                 ("source_signature", models.CharField(max_length=64)),
                 ("source_updated_at", models.DateTimeField(blank=True, null=True)),
                 ("task_id", models.CharField(blank=True, max_length=255, null=True)),
-                ("expires_at", models.DateTimeField(blank=True, null=True)),
                 ("error_message", models.TextField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
@@ -75,9 +73,6 @@ class Migration(migrations.Migration):
                     models.Index(
                         fields=["product", "status"],
                         name="core_produc_product_03ac77_idx",
-                    ),
-                    models.Index(
-                        fields=["expires_at"], name="core_produc_expires_c15c23_idx"
                     ),
                     models.Index(
                         fields=["source_signature"],

@@ -132,6 +132,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "archive/data/")
 PRODUCT_DOWNLOAD_COMPRESSION_LEVEL = int(
     os.getenv("PRODUCT_DOWNLOAD_COMPRESSION_LEVEL", "6")
 )
+PRODUCT_DOWNLOAD_ROOT = os.getenv(
+    "PRODUCT_DOWNLOAD_ROOT", os.path.join(MEDIA_ROOT, "downloads")
+)
 
 
 # Default primary key field type

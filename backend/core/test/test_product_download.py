@@ -11,9 +11,9 @@ from core.models import (
     ProductType,
 )
 from core.services.product_download import ProductDownloadArchiveService
+from core.tasks import build_product_download_archive
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
-from django.utils import timezone
 
 
 class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
@@ -133,7 +133,6 @@ class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
         self.assertEqual(original_signature, metadata_signature)
         self.assertNotEqual(original_signature, changed_signature)
 
-
 class ProductDownloadArchiveModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -162,7 +161,6 @@ class ProductDownloadArchiveModelTestCase(TestCase):
 
         self.assertEqual(archive.status, ProductDownloadArchiveStatus.PENDING)
         self.assertFalse(archive.is_ready)
-        self.assertFalse(archive.is_expired)
         self.assertEqual(self.product.download_archives.count(), 1)
         self.assertEqual(self.user.product_download_archives.count(), 1)
 
@@ -173,18 +171,63 @@ class ProductDownloadArchiveModelTestCase(TestCase):
             status=ProductDownloadArchiveStatus.READY,
             filename="ready.zip",
             source_signature="b" * 64,
-            expires_at=timezone.now() + timezone.timedelta(hours=1),
-        )
-        expired_archive = ProductDownloadArchive.objects.create(
-            product=self.product,
-            created_by=self.user,
-            status=ProductDownloadArchiveStatus.READY,
-            filename="expired.zip",
-            source_signature="c" * 64,
-            expires_at=timezone.now() - timezone.timedelta(hours=1),
         )
 
         self.assertTrue(ready_archive.is_ready)
-        self.assertFalse(ready_archive.is_expired)
-        self.assertTrue(expired_archive.is_ready)
-        self.assertTrue(expired_archive.is_expired)
+
+    def test_build_product_download_archive_task_marks_archive_ready(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            download_root = Path(media_root) / "downloads"
+            product_path = Path(media_root) / self.product.path
+            product_path.mkdir(parents=True)
+            (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=download_root,
+            ):
+                archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    filename="pending.zip",
+                    source_signature="0" * 64,
+                )
+
+                result = build_product_download_archive(archive.pk)
+
+                archive.refresh_from_db()
+                archive_path = Path(media_root) / archive.archive_path
+
+                self.assertEqual(result["archive_id"], archive.pk)
+                self.assertEqual(archive.status, ProductDownloadArchiveStatus.READY)
+                self.assertTrue(archive_path.exists())
+                self.assertEqual(archive.filename, archive_path.name)
+                self.assertGreater(archive.size, 0)
+                self.assertEqual(len(archive.checksum), 64)
+                self.assertNotEqual(archive.source_signature, "0" * 64)
+                self.assertIsNotNone(archive.source_updated_at)
+
+                with zipfile.ZipFile(archive_path) as zip_file:
+                    self.assertIn("data.csv", zip_file.namelist())
+                    self.assertIn("product_metadata.yaml", zip_file.namelist())
+
+    def test_build_product_download_archive_task_marks_archive_failed(self):
+        archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            filename="pending.zip",
+            source_signature="0" * 64,
+        )
+
+        with mock.patch.object(
+            ProductDownloadArchiveService,
+            "prepare_archive",
+            side_effect=ValueError("zip failed"),
+        ):
+            with self.assertRaises(ValueError):
+                build_product_download_archive(archive.pk)
+
+        archive.refresh_from_db()
+
+        self.assertEqual(archive.status, ProductDownloadArchiveStatus.FAILED)
+        self.assertEqual(archive.error_message, "zip failed")

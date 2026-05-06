@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 
 
 class ProductDownloadArchiveStatus(models.TextChoices):
@@ -8,7 +7,6 @@ class ProductDownloadArchiveStatus(models.TextChoices):
     RUNNING = "running", "Running"
     READY = "ready", "Ready"
     FAILED = "failed", "Failed"
-    EXPIRED = "expired", "Expired"
 
 
 class ProductDownloadArchive(models.Model):
@@ -34,7 +32,6 @@ class ProductDownloadArchive(models.Model):
     source_signature = models.CharField(max_length=64)
     source_updated_at = models.DateTimeField(null=True, blank=True)
     task_id = models.CharField(max_length=255, null=True, blank=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,7 +40,6 @@ class ProductDownloadArchive(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["product", "status"]),
-            models.Index(fields=["expires_at"]),
             models.Index(fields=["source_signature"]),
         ]
 
@@ -53,7 +49,3 @@ class ProductDownloadArchive(models.Model):
     @property
     def is_ready(self):
         return self.status == ProductDownloadArchiveStatus.READY
-
-    @property
-    def is_expired(self):
-        return self.expires_at is not None and self.expires_at <= timezone.now()
