@@ -2,16 +2,20 @@ import hashlib
 import json
 import pathlib
 import secrets
+import time
 import zipfile
+from urllib.parse import urlencode
 
 import yaml
 from core.models import ProductDownloadArchiveStatus, ProductStatus
 from django.conf import settings
+from django.core import signing
 from django.utils import timezone
 
 
 class ProductDownloadArchiveService:
     metadata_filename = "product_metadata.yaml"
+    download_token_salt = "product-download-archive"
 
     @classmethod
     def prepare_archive(cls, archive):
@@ -176,6 +180,125 @@ class ProductDownloadArchiveService:
                 digest.update(chunk)
 
         return digest.hexdigest()
+
+    @classmethod
+    def find_current_archive(cls, product, source_signature):
+        ready_archive = cls.find_ready_archive(product, source_signature)
+        if ready_archive:
+            return ready_archive
+
+        return (
+            product.download_archives.filter(source_signature=source_signature)
+            .filter(
+                status__in=[
+                    ProductDownloadArchiveStatus.PENDING,
+                    ProductDownloadArchiveStatus.RUNNING,
+                    ProductDownloadArchiveStatus.FAILED,
+                ]
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+    @classmethod
+    def find_ready_archive(cls, product, source_signature):
+        archives = (
+            product.download_archives.filter(
+                source_signature=source_signature,
+                status=ProductDownloadArchiveStatus.READY,
+                archive_path__isnull=False,
+            )
+            .exclude(archive_path="")
+            .order_by("-created_at")
+        )
+
+        for archive in archives:
+            if cls.archive_file_exists(archive):
+                return archive
+
+        return None
+
+    @classmethod
+    def archive_file_exists(cls, archive):
+        return cls.get_archive_file_path(archive).is_file()
+
+    @classmethod
+    def get_archive_file_path(cls, archive):
+        archive_path = pathlib.Path(archive.archive_path)
+
+        if archive_path.is_absolute():
+            return archive_path
+
+        return pathlib.Path(settings.MEDIA_ROOT, archive_path)
+
+    @classmethod
+    def build_download_url(cls, archive, user, request=None):
+        token = cls.build_download_token(archive, user)
+        path = (
+            f"/api/products/{archive.product_id}/download/file/"
+            f"?{urlencode({'token': token})}"
+        )
+
+        if request:
+            return request.build_absolute_uri(path)
+
+        return path
+
+    @classmethod
+    def build_download_token(cls, archive, user):
+        return signing.dumps(
+            {
+                "archive_id": archive.pk,
+                "product_id": archive.product_id,
+                "user_id": user.pk,
+            },
+            salt=cls.download_token_salt,
+        )
+
+    @classmethod
+    def load_download_token(cls, token):
+        return signing.loads(
+            token,
+            salt=cls.download_token_salt,
+            max_age=cls.get_download_token_max_age_seconds(),
+        )
+
+    @classmethod
+    def get_download_token_max_age_seconds(cls):
+        return getattr(settings, "PRODUCT_DOWNLOAD_TOKEN_MAX_AGE_SECONDS", 900)
+
+    @classmethod
+    def wait_for_archive_preparation(cls, archive):
+        wait_seconds = cls.get_prepare_wait_seconds()
+        if wait_seconds <= 0:
+            return archive
+
+        deadline = time.monotonic() + wait_seconds
+
+        while time.monotonic() < deadline:
+            archive.refresh_from_db()
+            if archive.status not in (
+                ProductDownloadArchiveStatus.PENDING,
+                ProductDownloadArchiveStatus.RUNNING,
+            ):
+                return archive
+
+            time.sleep(cls.get_prepare_poll_interval_seconds())
+
+        archive.refresh_from_db()
+        return archive
+
+    @classmethod
+    def get_prepare_wait_seconds(cls):
+        return getattr(settings, "PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS", 10)
+
+    @classmethod
+    def get_prepare_poll_interval_seconds(cls):
+        return getattr(
+            settings,
+            "PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS",
+            0.5,
+        )
 
     @classmethod
     def get_archive_output_dir(cls, product):
