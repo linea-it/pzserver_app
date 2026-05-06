@@ -4,7 +4,7 @@ import pathlib
 import secrets
 import time
 import zipfile
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import yaml
 from core.models import ProductDownloadArchiveStatus, ProductStatus
@@ -232,6 +232,15 @@ class ProductDownloadArchiveService:
         return pathlib.Path(settings.MEDIA_ROOT, archive_path)
 
     @classmethod
+    def get_archive_internal_redirect_path(cls, archive):
+        archive_file_path = cls.get_archive_file_path(archive).resolve()
+        archive_root = cls.get_archive_root().resolve()
+        relative_path = archive_file_path.relative_to(archive_root).as_posix()
+        internal_url = cls.get_archive_internal_url().rstrip("/")
+
+        return f"{internal_url}/{quote(relative_path, safe='/')}"
+
+    @classmethod
     def build_download_url(cls, archive, user, request=None):
         token = cls.build_download_token(archive, user)
         path = (
@@ -307,6 +316,10 @@ class ProductDownloadArchiveService:
     @classmethod
     def get_archive_root(cls):
         return pathlib.Path(settings.PRODUCT_DOWNLOAD_ROOT)
+
+    @classmethod
+    def get_archive_internal_url(cls):
+        return getattr(settings, "PRODUCT_DOWNLOAD_INTERNAL_URL", "/internal-downloads/")
 
     @classmethod
     def get_archive_relative_path(cls, archive_path):

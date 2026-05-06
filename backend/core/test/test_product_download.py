@@ -135,6 +135,29 @@ class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
         self.assertEqual(original_signature, metadata_signature)
         self.assertNotEqual(original_signature, changed_signature)
 
+    def test_get_archive_internal_redirect_path_uses_download_root(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            archive = mock.Mock(
+                archive_path="downloads/products/1/file name.zip"
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                internal_path = (
+                    ProductDownloadArchiveService.get_archive_internal_redirect_path(
+                        archive
+                    )
+                )
+
+        self.assertEqual(
+            internal_path,
+            "/internal-downloads/products/1/file%20name.zip",
+        )
+
+
 class ProductDownloadArchiveModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -392,6 +415,7 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             archive_path = Path(media_root) / archive_relative_path
             archive_path.parent.mkdir(parents=True)
             archive_path.write_bytes(b"ready zip")
+            archive_size = archive_path.stat().st_size
 
             archive = ProductDownloadArchive.objects.create(
                 product=self.product,
@@ -408,14 +432,22 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             )
 
             self.client.credentials()
-            with override_settings(MEDIA_ROOT=media_root):
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
                 response = self.client.get(
                     f"/api/products/{self.product.pk}/download/file/",
                     {"token": token},
                 )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"".join(response.streaming_content), b"ready zip")
+        self.assertEqual(
+                response["X-Accel-Redirect"],
+                "/internal-downloads/products/1/existing.zip",
+            )
+        self.assertEqual(response["Content-Length"], str(archive_size))
         self.assertEqual(
             response["Content-Disposition"],
             "attachment; filename=existing.zip",

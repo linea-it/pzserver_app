@@ -23,7 +23,7 @@ from core.utils import format_query_to_char
 from django.conf import settings
 from django.core import signing
 from django.core.paginator import Paginator
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
@@ -399,7 +399,10 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             )
 
         mimetype, _ = mimetypes.guess_type(archive_path)
-        response = FileResponse(open(archive_path, "rb"), content_type=mimetype)
+        response = HttpResponse(content_type=mimetype)
+        response["X-Accel-Redirect"] = (
+            ProductDownloadArchiveService.get_archive_internal_redirect_path(archive)
+        )
         response["Content-Length"] = archive_path.stat().st_size
         response["Content-Disposition"] = "attachment; filename={}".format(
             archive.filename
