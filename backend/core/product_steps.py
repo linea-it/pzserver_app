@@ -1,7 +1,7 @@
 import logging
 import pathlib
 
-from core.models import Product, ProductContent, ProductFile
+from core.models import FileStorageKind, Product, ProductContent, ProductFile
 from core.product_handle import NotTableError, ProductHandle
 from core.serializers import ProductSerializer
 from django.conf import settings
@@ -210,7 +210,16 @@ class RegistryProduct:
             LOGGER.debug("Main File: [%s]" % self.main_file)
 
             product_columns = list()
-            if self.product.product_type.name not in (
+            if mf.storage_kind == FileStorageKind.HATS_COLLECTION:
+                product_columns = mf.metadata.get("columns", [])
+                mf.n_rows = mf.metadata.get("n_rows")
+                mf.save()
+                LOGGER.debug(
+                    "HATS collection registered with %s columns and %s partitions",
+                    len(product_columns),
+                    mf.metadata.get("npartitions"),
+                )
+            elif self.product.product_type.name not in (
                 "other",
                 "photoz_estimates",
                 "validation_results",

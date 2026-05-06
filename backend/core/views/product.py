@@ -9,7 +9,7 @@ from json import dumps, loads
 from pathlib import Path
 
 import yaml
-from core.models import Product, ProductContent, ProductStatus
+from core.models import FileStorageKind, Product, ProductContent, ProductStatus
 from core.permissions import AccessControlMixin, ProductAccessPermission
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
@@ -306,6 +306,20 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             product = self.get_object()
             main_file = product.files.get(role=0)
             main_file_path = Path(main_file.file.path)
+            if main_file.storage_kind == FileStorageKind.HATS_COLLECTION:
+                with tempfile.TemporaryDirectory() as tmpdirname:
+                    zip_file = self.zip_directory(
+                        main_file_path, product.internal_name, tmpdirname
+                    )
+                    size = zip_file.stat().st_size
+                    file_handle = open(zip_file, "rb")
+                    response = FileResponse(file_handle, content_type="application/zip")
+                    response["Content-Length"] = size
+                    response["Content-Disposition"] = (
+                        f"attachment; filename={zip_file.name}"
+                    )
+                    return response
+
             product_path = pathlib.Path(
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
@@ -332,6 +346,10 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
 
         product = self.get_object()
         product_file = product.files.get(role=0)
+        if product_file.storage_kind == FileStorageKind.HATS_COLLECTION:
+            content = {"message": "Table preview is not available for HATS products."}
+            return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         main_file_path = Path(product_file.file.path)
 
         try:
@@ -368,6 +386,22 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             product = self.get_object()
             product_file = product.files.get(role=0)
             main_file_path = Path(product_file.file.path)
+            if product_file.storage_kind == FileStorageKind.HATS_COLLECTION:
+                data = self.get_serializer(instance=product).data
+                data["main_file"] = {
+                    "name": product_file.name,
+                    "type": product_file.type,
+                    "extension": product_file.extension,
+                    "size": product_file.size,
+                    "n_rows": product_file.n_rows,
+                    "storage_kind": product_file.storage_kind,
+                    "metadata": product_file.metadata,
+                }
+                product_contents = self.__get_product_contents(product)
+                if product_contents:
+                    data["main_file"]["associated_columns"] = product_contents
+                return Response(data)
+
             product_path = pathlib.Path(
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
@@ -444,6 +478,11 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
     def zip_product(self, internal_name, path, tmpdir):
 
         product_path = pathlib.Path(settings.MEDIA_ROOT, path)
+        return self.zip_directory(product_path, internal_name, tmpdir)
+
+    def zip_directory(self, directory, internal_name, tmpdir):
+
+        directory = pathlib.Path(directory)
         thash = "".join(secrets.choice(secrets.token_hex(16)) for i in range(5))
         zip_name = f"{internal_name}_{thash}.zip"
         zip_path = pathlib.Path(tmpdir, zip_name)
@@ -454,10 +493,11 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             compression=zipfile.ZIP_DEFLATED,
             compresslevel=9,
         ) as ziphandle:
-            for root, dirs, files in os.walk(product_path):
+            for root, dirs, files in os.walk(directory):
                 for file in files:
                     origin_file = os.path.join(root, file)
-                    ziphandle.write(origin_file, arcname=file)
+                    arcname = pathlib.Path(origin_file).relative_to(directory)
+                    ziphandle.write(origin_file, arcname=arcname)
 
         ziphandle.close()
 

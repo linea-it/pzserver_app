@@ -20,6 +20,7 @@ import {
   MAX_UPLOAD_SIZE,
   createProductFile,
   deleteProductFile,
+  getProduct,
   getProductFiles,
   registryProduct
 } from '../../services/product'
@@ -36,6 +37,12 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   const [isLoading, setLoading] = useState(false)
   const [progress, setProgress] = useState(null)
   const [formError, setFormError] = React.useState('')
+  const [productType, setProductType] = useState(null)
+  const acceptsHats = productType !== 'training_results'
+
+  const mainFileAccept = acceptsHats
+    ? '.csv,.fits,.fit,.hf5,.hdf5,.h5,.pq,.parquet,.vo,.vot,.xml,.txt,.tar,.tar.gz,.tgz,.zip'
+    : undefined
 
   const loadFiles = React.useCallback(async () => {
     setFormError('')
@@ -73,6 +80,16 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
   useEffect(() => {
     loadFiles()
   }, [loadFiles])
+
+  useEffect(() => {
+    getProduct(productId)
+      .then(product => {
+        setProductType(product.product_type_internal_name)
+      })
+      .catch(() => {
+        setProductType(null)
+      })
+  }, [productId])
 
   const handleNext = () => {
     setFormError('')
@@ -233,6 +250,12 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
         Validation Results, the file format is free (in case of multiple files,
         please provide them compressed in a .zip or .tar file).
       </Typography>
+      {acceptsHats && (
+        <Typography paragraph variant="body1">
+          This product type also accepts HATS collections packaged as .tar,
+          .tar.gz, .tgz, or .zip files.
+        </Typography>
+      )}
       <Typography paragraph variant="body1">
         The maximum upload size is {MAX_UPLOAD_SIZE}MB. If your dataset is
         larger, please contact the Photo-z Server team to request an exception.
@@ -274,6 +297,7 @@ export default function NewProductStep2({ productId, onNext, onPrev }) {
                 {mainFile === false && (
                   <FileUploader
                     id="main_file"
+                    accept={mainFileAccept}
                     onFileSelectSuccess={file => {
                       handleUploadFile(file, 0)
                     }}

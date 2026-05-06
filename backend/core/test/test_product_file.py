@@ -1,9 +1,18 @@
 import json
 import mimetypes
 import os
+from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
-from core.models import Product, ProductFile, ProductType, Release, FileRoles
+from core.models import (
+    FileRoles,
+    FileStorageKind,
+    Product,
+    ProductFile,
+    ProductType,
+    Release,
+)
 from core.serializers import ProductFileSerializer
 from core.test.util import sample_product_file
 from django.contrib.auth.models import User
@@ -31,6 +40,7 @@ class ProductFileListCreateAPIViewTestCase(APITestCase):
 
         # Get Product Types previous created by fixtures
         self.product_type = ProductType.objects.get(name="validation_results")
+        self.training_results = ProductType.objects.get(name="training_results")
 
         self.product_dict = {
             "product_type": self.product_type.pk,
@@ -55,6 +65,18 @@ class ProductFileListCreateAPIViewTestCase(APITestCase):
 
         product = Product.objects.get(id=data["id"])
         return product
+
+    def create_training_results_product(self):
+        url = reverse("products-list")
+        response = self.client.post(
+            url,
+            {
+                **self.product_dict,
+                "product_type": self.training_results.pk,
+            },
+        )
+        data = json.loads(response.content)
+        return Product.objects.get(id=data["id"])
 
     def test_upload_main_file(self):
 
@@ -114,6 +136,61 @@ class ProductFileListCreateAPIViewTestCase(APITestCase):
         # Check Model to String
         record = ProductFile.objects.get(id=product_file["id"])
         self.assertTrue(str(record).startswith(self.product.display_name))
+
+    @patch("core.views.product_file.validate_and_store_hats_archive")
+    def test_upload_hats_main_file(self, validate_and_store):
+        validate_and_store.return_value = (
+            f"{self.product.path}/main",
+            {
+                "columns": ["ra", "dec", "z"],
+                "dtypes": {"ra": "float64", "dec": "float64", "z": "float64"},
+                "npartitions": 1,
+                "n_rows": 3,
+            },
+        )
+        archive = BytesIO(b"fake hats archive")
+        archive.name = "catalog.tar.gz"
+
+        response = self.client.post(
+            self.url,
+            {
+                "product": self.product.pk,
+                "file": archive,
+                "role": 0,
+                "type": "application/gzip",
+            },
+            format="multipart",
+        )
+
+        data = json.loads(response.content)
+        self.assertEqual(201, response.status_code)
+        product_file = ProductFile.objects.get(pk=data["id"])
+        self.assertEqual(product_file.storage_kind, FileStorageKind.HATS_COLLECTION)
+        self.assertEqual(product_file.file.name, f"{self.product.path}/main")
+        self.assertEqual(product_file.metadata["columns"], ["ra", "dec", "z"])
+        self.assertEqual(product_file.n_rows, 3)
+
+    @patch("core.views.product_file.validate_hats_archive")
+    def test_training_results_rejects_hats_main_file(self, validate_hats):
+        product = self.create_training_results_product()
+        validate_hats.return_value = {"columns": ["ra", "dec"]}
+        archive = BytesIO(b"fake hats archive")
+        archive.name = "catalog.tar.gz"
+
+        response = self.client.post(
+            self.url,
+            {
+                "product": product.pk,
+                "file": archive,
+                "role": 0,
+                "type": "application/gzip",
+            },
+            format="multipart",
+        )
+
+        data = json.loads(response.content)
+        self.assertEqual(400, response.status_code)
+        self.assertIn("HATS collections are not accepted", data["error"])
 
 
 class ProductFileDetailAPIViewTestCase(APITestCase):
@@ -220,6 +297,8 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
             "size": self.product_file.file.size,
             "n_rows": None,
             "extension": os.path.splitext(self.product_file.file.name)[1],
+            "storage_kind": FileStorageKind.FILE,
+            "metadata": {},
             "created": self.product_file.created.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "updated": self.product_file.updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "can_delete": True,

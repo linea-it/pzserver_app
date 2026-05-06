@@ -1,4 +1,6 @@
 import os
+import pathlib
+import shutil
 
 from core.models import Product
 from django.db import models
@@ -12,6 +14,11 @@ class FileRoles(models.IntegerChoices):
     MAIN = 0, "Main"
     DESCRIPTION = 1, "Description"
     AUXILIARY = 2, "Auxiliary"
+
+
+class FileStorageKind(models.TextChoices):
+    FILE = "file", "File"
+    HATS_COLLECTION = "hats_collection", "HATS Collection"
 
 
 class ProductFile(models.Model):
@@ -37,12 +44,24 @@ class ProductFile(models.Model):
     extension = models.CharField(
         verbose_name="Extension", max_length=10, null=True, blank=True
     )
+    storage_kind = models.CharField(
+        verbose_name="Storage Kind",
+        max_length=32,
+        choices=FileStorageKind.choices,
+        default=FileStorageKind.FILE,
+    )
+    metadata = models.JSONField(default=dict, blank=True)
     created = models.DateTimeField(auto_now_add=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
 
     def delete(self, *args, **kwargs):
         if self.file:
-            self.file.delete()
+            if self.storage_kind == FileStorageKind.HATS_COLLECTION:
+                path = pathlib.Path(self.file.path)
+                if path.exists():
+                    shutil.rmtree(path)
+            else:
+                self.file.delete()
         super().delete(*args, **kwargs)
 
     def can_delete(self, user) -> bool:

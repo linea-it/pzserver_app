@@ -1,7 +1,14 @@
 import json
 import mimetypes
 
-from core.models import Product, ProductFile, ProductType, Release
+from core.models import (
+    FileStorageKind,
+    Product,
+    ProductContent,
+    ProductFile,
+    ProductType,
+    Release,
+)
 from core.test.util import sample_product_file
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -137,6 +144,29 @@ class ProductRegistryTestCase(APITestCase):
         # Retry
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_registry_hats_collection(self):
+        product = self.create_product(specz=True)
+        ProductFile.objects.create(
+            product=product,
+            file=f"{product.path}/main",
+            role=0,
+            name="catalog.tar.gz",
+            size=123,
+            extension=".tar.gz",
+            storage_kind=FileStorageKind.HATS_COLLECTION,
+            metadata={
+                "columns": ["ra", "dec", "z"],
+                "n_rows": 10,
+                "npartitions": 1,
+            },
+        )
+        url = reverse("products-registry", kwargs={"pk": product.pk})
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ProductContent.objects.filter(product=product).count(), 3)
 
     # def test_registry_redshift_without_header(self):
     #     """Redshift need a file with header"""
