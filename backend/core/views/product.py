@@ -432,6 +432,11 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 response = FileResponse(file_handle, content_type=mimetype)
                 response["Content-Length"] = size
                 response["Content-Disposition"] = "attachment; filename={}".format(name)
+                response["Deprecation"] = "true"
+                response["Link"] = (
+                    f"</api/products/{product.pk}/download/prepare/>; "
+                    'rel="successor-version"'
+                )
                 return response
         except Exception as e:
             content = {"error": str(e)}

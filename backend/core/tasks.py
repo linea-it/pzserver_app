@@ -52,6 +52,18 @@ def build_product_download_archive(self, archive_id):
 
 
 @shared_task()
+def cleanup_product_download_archives():
+    """Removes obsolete product download archives and their ZIP files."""
+    result = ProductDownloadArchiveService.cleanup_obsolete_archives()
+    LOGGER.info(
+        "Product download archive cleanup removed %s records and %s files.",
+        result["deleted_archives"],
+        result["deleted_files"],
+    )
+    return result
+
+
+@shared_task()
 def check_processes():
     """Checks the processing status in Orchestration and update the PZ Server
     database with processing information.

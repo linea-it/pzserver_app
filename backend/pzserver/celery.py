@@ -19,6 +19,10 @@ app.conf.beat_schedule = {
         "task": "core.tasks.check_processes",
         "schedule": 10.0,
     },
+    "cleanup-product-download-archives": {
+        "task": "core.tasks.cleanup_product_download_archives",
+        "schedule": 86400.0,
+    },
 }
 app.conf.timezone = "UTC"
 

@@ -7,11 +7,16 @@ export const getProductTypes = ({ }) => {
   return api.get('/api/product-types/?ordering=order').then(res => res.data)
 }
 
-export const downloadProduct = (id, internalName) => {
-  return api.get('/api/products/' + id + '/download/', {
-    responseType: 'blob',
-    timeout: 120000
-  })
+export const prepareProductDownload = id => {
+  return api
+    .post(`/api/products/${id}/download/prepare/`, null, { timeout: 120000 })
+    .then(res => res.data)
+}
+
+export const getProductDownloadStatus = id => {
+  return api
+    .get(`/api/products/${id}/download/status/`, { timeout: 120000 })
+    .then(res => res.data)
 }
 
 export const MAX_UPLOAD_SIZE = 200

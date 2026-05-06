@@ -7,7 +7,7 @@ import zipfile
 from urllib.parse import quote, urlencode
 
 import yaml
-from core.models import ProductDownloadArchiveStatus, ProductStatus
+from core.models import Product, ProductDownloadArchiveStatus, ProductStatus
 from django.conf import settings
 from django.core import signing
 from django.utils import timezone
@@ -217,6 +217,76 @@ class ProductDownloadArchiveService:
                 return archive
 
         return None
+
+    @classmethod
+    def cleanup_obsolete_archives(cls):
+        totals = {
+            "deleted_archives": 0,
+            "deleted_files": 0,
+        }
+
+        for product in Product.objects.exclude(path__isnull=True).exclude(path=""):
+            result = cls.cleanup_product_archives(product)
+            totals["deleted_archives"] += result["deleted_archives"]
+            totals["deleted_files"] += result["deleted_files"]
+
+        return totals
+
+    @classmethod
+    def cleanup_product_archives(cls, product):
+        product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
+        current_signature = None
+        keep_ready_id = None
+
+        if product_path.exists():
+            current_signature = cls.build_source_signature(product_path)
+            ready_archive = cls.find_ready_archive(product, current_signature)
+            keep_ready_id = ready_archive.pk if ready_archive else None
+
+        totals = {
+            "deleted_archives": 0,
+            "deleted_files": 0,
+        }
+
+        for archive in product.download_archives.all():
+            if cls.should_delete_archive(archive, current_signature, keep_ready_id):
+                deleted_file = cls.delete_archive_file(archive)
+                archive.delete()
+                totals["deleted_archives"] += 1
+                totals["deleted_files"] += 1 if deleted_file else 0
+
+        return totals
+
+    @classmethod
+    def should_delete_archive(cls, archive, current_signature, keep_ready_id=None):
+        if current_signature is None:
+            return True
+
+        if archive.status == ProductDownloadArchiveStatus.FAILED:
+            return True
+
+        if archive.source_signature != current_signature:
+            return True
+
+        if archive.status == ProductDownloadArchiveStatus.READY:
+            if not cls.archive_file_exists(archive):
+                return True
+
+            return keep_ready_id is not None and archive.pk != keep_ready_id
+
+        return False
+
+    @classmethod
+    def delete_archive_file(cls, archive):
+        if not archive.archive_path:
+            return False
+
+        archive_path = cls.get_archive_file_path(archive)
+        if not archive_path.exists():
+            return False
+
+        archive_path.unlink()
+        return True
 
     @classmethod
     def archive_file_exists(cls, archive):

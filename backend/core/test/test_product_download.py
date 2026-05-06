@@ -11,7 +11,7 @@ from core.models import (
     ProductType,
 )
 from core.services.product_download import ProductDownloadArchiveService
-from core.tasks import build_product_download_archive
+from core.tasks import build_product_download_archive, cleanup_product_download_archives
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from rest_framework.authtoken.models import Token
@@ -200,6 +200,94 @@ class ProductDownloadArchiveModelTestCase(TestCase):
 
         self.assertTrue(ready_archive.is_ready)
 
+    def test_cleanup_product_archives_removes_obsolete_records_and_files(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            product_path = Path(media_root) / self.product.path
+            product_path.mkdir(parents=True)
+            (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+
+            download_root = Path(media_root) / "downloads"
+            archive_dir = download_root / "products" / str(self.product.pk)
+            archive_dir.mkdir(parents=True)
+
+            duplicate_path = archive_dir / "duplicate.zip"
+            duplicate_path.write_bytes(b"duplicate")
+            keep_path = archive_dir / "keep.zip"
+            keep_path.write_bytes(b"keep")
+            old_path = archive_dir / "old.zip"
+            old_path.write_bytes(b"old")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=download_root,
+            ):
+                current_signature = (
+                    ProductDownloadArchiveService.build_source_signature(product_path)
+                )
+                duplicate_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path="downloads/products/1/duplicate.zip",
+                    filename="duplicate.zip",
+                    source_signature=current_signature,
+                )
+                keep_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path="downloads/products/1/keep.zip",
+                    filename="keep.zip",
+                    source_signature=current_signature,
+                )
+                old_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path="downloads/products/1/old.zip",
+                    filename="old.zip",
+                    source_signature="a" * 64,
+                )
+                failed_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.FAILED,
+                    filename="failed.zip",
+                    source_signature=current_signature,
+                )
+                pending_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.PENDING,
+                    filename="pending.zip",
+                    source_signature=current_signature,
+                )
+
+                result = ProductDownloadArchiveService.cleanup_product_archives(
+                    self.product
+                )
+
+            self.assertEqual(result["deleted_archives"], 3)
+            self.assertEqual(result["deleted_files"], 2)
+            self.assertFalse(duplicate_path.exists())
+            self.assertFalse(old_path.exists())
+            self.assertTrue(keep_path.exists())
+            self.assertFalse(
+                ProductDownloadArchive.objects.filter(pk=duplicate_archive.pk).exists()
+            )
+            self.assertFalse(
+                ProductDownloadArchive.objects.filter(pk=old_archive.pk).exists()
+            )
+            self.assertFalse(
+                ProductDownloadArchive.objects.filter(pk=failed_archive.pk).exists()
+            )
+            self.assertTrue(
+                ProductDownloadArchive.objects.filter(pk=keep_archive.pk).exists()
+            )
+            self.assertTrue(
+                ProductDownloadArchive.objects.filter(pk=pending_archive.pk).exists()
+            )
+
     def test_build_product_download_archive_task_marks_archive_ready(self):
         with tempfile.TemporaryDirectory() as media_root:
             download_root = Path(media_root) / "downloads"
@@ -256,6 +344,17 @@ class ProductDownloadArchiveModelTestCase(TestCase):
 
         self.assertEqual(archive.status, ProductDownloadArchiveStatus.FAILED)
         self.assertEqual(archive.error_message, "zip failed")
+
+    def test_cleanup_product_download_archives_task_returns_cleanup_result(self):
+        with mock.patch.object(
+            ProductDownloadArchiveService,
+            "cleanup_obsolete_archives",
+            return_value={"deleted_archives": 2, "deleted_files": 1},
+        ) as cleanup_mock:
+            result = cleanup_product_download_archives()
+
+        self.assertEqual(result, {"deleted_archives": 2, "deleted_files": 1})
+        cleanup_mock.assert_called_once_with()
 
 
 class ProductDownloadArchiveEndpointTestCase(APITestCase):
@@ -461,3 +560,19 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_legacy_download_endpoint_includes_deprecation_headers(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_product_source_file(media_root)
+
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/"
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Deprecation"], "true")
+        self.assertIn(
+            f"/api/products/{self.product.pk}/download/prepare/",
+            response["Link"],
+        )
