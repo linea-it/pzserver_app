@@ -181,7 +181,9 @@ class ProductDownloadArchiveServiceTestCase(TestCase):
             product_path.mkdir(parents=True)
             (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
 
-            archive_relative_path = Path("downloads/products/1/expired.zip")
+            archive_relative_path = Path(
+                f"downloads/products/{product.pk}/expired.zip"
+            )
             archive_path = Path(media_root) / archive_relative_path
             archive_path.parent.mkdir(parents=True)
             archive_path.write_bytes(b"ready zip")
@@ -209,11 +211,11 @@ class ProductDownloadArchiveServiceTestCase(TestCase):
                     product, source_signature
                 )
 
-        self.assertEqual(result, expired_archive)
-        self.assertTrue(archive_path.exists())
-        self.assertTrue(
-            ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
-        )
+                self.assertEqual(result, expired_archive)
+                self.assertTrue(archive_path.exists())
+                self.assertTrue(
+                    ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
+                )
 
 
 class ProductDownloadArchiveModelTestCase(TestCase):
@@ -352,7 +354,9 @@ class ProductDownloadArchiveModelTestCase(TestCase):
             product_path.mkdir(parents=True)
             (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
 
-            archive_relative_path = Path("downloads/products/1/expired.zip")
+            archive_relative_path = Path(
+                f"downloads/products/{self.product.pk}/expired.zip"
+            )
             archive_path = Path(media_root) / archive_relative_path
             archive_path.parent.mkdir(parents=True)
             archive_path.write_bytes(b"ready zip")
@@ -629,16 +633,18 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                         f"/api/products/{self.product.pk}/download/prepare/"
                     )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["id"], expired_archive.pk)
-        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.READY)
-        self.assertIn("download_url", response.data)
-        self.assertIn("expired_time", response.data)
-        self.assertTrue(
-            ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
-        )
-        self.assertTrue(archive_path.exists())
-        delay_mock.assert_not_called()
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.data["id"], expired_archive.pk)
+                self.assertEqual(
+                    response.data["status"], ProductDownloadArchiveStatus.READY
+                )
+                self.assertIn("download_url", response.data)
+                self.assertIn("expired_time", response.data)
+                self.assertTrue(
+                    ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
+                )
+                self.assertTrue(archive_path.exists())
+                delay_mock.assert_not_called()
 
     def test_download_status_returns_not_found_when_no_archive_matches_signature(self):
         with tempfile.TemporaryDirectory() as media_root:
