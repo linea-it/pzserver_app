@@ -38,7 +38,7 @@ function Footer() {
               alt="IDAC"
               width={90}
               height={90}
-              marginBottom={10}
+              style={{ marginBottom: 10 }}
               className={classes.idacLogo}
             />
           </Link>
@@ -47,25 +47,23 @@ function Footer() {
         <Grid item className={classes.marginItem}>
           <div className={classes.images_credits}>
             {/* <Typography >Image credits: NOIRLab public images archive and LSST gallery.</Typography> */}
-            <Typography variant="body2" component="span">
-              <p>
-                Image credits:{' '}
-                <Link
-                  href="https://noirlab.edu/public/images/archive/category/vro/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  NOIRLab public images archive
-                </Link>{' '}
-                and{' '}
-                <Link
-                  href="https://gallery.lsst.org/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  LSST gallery.
-                </Link>{' '}
-              </p>
+            <Typography variant="body2" component="p">
+              Image credits:{' '}
+              <Link
+                href="https://noirlab.edu/public/images/archive/category/vro/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                NOIRLab public images archive
+              </Link>{' '}
+              and{' '}
+              <Link
+                href="https://gallery.lsst.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                LSST gallery.
+              </Link>{' '}
             </Typography>
           </div>
         </Grid>

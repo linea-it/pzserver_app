@@ -113,18 +113,11 @@ function Header(props) {
       <Divider />
       <List>
         {menus.map((item, idx) => (
-          <MuiLink
-            key={`navitem-${idx}-item`}
-            href={item.href}
-            underline="none"
-            color="inherit"
-          >
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemText primary={item.description} href={item.href} />
-              </ListItemButton>
-            </ListItem>
-          </MuiLink>
+          <ListItem key={`navitem-${idx}-item`} disablePadding>
+            <ListItemButton component="a" href={item.href}>
+              <ListItemText primary={item.description} />
+            </ListItemButton>
+          </ListItem>
         ))}
       </List>
     </Box>

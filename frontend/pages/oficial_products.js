@@ -17,13 +17,17 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
 import { parseCookies } from 'nookies'
-import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import { useAuth } from '../contexts/AuthContext'
 import useStyles from '../styles/pages/products'
+
+const ProductGrid = dynamic(() => import('../components/ProductGrid'), {
+  ssr: false
+})
 
 export default function Products() {
   const classes = useStyles()

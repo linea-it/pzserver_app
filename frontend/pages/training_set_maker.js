@@ -21,15 +21,19 @@ import SnackbarContent from '@mui/material/SnackbarContent'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
-import TsmData from '../components/TsmData'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
 import { getReleases } from '../services/release'
+
+const TsmData = dynamic(() => import('../components/TsmData'), {
+  ssr: false
+})
 
 function TrainingSetMaker() {
   const theme = useTheme()
@@ -450,7 +454,7 @@ function TrainingSetMaker() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1">
+            <Typography variant="body1" component="div">
               4. Select the Objects catalog (photometric data):
               <Select
                 value={selectedLsstCatalog}
@@ -467,7 +471,7 @@ function TrainingSetMaker() {
 
             <Grid item xs={12} mt={2}>
               <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" mr="16px">
+                <Typography variant="body1" component="div" mr="16px">
                   Flux type:
                   <Select
                     value={data.param.flux_type}
@@ -498,7 +502,7 @@ function TrainingSetMaker() {
             </Grid>
             <Grid item xs={12} mt={2}>
               <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" mr="16px">
+                <Typography variant="body1" component="div" mr="16px">
                   Apply dereddening from{' '}
                   <Link
                     color="inherit"
@@ -592,7 +596,7 @@ function TrainingSetMaker() {
 
             <Grid item xs={12} mt={3}>
               <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1">
+                <Typography variant="body1" component="div">
                   Convert fluxes into magnitudes:
                   <Checkbox
                     checked={convertFluxToMag}
@@ -628,7 +632,7 @@ function TrainingSetMaker() {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ color: '#888' }}>
+            <Typography variant="body1" component="div" sx={{ color: '#888' }}>
               6. Select unique galaxies
               <Checkbox
                 checked={uniqueGalaxies}
@@ -641,7 +645,7 @@ function TrainingSetMaker() {
           </Grid>
 
           <Grid item xs={12} mt={3}>
-            <Typography variant="body1">
+            <Typography variant="body1" component="div">
               7. Output format:
               <Select
                 value={outputFormat}

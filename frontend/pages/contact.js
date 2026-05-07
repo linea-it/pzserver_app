@@ -37,7 +37,7 @@ export default function Contact() {
           </Typography>
           <Card>
             <CardContent>
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="div">
                 <p>
                   <strong>Comments, questions, suggestions?</strong>
                 </p>
