@@ -6,7 +6,14 @@ import { TextField } from '@mui/material'
 
 // export default function ReleaseSelect({ value, onChange, disabled }) {
 export default function ReleaseSelect(props) {
-  const { value, allowAll, noRelease, onChange, disabled, ...rest } = props
+  const {
+    value,
+    allowAll = false,
+    noRelease = false,
+    onChange,
+    disabled = false,
+    ...rest
+  } = props
   const [releases, setReleases] = useState([])
 
   useEffect(() => {
@@ -54,9 +61,4 @@ ReleaseSelect.propTypes = {
   disabled: PropTypes.bool,
   noRelease: PropTypes.bool,
   allowAll: PropTypes.bool
-}
-ReleaseSelect.defaultProps = {
-  disabled: false,
-  noRelease: false,
-  allowAll: false
 }

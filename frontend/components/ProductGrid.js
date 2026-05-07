@@ -20,43 +20,36 @@ import ProductRemove from '../components/ProductRemove'
 import ProcessLogs from './ProcessLogs'
 import ProductShare from './ProductShare'
 
-export default function ProductGrid(props) {
+export default function ProductGrid({
+  filters = {},
+  query = '',
+  storageKey = null,
+  applyPagination = false
+}) {
   const router = useRouter()
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(0)
 
   // Load pagination state from sessionStorage
   const [page, setPage] = React.useState(() => {
-    if (
-      typeof window !== 'undefined' &&
-      props.storageKey &&
-      props.applyPagination
-    ) {
-      const saved = sessionStorage.getItem(`${props.storageKey}_page`)
+    if (typeof window !== 'undefined' && storageKey && applyPagination) {
+      const saved = sessionStorage.getItem(`${storageKey}_page`)
       return saved ? parseInt(saved, 10) : 0
     }
     return 0
   })
 
   const [pageSize, setPageSize] = React.useState(() => {
-    if (
-      typeof window !== 'undefined' &&
-      props.storageKey &&
-      props.applyPagination
-    ) {
-      const saved = sessionStorage.getItem(`${props.storageKey}_pageSize`)
+    if (typeof window !== 'undefined' && storageKey && applyPagination) {
+      const saved = sessionStorage.getItem(`${storageKey}_pageSize`)
       return saved ? parseInt(saved, 10) : 25
     }
     return 25
   })
 
   const [sortModel, setSortModel] = React.useState(() => {
-    if (
-      typeof window !== 'undefined' &&
-      props.storageKey &&
-      props.applyPagination
-    ) {
-      const saved = sessionStorage.getItem(`${props.storageKey}_sortModel`)
+    if (typeof window !== 'undefined' && storageKey && applyPagination) {
+      const saved = sessionStorage.getItem(`${storageKey}_sortModel`)
       if (saved) {
         try {
           return JSON.parse(saved)
@@ -83,10 +76,10 @@ export default function ProductGrid(props) {
 
   // Save pagination state to sessionStorage
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && props.storageKey) {
-      sessionStorage.setItem(`${props.storageKey}_page`, page.toString())
+    if (typeof window !== 'undefined' && storageKey) {
+      sessionStorage.setItem(`${storageKey}_page`, page.toString())
     }
-  }, [page, props.storageKey])
+  }, [page, storageKey])
 
   // Reset pagination when filters or search change (but not on mount)
   React.useEffect(() => {
@@ -97,19 +90,19 @@ export default function ProductGrid(props) {
 
     setPage(0)
     setSortModel([{ field: 'created_at', sort: 'desc' }])
-    if (typeof window !== 'undefined' && props.storageKey) {
-      sessionStorage.setItem(`${props.storageKey}_page`, '0')
+    if (typeof window !== 'undefined' && storageKey) {
+      sessionStorage.setItem(`${storageKey}_page`, '0')
       sessionStorage.setItem(
-        `${props.storageKey}_sortModel`,
+        `${storageKey}_sortModel`,
         JSON.stringify([{ field: 'created_at', sort: 'desc' }])
       )
     }
-  }, [props.filters, props.query, props.storageKey])
+  }, [filters, query, storageKey])
 
   const handleSortModelChange = newModel => {
-    if (typeof window !== 'undefined' && props.storageKey) {
+    if (typeof window !== 'undefined' && storageKey) {
       sessionStorage.setItem(
-        `${props.storageKey}_sortModel`,
+        `${storageKey}_sortModel`,
         JSON.stringify(newModel)
       )
     }
@@ -124,11 +117,11 @@ export default function ProductGrid(props) {
     setLoading(true)
     try {
       const response = await getProducts({
-        filters: props.filters,
+        filters,
         page,
         page_size: pageSize,
         sort: sortModel,
-        search: props.query
+        search: query
       })
 
       setRows(response.results)
@@ -138,7 +131,7 @@ export default function ProductGrid(props) {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, sortModel, props.query, props.filters])
+  }, [page, pageSize, sortModel, query, filters])
 
   React.useEffect(() => {
     loadProducts()
@@ -424,11 +417,4 @@ ProductGrid.propTypes = {
   query: PropTypes.string,
   storageKey: PropTypes.string,
   applyPagination: PropTypes.bool
-}
-
-ProductGrid.defaultProps = {
-  filters: {},
-  query: '',
-  storageKey: null,
-  applyPagination: false
 }

@@ -7,7 +7,10 @@ import { useEffect } from 'react'
 import { useQuery } from 'react-query'
 import { getAllProductsSpecz } from '../services/product'
 
-const DataTableWrapper = ({ onSelectionChange, clearSelection }) => {
+const DataTableWrapper = ({
+  onSelectionChange = () => {},
+  clearSelection = false
+}) => {
   const [selectedRows, setSelectedRows] = React.useState([])
 
   const { data, isLoading } = useQuery(
@@ -93,11 +96,6 @@ const DataTableWrapper = ({ onSelectionChange, clearSelection }) => {
 DataTableWrapper.propTypes = {
   onSelectionChange: PropTypes.func,
   clearSelection: PropTypes.bool
-}
-
-DataTableWrapper.defaultProps = {
-  onSelectionChange: () => {},
-  clearSelection: false
 }
 
 export default DataTableWrapper
