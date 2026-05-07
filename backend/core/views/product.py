@@ -1,27 +1,33 @@
 import logging
 import mimetypes
-import os
 import pathlib
-import secrets
 import tempfile
-import zipfile
 from json import dumps, loads
 from pathlib import Path
 
 import yaml
-from core.models import Product, ProductContent, ProductStatus
+from core.models import (
+    Product,
+    ProductContent,
+    ProductDownloadArchive,
+    ProductDownloadArchiveStatus,
+    ProductStatus,
+)
 from core.permissions import AccessControlMixin, ProductAccessPermission
 from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
-from core.services import AccessControlService
+from core.services import AccessControlService, ProductDownloadArchiveService
+from core.tasks import build_product_download_archive
 from core.utils import format_query_to_char
 from django.conf import settings
+from django.core import signing
 from django.core.paginator import Paginator
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
@@ -261,28 +267,163 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
 
         return Response(response)
 
+    def __serialize_download_archive(self, archive, request):
+        data = {
+            "id": archive.pk,
+            "status": archive.status,
+            "filename": archive.filename,
+            "size": archive.size,
+            "checksum": archive.checksum,
+            "source_signature": archive.source_signature,
+            "created_at": archive.created_at,
+            "updated_at": archive.updated_at,
+        }
+
+        if archive.status == ProductDownloadArchiveStatus.READY:
+            data["download_url"] = ProductDownloadArchiveService.build_download_url(
+                archive,
+                request.user,
+                request,
+            )
+            data["expired_time"] = (
+                ProductDownloadArchiveService.get_archive_expired_time(archive)
+            )
+
+        if archive.status == ProductDownloadArchiveStatus.FAILED:
+            data["error_message"] = archive.error_message
+
+        return data
+
+    def __get_current_download_signature(self, product):
+        product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
+        return ProductDownloadArchiveService.build_source_signature(product_path)
+
+    @action(methods=["POST"], detail=True, url_path="download/prepare")
+    def download_prepare(self, request, **kwargs):
+        product = self.get_object()
+        source_signature = self.__get_current_download_signature(product)
+        archive = ProductDownloadArchiveService.find_current_archive(
+            product,
+            source_signature,
+        )
+
+        if archive and archive.status in (
+            ProductDownloadArchiveStatus.PENDING,
+            ProductDownloadArchiveStatus.RUNNING,
+            ProductDownloadArchiveStatus.READY,
+        ):
+            response_status = (
+                status.HTTP_200_OK
+                if archive.status == ProductDownloadArchiveStatus.READY
+                else status.HTTP_202_ACCEPTED
+            )
+            return Response(
+                self.__serialize_download_archive(archive, request),
+                status=response_status,
+            )
+
+        archive = ProductDownloadArchive.objects.create(
+            product=product,
+            created_by=request.user,
+            filename=f"{product.internal_name}.zip",
+            source_signature=source_signature,
+        )
+        task = build_product_download_archive.delay(archive.pk)
+        archive.task_id = task.id
+        archive.save(update_fields=["task_id", "updated_at"])
+        archive = ProductDownloadArchiveService.wait_for_archive_preparation(archive)
+        response_status = (
+            status.HTTP_200_OK
+            if archive.status == ProductDownloadArchiveStatus.READY
+            else status.HTTP_202_ACCEPTED
+        )
+
+        return Response(
+            self.__serialize_download_archive(archive, request),
+            status=response_status,
+        )
+
+    @action(methods=["GET"], detail=True, url_path="download/status")
+    def download_status(self, request, **kwargs):
+        product = self.get_object()
+        source_signature = self.__get_current_download_signature(product)
+        archive = ProductDownloadArchiveService.find_current_archive(
+            product,
+            source_signature,
+        )
+
+        if not archive:
+            return Response(
+                {"status": "not_found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(self.__serialize_download_archive(archive, request))
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="download/file",
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
+    def download_file(self, request, **kwargs):
+        token = request.GET.get("token")
+        if not token:
+            raise exceptions.PermissionDenied("Missing download token.")
+
+        try:
+            payload = ProductDownloadArchiveService.load_download_token(token)
+        except signing.SignatureExpired:
+            raise exceptions.PermissionDenied("Download token has expired.")
+        except signing.BadSignature:
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        if str(payload.get("product_id")) != str(kwargs.get("pk")):
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        try:
+            archive = ProductDownloadArchive.objects.select_related("product").get(
+                pk=payload.get("archive_id"),
+                product_id=payload.get("product_id"),
+                status=ProductDownloadArchiveStatus.READY,
+            )
+        except ProductDownloadArchive.DoesNotExist:
+            return Response(
+                {"error": "Download archive not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        archive_path = ProductDownloadArchiveService.get_archive_file_path(archive)
+        if not archive_path.exists():
+            return Response(
+                {"error": "Download archive file not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        mimetype, _ = mimetypes.guess_type(archive_path)
+        response = HttpResponse(content_type=mimetype)
+        response["X-Accel-Redirect"] = (
+            ProductDownloadArchiveService.get_archive_internal_redirect_path(archive)
+        )
+        response["Content-Length"] = archive_path.stat().st_size
+        response["Content-Disposition"] = "attachment; filename={}".format(
+            archive.filename
+        )
+        return response
+
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
         """Download product"""
         try:
             product = self.get_object()
             product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
-            with open(
-                pathlib.Path(product_path, "product_metadata.yaml"), "w"
-            ) as yaml_file:
-                json_object = loads(dumps(self.__get_full_product(product)))
-                yaml.dump(
-                    json_object,
-                    yaml_file,
-                    default_flow_style=False,
-                    allow_unicode=False,
-                    encoding=None,
-                )
+            product_metadata = loads(dumps(self.__get_full_product(product)))
 
             with tempfile.TemporaryDirectory() as tmpdirname:
                 # Cria um arquivo zip no diretório tmp com os arquivos do produto
-                zip_file = self.zip_product(
-                    product.internal_name, product.path, tmpdirname
+                zip_file = ProductDownloadArchiveService.build_zip(
+                    product.internal_name, product_path, product_metadata, tmpdirname
                 )
 
                 # Abre o arquivo e envia em bites para o navegador
@@ -294,6 +435,11 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 response = FileResponse(file_handle, content_type=mimetype)
                 response["Content-Length"] = size
                 response["Content-Disposition"] = "attachment; filename={}".format(name)
+                response["Deprecation"] = "true"
+                response["Link"] = (
+                    f"</api/products/{product.pk}/download/prepare/>; "
+                    'rel="successor-version"'
+                )
                 return response
         except Exception as e:
             content = {"error": str(e)}
@@ -440,28 +586,6 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def zip_product(self, internal_name, path, tmpdir):
-
-        product_path = pathlib.Path(settings.MEDIA_ROOT, path)
-        thash = "".join(secrets.choice(secrets.token_hex(16)) for i in range(5))
-        zip_name = f"{internal_name}_{thash}.zip"
-        zip_path = pathlib.Path(tmpdir, zip_name)
-
-        with zipfile.ZipFile(
-            zip_path,
-            "w",
-            compression=zipfile.ZIP_DEFLATED,
-            compresslevel=9,
-        ) as ziphandle:
-            for root, dirs, files in os.walk(product_path):
-                for file in files:
-                    origin_file = os.path.join(root, file)
-                    ziphandle.write(origin_file, arcname=file)
-
-        ziphandle.close()
-
-        return zip_path
 
     def destroy(self, request, pk=None, *args, **kwargs):
         """Product can only be deleted by the OWNER or if the user has an

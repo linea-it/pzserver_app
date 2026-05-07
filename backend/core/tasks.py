@@ -3,14 +3,64 @@ import pathlib
 
 from celery import shared_task
 from core.maestro import Maestro
-from core.models import Process
+from core.models import (
+    Process,
+    ProductDownloadArchive,
+    ProductDownloadArchiveStatus,
+)
 from core.models.product_file import FileRoles
 from core.product_steps import RegistryProduct
+from core.services.product_download import ProductDownloadArchiveService
 from core.utils import get_ucd_columns, load_yaml
 from django.conf import settings
 from django.utils import dateparse, timezone
 
 LOGGER = logging.getLogger("tasks")
+
+
+@shared_task(bind=True)
+def build_product_download_archive(self, archive_id):
+    """Builds a product download ZIP and updates its archive record."""
+    archive = ProductDownloadArchive.objects.select_related(
+        "product",
+        "product__product_type",
+        "product__release",
+        "product__user",
+    ).get(pk=archive_id)
+
+    archive.status = ProductDownloadArchiveStatus.RUNNING
+    archive.task_id = self.request.id
+    archive.error_message = None
+    archive.save(
+        update_fields=["status", "task_id", "error_message", "updated_at"]
+    )
+
+    try:
+        archive = ProductDownloadArchiveService.prepare_archive(archive)
+    except Exception as error:
+        LOGGER.exception("Failed to build product download archive %s", archive_id)
+        archive.status = ProductDownloadArchiveStatus.FAILED
+        archive.error_message = str(error)
+        archive.save(update_fields=["status", "error_message", "updated_at"])
+        raise
+
+    return {
+        "archive_id": archive.pk,
+        "status": archive.status,
+        "archive_path": archive.archive_path,
+    }
+
+
+@shared_task()
+def cleanup_product_download_archives():
+    """Removes obsolete product download archives and their ZIP files."""
+    result = ProductDownloadArchiveService.cleanup_obsolete_archives()
+    LOGGER.info(
+        "Product download archive cleanup removed %s records and %s files.",
+        result["deleted_archives"],
+        result["deleted_files"],
+    )
+    return result
 
 
 @shared_task()
