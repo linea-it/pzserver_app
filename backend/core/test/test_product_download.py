@@ -1,5 +1,6 @@
 import tempfile
 import zipfile
+from datetime import timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -13,12 +14,13 @@ from core.models import (
 from core.services.product_download import ProductDownloadArchiveService
 from core.tasks import build_product_download_archive, cleanup_product_download_archives
 from django.contrib.auth.models import User
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import TestCase, override_settings
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 
-class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
+class ProductDownloadArchiveServiceTestCase(TestCase):
     def test_build_zip_preserves_paths_and_embeds_metadata(self):
         with tempfile.TemporaryDirectory() as product_dir:
             with tempfile.TemporaryDirectory() as output_dir:
@@ -157,6 +159,62 @@ class ProductDownloadArchiveServiceTestCase(SimpleTestCase):
             "/internal-downloads/products/1/file%20name.zip",
         )
 
+    def test_find_ready_archive_reuses_expired_archive_until_cleanup(self):
+        user = User.objects.create_user(
+            username="john", email="john@snow.com", password="you_know_nothing"
+        )
+        product_type = ProductType.objects.create(
+            name="validation_results",
+            display_name="Validation Results",
+            description="Validation product type.",
+        )
+        product = Product.objects.create(
+            product_type=product_type,
+            user=user,
+            internal_name="sample_product",
+            display_name="Sample Product",
+            path="validation_results/sample_product",
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            product_path = Path(media_root) / product.path
+            product_path.mkdir(parents=True)
+            (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+
+            archive_relative_path = Path("downloads/products/1/expired.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS=1,
+            ):
+                source_signature = ProductDownloadArchiveService.build_source_signature(
+                    product_path
+                )
+                expired_archive = ProductDownloadArchive.objects.create(
+                    product=product,
+                    created_by=user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path=archive_relative_path.as_posix(),
+                    filename="expired.zip",
+                    size=archive_path.stat().st_size,
+                    checksum="a" * 64,
+                    source_signature=source_signature,
+                    source_updated_at=timezone.now() - timedelta(hours=2),
+                )
+
+                result = ProductDownloadArchiveService.find_ready_archive(
+                    product, source_signature
+                )
+
+        self.assertEqual(result, expired_archive)
+        self.assertTrue(archive_path.exists())
+        self.assertTrue(
+            ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
+        )
+
 
 class ProductDownloadArchiveModelTestCase(TestCase):
     def setUp(self):
@@ -287,6 +345,45 @@ class ProductDownloadArchiveModelTestCase(TestCase):
             self.assertTrue(
                 ProductDownloadArchive.objects.filter(pk=pending_archive.pk).exists()
             )
+
+    def test_cleanup_product_archives_removes_expired_current_archive(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            product_path = Path(media_root) / self.product.path
+            product_path.mkdir(parents=True)
+            (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+
+            archive_relative_path = Path("downloads/products/1/expired.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS=1,
+            ):
+                current_signature = (
+                    ProductDownloadArchiveService.build_source_signature(product_path)
+                )
+                expired_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path=archive_relative_path.as_posix(),
+                    filename="expired.zip",
+                    source_signature=current_signature,
+                    source_updated_at=timezone.now() - timedelta(hours=2),
+                )
+
+                result = ProductDownloadArchiveService.cleanup_product_archives(
+                    self.product
+                )
+
+        self.assertEqual(result["deleted_archives"], 1)
+        self.assertEqual(result["deleted_files"], 1)
+        self.assertFalse(archive_path.exists())
+        self.assertFalse(
+            ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
+        )
 
     def test_build_product_download_archive_task_marks_archive_ready(self):
         with tempfile.TemporaryDirectory() as media_root:
@@ -494,6 +591,53 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
         self.assertEqual(response.data["id"], archive.pk)
         self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.READY)
         self.assertIn("download_url", response.data)
+        self.assertIn("expired_time", response.data)
+        delay_mock.assert_not_called()
+
+    def test_download_prepare_reuses_ready_archive_until_cleanup_even_when_expired(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            product_path = self.create_product_source_file(media_root)
+            archive_relative_path = Path("downloads/products/1/expired.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS=1,
+                PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS=0,
+            ):
+                source_signature = (
+                    ProductDownloadArchiveService.build_source_signature(product_path)
+                )
+                expired_archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path=archive_relative_path.as_posix(),
+                    filename="expired.zip",
+                    size=archive_path.stat().st_size,
+                    checksum="a" * 64,
+                    source_signature=source_signature,
+                    source_updated_at=timezone.now() - timedelta(hours=2),
+                )
+
+                with mock.patch(
+                    "core.views.product.build_product_download_archive.delay"
+                ) as delay_mock:
+                    response = self.client.post(
+                        f"/api/products/{self.product.pk}/download/prepare/"
+                    )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], expired_archive.pk)
+        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.READY)
+        self.assertIn("download_url", response.data)
+        self.assertIn("expired_time", response.data)
+        self.assertTrue(
+            ProductDownloadArchive.objects.filter(pk=expired_archive.pk).exists()
+        )
+        self.assertTrue(archive_path.exists())
         delay_mock.assert_not_called()
 
     def test_download_status_returns_not_found_when_no_archive_matches_signature(self):

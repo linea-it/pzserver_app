@@ -285,6 +285,9 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 request.user,
                 request,
             )
+            data["expired_time"] = (
+                ProductDownloadArchiveService.get_archive_expired_time(archive)
+            )
 
         if archive.status == ProductDownloadArchiveStatus.FAILED:
             data["error_message"] = archive.error_message

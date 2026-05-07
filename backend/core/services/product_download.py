@@ -4,6 +4,7 @@ import pathlib
 import secrets
 import time
 import zipfile
+from datetime import timedelta
 from urllib.parse import quote, urlencode
 
 import yaml
@@ -219,6 +220,24 @@ class ProductDownloadArchiveService:
         return None
 
     @classmethod
+    def find_non_expired_ready_archive(cls, product, source_signature):
+        archives = (
+            product.download_archives.filter(
+                source_signature=source_signature,
+                status=ProductDownloadArchiveStatus.READY,
+                archive_path__isnull=False,
+            )
+            .exclude(archive_path="")
+            .order_by("-created_at")
+        )
+
+        for archive in archives:
+            if cls.archive_file_exists(archive) and not cls.is_archive_expired(archive):
+                return archive
+
+        return None
+
+    @classmethod
     def cleanup_obsolete_archives(cls):
         totals = {
             "deleted_archives": 0,
@@ -240,7 +259,9 @@ class ProductDownloadArchiveService:
 
         if product_path.exists():
             current_signature = cls.build_source_signature(product_path)
-            ready_archive = cls.find_ready_archive(product, current_signature)
+            ready_archive = cls.find_non_expired_ready_archive(
+                product, current_signature
+            )
             keep_ready_id = ready_archive.pk if ready_archive else None
 
         totals = {
@@ -270,6 +291,9 @@ class ProductDownloadArchiveService:
 
         if archive.status == ProductDownloadArchiveStatus.READY:
             if not cls.archive_file_exists(archive):
+                return True
+
+            if cls.is_archive_expired(archive):
                 return True
 
             return keep_ready_id is not None and archive.pk != keep_ready_id
@@ -345,6 +369,30 @@ class ProductDownloadArchiveService:
     @classmethod
     def get_download_token_max_age_seconds(cls):
         return getattr(settings, "PRODUCT_DOWNLOAD_TOKEN_MAX_AGE_SECONDS", 900)
+
+    @classmethod
+    def get_archive_expire_hours(cls):
+        return getattr(settings, "PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS", 72)
+
+    @classmethod
+    def get_archive_expired_time(cls, archive):
+        expire_hours = cls.get_archive_expire_hours()
+        if expire_hours <= 0:
+            return None
+
+        reference_time = (
+            archive.source_updated_at or archive.updated_at or archive.created_at
+        )
+        return reference_time + timedelta(hours=expire_hours)
+
+    @classmethod
+    def is_archive_expired(cls, archive, now=None):
+        expires_at = cls.get_archive_expired_time(archive)
+        if expires_at is None:
+            return False
+
+        now = now or timezone.now()
+        return now >= expires_at
 
     @classmethod
     def wait_for_archive_preparation(cls, archive):
