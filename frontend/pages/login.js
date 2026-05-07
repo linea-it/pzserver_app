@@ -263,7 +263,7 @@ export async function getServerSideProps(ctx) {
     props: {
       shibLoginUrl: null,
       CILogonUrl: CILogonLoginUrl,
-      returnUrl: returnUrl
+      returnUrl
     }
   }
 }
