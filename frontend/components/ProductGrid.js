@@ -30,36 +30,12 @@ export default function ProductGrid({
   const [rows, setRows] = React.useState([])
   const [rowCount, setRowCount] = React.useState(0)
 
-  // Load pagination state from sessionStorage
-  const [page, setPage] = React.useState(() => {
-    if (typeof window !== 'undefined' && storageKey && applyPagination) {
-      const saved = sessionStorage.getItem(`${storageKey}_page`)
-      return saved ? parseInt(saved, 10) : 0
-    }
-    return 0
-  })
-
-  const [pageSize, setPageSize] = React.useState(() => {
-    if (typeof window !== 'undefined' && storageKey && applyPagination) {
-      const saved = sessionStorage.getItem(`${storageKey}_pageSize`)
-      return saved ? parseInt(saved, 10) : 25
-    }
-    return 25
-  })
-
-  const [sortModel, setSortModel] = React.useState(() => {
-    if (typeof window !== 'undefined' && storageKey && applyPagination) {
-      const saved = sessionStorage.getItem(`${storageKey}_sortModel`)
-      if (saved) {
-        try {
-          return JSON.parse(saved)
-        } catch (e) {
-          console.error('Error parsing saved sortModel:', e)
-        }
-      }
-    }
-    return [{ field: 'created_at', sort: 'desc' }]
-  })
+  // Keep SSR and first client render deterministic to avoid hydration mismatch.
+  const [page, setPage] = React.useState(0)
+  const [pageSize, setPageSize] = React.useState(25)
+  const [sortModel, setSortModel] = React.useState([
+    { field: 'created_at', sort: 'desc' }
+  ])
   const [loading, setLoading] = React.useState(false)
   const [delRecord, setDelRecord] = React.useState(null)
   const [selectedFileUrl, setSelectedFileUrl] = React.useState('')
@@ -73,6 +49,32 @@ export default function ProductGrid({
 
   // Track if this is the first render to avoid resetting page on mount
   const isFirstRender = React.useRef(true)
+
+  // Load pagination state from sessionStorage only after mount.
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !storageKey || !applyPagination) {
+      return
+    }
+
+    const savedPage = sessionStorage.getItem(`${storageKey}_page`)
+    const savedPageSize = sessionStorage.getItem(`${storageKey}_pageSize`)
+    const savedSortModel = sessionStorage.getItem(`${storageKey}_sortModel`)
+
+    if (savedPage) {
+      setPage(parseInt(savedPage, 10))
+    }
+    if (savedPageSize) {
+      setPageSize(parseInt(savedPageSize, 10))
+    }
+    if (savedSortModel) {
+      try {
+        const parsed = JSON.parse(savedSortModel)
+        setSortModel(parsed)
+      } catch (e) {
+        console.error('Error parsing saved sortModel:', e)
+      }
+    }
+  }, [storageKey, applyPagination])
 
   // Save pagination state to sessionStorage
   React.useEffect(() => {

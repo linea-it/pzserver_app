@@ -208,7 +208,7 @@ function SpeczCatalogs() {
             <Typography variant="h4" mb={3} textAlign={'center'}>
               Combine Redshift Catalogs
             </Typography>
-            <Typography variant="p" mb={3} textAlign={'left'}>
+            <Typography variant="body1" component="p" mb={3} textAlign={'left'}>
               The Combine Redshift Catalogs pipeline creates a single redshift
               sample by concatenating multiple pre-registered individual
               Redshift Catalogs. It uses LSDB to perform spatial cross-matching

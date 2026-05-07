@@ -373,7 +373,7 @@ function TrainingSetMaker() {
             <Typography variant="h4" mb={3} textAlign="center">
               Training Set Maker
             </Typography>
-            <Typography variant="p" mb={3} textAlign={'left'}>
+            <Typography variant="body1" component="p" mb={3} textAlign={'left'}>
               The Training Set Maker pipeline uses LSDB to perform spatial
               cross-matching between a pre-registered Redshift Catalog and the
               LSST Objects catalog in order to create training sets for

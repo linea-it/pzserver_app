@@ -131,7 +131,7 @@ function Header(props) {
   )
 
   const container =
-    window !== undefined ? () => window().document.body : undefined
+    typeof window === 'function' ? () => window().document.body : undefined
 
   return (
     <div>
@@ -158,7 +158,8 @@ function Header(props) {
             </List>
           </Box>
           <Typography
-            variant="p"
+            variant="body1"
+            component="span"
             sx={{
               paddingLeft: '2rem',
               fontFamily: 'Oxanium',
@@ -244,25 +245,25 @@ function Header(props) {
               <Typography variant="h1" className={classes.title}>
                 Photo-z Server
               </Typography>
-              <Typography variant="body1" display="block">
-                <p>
+              <Typography variant="body1" component="div" display="block">
+                <Typography variant="body1" component="p" paragraph>
                   Welcome to the Photo-z Server! This is an ancillary service
                   available to Rubin Science Platform users to host lightweight
                   data products related to photo-zs.
-                </p>
-                <p>
+                </Typography>
+                <Typography variant="body1" component="p">
                   Click{' '}
                   <MuiLink
                     variant="body1"
                     component="button"
-                    onClick={e => {
+                    onClick={() => {
                       router.push('/about')
                     }}
                   >
                     here
                   </MuiLink>{' '}
                   for more details.
-                </p>
+                </Typography>
               </Typography>
             </Grid>
           </Grid>
@@ -297,13 +298,13 @@ function Header(props) {
           </div> */}
         </Grid>
       )}
-      <TokenDialog open={open} onClose={handleTokenClose}></TokenDialog>
+      <TokenDialog open={open} onClose={handleTokenClose} />
     </div>
   )
 }
 
 Header.propTypes = {
-  window: PropTypes.Any,
+  window: PropTypes.any,
   darkMode: PropTypes.bool.isRequired,
   setDarkMode: PropTypes.func.isRequired
 }
