@@ -3,7 +3,7 @@ import forIn from 'lodash/forIn'
 import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
-export const getProductTypes = ({ }) => {
+export const getProductTypes = (_params = {}) => {
   return api.get('/api/product-types/?ordering=order').then(res => res.data)
 }
 
@@ -152,9 +152,9 @@ export const getProductByInternalName = (internalName) => {
 
 }
 
-export const fetchProductData = ({ queryKey }) => {
-  const [_, params] = queryKey
-  const { productId, page, pageSize: page_size } = params
+export const fetchProductData = ({ queryKey } = {}) => {
+  const [_, params = {}] = queryKey || []
+  const { productId, page = 0, pageSize: page_size } = params
   if (!productId) {
     return
   }
