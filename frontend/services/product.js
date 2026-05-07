@@ -154,12 +154,17 @@ export const getProductByInternalName = (internalName) => {
 
 export const fetchProductData = ({ queryKey } = {}) => {
   const [_, params = {}] = queryKey || []
-  const { productId, page = 0, pageSize: page_size } = params
+  const { productId, page = 0, pageSize: page_size = 25 } = params
   if (!productId) {
     return
   }
-  page += 1
-  return api.get(`/api/products/${productId}/read_data/`, { timeout: 120000, params: { page, page_size } }).then(res => res.data)
+  const requestPage = page + 1
+  return api
+    .get(`/api/products/${productId}/read_data/`, {
+      timeout: 120000,
+      params: { page: requestPage, page_size }
+    })
+    .then(res => res.data)
 }
 
 export const deleteProduct = product_id => {
