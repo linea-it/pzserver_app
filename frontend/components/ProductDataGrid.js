@@ -1,10 +1,10 @@
 import { Alert } from '@mui/material'
+import Box from '@mui/material/Box'
 import { DataGrid } from '@mui/x-data-grid'
 import uniqueId from 'lodash/uniqueId'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
-import Box from '@mui/material/Box'
 
 import { fetchProductData } from '../services/product'
 
@@ -16,6 +16,11 @@ export default function ProductDataGrid(props) {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
+  const [processingPollCount, setProcessingPollCount] = React.useState(0)
+
+  React.useEffect(() => {
+    setProcessingPollCount(0)
+  }, [productId])
 
   const {
     status,
@@ -28,8 +33,15 @@ export default function ProductDataGrid(props) {
     {
       enabled: !!productId,
       staleTime: Infinity,
-      refetchInterval: latestData =>
-        latestData?.message === 'in processing...' ? 2000 : false,
+      refetchInterval: latestData => {
+        if (latestData?.message !== 'in processing...') {
+          return false
+        }
+
+        if (processingPollCount <= 3) return 3000
+        if (processingPollCount <= 6) return 4000
+        return 5000
+      },
       refetchOnWindowFocus: false,
       retry: false
     }
@@ -38,17 +50,20 @@ export default function ProductDataGrid(props) {
   React.useEffect(() => {
     if (status === 'success' && data) {
       if (data.message === 'in processing...') {
+        setProcessingPollCount(prev => prev + 1)
         setError(null)
         setRows([])
         setColumns([])
         return
       }
 
+      setProcessingPollCount(0)
       setError(null)
       setRowCount(data.count)
       setRows(data.results)
       makeColumns(data.columns)
     } else if (status === 'error') {
+      setProcessingPollCount(0)
       const message =
         queryError?.response?.data?.message ||
         'Error loading data. Please try again.'
