@@ -17,28 +17,49 @@ export default function ProductDataGrid(props) {
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
 
-  const { status, isLoading, data } = useQuery(
+  const {
+    status,
+    isLoading,
+    data,
+    error: queryError
+  } = useQuery(
     ['productData', { productId, page, pageSize }],
     fetchProductData,
     {
       enabled: !!productId,
       staleTime: Infinity,
-      refetchInterval: false,
+      refetchInterval: latestData =>
+        latestData?.message === 'in processing...' ? 2000 : false,
+      refetchOnWindowFocus: false,
       retry: false
     }
   )
 
   React.useEffect(() => {
     if (status === 'success' && data) {
+      if (data.message === 'in processing...') {
+        setError(null)
+        setRows([])
+        setColumns([])
+        return
+      }
+
+      setError(null)
       setRowCount(data.count)
       setRows(data.results)
       makeColumns(data.columns)
     } else if (status === 'error') {
-      setError('Error loading data. Please try again.')
+      const message =
+        queryError?.response?.data?.message ||
+        'Error loading data. Please try again.'
+      setError(message)
     }
-  }, [status, data])
+  }, [status, data, queryError])
 
   if (isLoading) return <p>Loading...</p>
+  if (status === 'success' && data?.message === 'in processing...') {
+    return <Alert severity="info">in processing...</Alert>
+  }
   if (error !== null) return <Alert severity="error">{error}</Alert>
   if (status !== 'success' || !data) return null
 

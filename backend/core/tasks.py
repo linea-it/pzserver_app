@@ -10,6 +10,7 @@ from core.models import (
 )
 from core.models.product_file import FileRoles
 from core.product_steps import RegistryProduct
+from core.product_handle import NotTableError
 from core.services.product_download import ProductDownloadArchiveService
 from core.utils import get_ucd_columns, load_yaml
 from django.conf import settings
@@ -49,6 +50,29 @@ def build_product_download_archive(self, archive_id):
         "status": archive.status,
         "archive_path": archive.archive_path,
     }
+
+
+@shared_task(bind=True)
+def build_product_table_preview(self, product_id):
+    """Builds product table preview in background and clears processing marker."""
+    registry = RegistryProduct(product_id)
+
+    try:
+        table_data = registry.build_table_preview()
+        return {
+            "product_id": product_id,
+            "status": "ready",
+            "rows": int(table_data.get("n_rows") or 0),
+        }
+    except NotTableError as error:
+        LOGGER.warning("Table preview unavailable for product %s: %s", product_id, error)
+        registry.remove_table_preview()
+        return {"product_id": product_id, "status": "not_table", "message": str(error)}
+    except Exception:
+        LOGGER.exception("Failed to build table preview for product %s", product_id)
+        raise
+    finally:
+        RegistryProduct.stop_table_preview_processing(registry.product)
 
 
 @shared_task()
