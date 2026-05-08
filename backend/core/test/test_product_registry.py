@@ -235,7 +235,10 @@ class ProductRegistryTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 202)
         data = json.loads(response.content)
-        self.assertEqual(data["message"], "in processing...")
+        self.assertEqual(
+            data["message"],
+            "Table preview is being processed in the background.",
+        )
         delay_mock.assert_called_once_with(product.pk)
         self.assertTrue(processing_path.exists())
 
@@ -257,7 +260,10 @@ class ProductRegistryTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 202)
         data = json.loads(response.content)
-        self.assertEqual(data["message"], "in processing...")
+        self.assertEqual(
+            data["message"],
+            "Table preview is being processed in the background.",
+        )
         delay_mock.assert_not_called()
 
     # def test_registry_redshift_without_header(self):

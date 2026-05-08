@@ -120,6 +120,10 @@ class ProductSpeczViewSet(AccessControlMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
+    TABLE_PREVIEW_PROCESSING_MESSAGE = (
+        "Table preview is being processed in the background."
+    )
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [ProductAccessPermission]
@@ -494,7 +498,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             if not preview_path.exists():
                 if RegistryProduct.is_table_preview_processing(product):
                     return Response(
-                        {"message": "in processing..."},
+                        {"message": self.TABLE_PREVIEW_PROCESSING_MESSAGE},
                         status=status.HTTP_202_ACCEPTED,
                     )
 
@@ -507,7 +511,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                         raise
 
                 return Response(
-                    {"message": "in processing..."},
+                    {"message": self.TABLE_PREVIEW_PROCESSING_MESSAGE},
                     status=status.HTTP_202_ACCEPTED,
                 )
 

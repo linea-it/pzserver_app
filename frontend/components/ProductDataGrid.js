@@ -34,7 +34,7 @@ export default function ProductDataGrid(props) {
       enabled: !!productId,
       staleTime: Infinity,
       refetchInterval: latestData => {
-        if (latestData?.message !== 'in processing...') {
+        if (latestData?._httpStatus !== 202) {
           return false
         }
 
@@ -49,7 +49,10 @@ export default function ProductDataGrid(props) {
 
   React.useEffect(() => {
     if (status === 'success' && data) {
-      if (data.message === 'in processing...') {
+      if (data._httpStatus === 202) {
+        if (data.message) {
+          console.log(`Product preview status: ${data.message}`)
+        }
         setProcessingPollCount(prev => prev + 1)
         setError(null)
         setRows([])
@@ -72,8 +75,8 @@ export default function ProductDataGrid(props) {
   }, [status, data, queryError])
 
   if (isLoading) return <p>Loading...</p>
-  if (status === 'success' && data?.message === 'in processing...') {
-    return <Alert severity="info">in processing...</Alert>
+  if (status === 'success' && data?._httpStatus === 202) {
+    return <Alert severity="info">Loading...</Alert>
   }
   if (error !== null) return <Alert severity="error">{error}</Alert>
   if (status !== 'success' || !data) return null
