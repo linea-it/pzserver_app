@@ -1,10 +1,10 @@
 import { Alert } from '@mui/material'
+import Box from '@mui/material/Box'
 import { DataGrid } from '@mui/x-data-grid'
 import uniqueId from 'lodash/uniqueId'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useQuery } from 'react-query'
-import Box from '@mui/material/Box'
 
 import { fetchProductData } from '../services/product'
 
@@ -16,29 +16,68 @@ export default function ProductDataGrid(props) {
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
+  const [processingPollCount, setProcessingPollCount] = React.useState(0)
 
-  const { status, isLoading, data } = useQuery(
+  React.useEffect(() => {
+    setProcessingPollCount(0)
+  }, [productId])
+
+  const {
+    status,
+    isLoading,
+    data,
+    error: queryError
+  } = useQuery(
     ['productData', { productId, page, pageSize }],
     fetchProductData,
     {
       enabled: !!productId,
       staleTime: Infinity,
-      refetchInterval: false,
+      refetchInterval: latestData => {
+        if (latestData?._httpStatus !== 202) {
+          return false
+        }
+
+        if (processingPollCount <= 3) return 3000
+        if (processingPollCount <= 6) return 4000
+        return 5000
+      },
+      refetchOnWindowFocus: false,
       retry: false
     }
   )
 
   React.useEffect(() => {
     if (status === 'success' && data) {
+      if (data._httpStatus === 202) {
+        if (data.message) {
+          console.log(`Product preview status: ${data.message}`)
+        }
+        setProcessingPollCount(prev => prev + 1)
+        setError(null)
+        setRows([])
+        setColumns([])
+        return
+      }
+
+      setProcessingPollCount(0)
+      setError(null)
       setRowCount(data.count)
       setRows(data.results)
       makeColumns(data.columns)
     } else if (status === 'error') {
-      setError('Error loading data. Please try again.')
+      setProcessingPollCount(0)
+      const message =
+        queryError?.response?.data?.message ||
+        'Error loading data. Please try again.'
+      setError(message)
     }
-  }, [status, data])
+  }, [status, data, queryError])
 
   if (isLoading) return <p>Loading...</p>
+  if (status === 'success' && data?._httpStatus === 202) {
+    return <Alert severity="info">Loading...</Alert>
+  }
   if (error !== null) return <Alert severity="error">{error}</Alert>
   if (status !== 'success' || !data) return null
 

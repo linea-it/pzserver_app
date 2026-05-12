@@ -18,7 +18,7 @@ from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
 from core.services import AccessControlService, ProductDownloadArchiveService
-from core.tasks import build_product_download_archive
+from core.tasks import build_product_download_archive, build_product_table_preview
 from core.utils import format_query_to_char
 from django.conf import settings
 from django.core import signing
@@ -120,6 +120,10 @@ class ProductSpeczViewSet(AccessControlMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
+    TABLE_PREVIEW_PROCESSING_MESSAGE = (
+        "Table preview is being processed in the background."
+    )
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [ProductAccessPermission]
@@ -477,19 +481,53 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         page_size = int(request.GET.get("page_size", 100))
 
         product = self.get_object()
-        product_file = product.files.get(role=0)
-        main_file_path = Path(product_file.file.path)
+        preview_path = RegistryProduct.get_table_preview_path(product)
 
         try:
-            df = FileHandle(main_file_path).to_df(nrows=page_size)
-            records = loads(df.to_json(orient="records"))
+            if preview_path.exists():
+                try:
+                    preview_payload = loads(preview_path.read_text(encoding="utf-8"))
+                    records = preview_payload.get("results", [])
+                    columns = preview_payload.get("columns", [])
+                    count = int(preview_payload.get("count", len(records)))
+                except Exception:
+                    preview_path.unlink(missing_ok=True)
+            else:
+                records = None
+
+            if not preview_path.exists():
+                if RegistryProduct.is_table_preview_processing(product):
+                    return Response(
+                        {"message": self.TABLE_PREVIEW_PROCESSING_MESSAGE},
+                        status=status.HTTP_202_ACCEPTED,
+                    )
+
+                started = RegistryProduct.start_table_preview_processing(product)
+                if started:
+                    try:
+                        build_product_table_preview.delay(product.pk)
+                    except Exception:
+                        RegistryProduct.stop_table_preview_processing(product)
+                        raise
+
+                return Response(
+                    {"message": self.TABLE_PREVIEW_PROCESSING_MESSAGE},
+                    status=status.HTTP_202_ACCEPTED,
+                )
+
+            if records is None:
+                preview_payload = loads(preview_path.read_text(encoding="utf-8"))
+                records = preview_payload.get("results", [])
+                columns = preview_payload.get("columns", [])
+                count = int(preview_payload.get("count", len(records)))
+
             paginator = Paginator(records, page_size)
             records = paginator.get_page(page)
 
             return Response(
                 {
-                    "count": df.shape[0],
-                    "columns": df.columns,
+                    "count": count,
+                    "columns": columns,
                     "results": records.object_list,
                 }
             )
