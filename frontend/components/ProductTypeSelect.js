@@ -3,9 +3,14 @@ import PropTypes from 'prop-types'
 import MenuItem from '@mui/material/MenuItem'
 import { getProductTypes } from '../services/product'
 import { TextField } from '@mui/material'
-export default function ProductTypeSelect(props) {
-  const { allowAll, value, onChange, disabled, useId, ...rest } = props
-
+export default function ProductTypeSelect({
+  allowAll = false,
+  value,
+  onChange,
+  disabled = false,
+  useId = true,
+  ...rest
+}) {
   const [rows, setRows] = useState([])
 
   useEffect(() => {
@@ -54,9 +59,4 @@ ProductTypeSelect.propTypes = {
   disabled: PropTypes.bool,
   allowAll: PropTypes.bool,
   useId: PropTypes.bool
-}
-ProductTypeSelect.defaultProps = {
-  disabled: false,
-  allowAll: false,
-  useId: true
 }

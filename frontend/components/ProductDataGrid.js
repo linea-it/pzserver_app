@@ -12,7 +12,7 @@ export default function ProductDataGrid(props) {
   const { productId } = props
   const [rows, setRows] = React.useState([])
   const [columns, setColumns] = React.useState([])
-  const [, setRowCount] = React.useState(0)
+  const [rowCount, setRowCount] = React.useState(0)
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(10)
   const [error, setError] = React.useState(null)
@@ -107,7 +107,7 @@ export default function ProductDataGrid(props) {
           // sortModel={sortModel}
           // onSortModelChange={handleSortModelChange}
           paginationMode="server"
-          // rowCount={rowCount}
+          rowCount={Number.isFinite(rowCount) ? rowCount : 0}
           // pagination
           page={page}
           onPageChange={page => setPage(page)}

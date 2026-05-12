@@ -62,7 +62,7 @@ export default function Index() {
             >
               <Link href={item.path}>
                 <Card>
-                  <CardActionArea>
+                  <CardActionArea component="div">
                     <CardMedia
                       alt={item.title}
                       className={classes.media}
@@ -80,7 +80,7 @@ export default function Index() {
                       <Typography
                         gutterBottom
                         className={classes.ItemDescription}
-                        variant="body"
+                        variant="body1"
                         component="span"
                       >
                         {item.description}

@@ -17,69 +17,64 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
 import { parseCookies } from 'nookies'
-import ProductGrid from '../components/ProductGrid'
 import ProductTypeSelect from '../components/ProductTypeSelect'
 import ReleaseSelect from '../components/ReleaseSelect'
 import SearchField from '../components/SearchField'
 import { useAuth } from '../contexts/AuthContext'
 import useStyles from '../styles/pages/products'
 
+const ProductGrid = dynamic(() => import('../components/ProductGrid'), {
+  ssr: false
+})
+
 export default function Products() {
   const classes = useStyles()
   const router = useRouter()
   const { user } = useAuth()
-
-  const applySearch = React.useMemo(() => {
-    if (typeof window !== 'undefined') {
-      return JSON.parse(sessionStorage.getItem('apply_search') || 'false')
-    } else {
-      return false
-    }
-  }, [])
-
-  const applyPagination = React.useMemo(() => {
-    if (typeof window !== 'undefined') {
-      return JSON.parse(sessionStorage.getItem('apply_pagination') || 'false')
-    } else {
-      return false
-    }
-  }, [])
-
-  // Clear flags after they are used
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('apply_search', 'false')
-      sessionStorage.setItem('apply_pagination', 'false')
-    }
-  }, [])
-
-  // Load initial state from sessionStorage only if apply_search is true
-  const [search, setSearch] = React.useState(() => {
-    if (typeof window !== 'undefined' && applySearch) {
-      return sessionStorage.getItem('oficial_products_search') || ''
-    }
-    return ''
+  const [applyPagination, setApplyPagination] = React.useState(false)
+  const [search, setSearch] = React.useState('')
+  const [filters, setFilters] = React.useState({
+    release: '',
+    product_type: '',
+    official_product: true,
+    status: 1 // Published
   })
 
-  const [filters, setFilters] = React.useState(() => {
-    if (typeof window !== 'undefined' && applySearch) {
+  // Load persisted state only after mount to keep SSR/client first render equal.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const shouldApplySearch = JSON.parse(
+      sessionStorage.getItem('apply_search') || 'false'
+    )
+    const shouldApplyPagination = JSON.parse(
+      sessionStorage.getItem('apply_pagination') || 'false'
+    )
+
+    setApplyPagination(shouldApplyPagination)
+
+    if (shouldApplySearch) {
+      setSearch(sessionStorage.getItem('oficial_products_search') || '')
+
       const saved = sessionStorage.getItem('oficial_products_filters')
       if (saved) {
         try {
-          return { ...JSON.parse(saved), official_product: true, status: 1 }
+          const parsed = JSON.parse(saved)
+          setFilters({ ...parsed, official_product: true, status: 1 })
         } catch (e) {
           console.error('Error parsing saved filters:', e)
         }
       }
     }
-    return {
-      release: '',
-      product_type: '',
-      official_product: true,
-      status: 1 // Published
-    }
-  })
+
+    // Clear flags after they are used
+    sessionStorage.setItem('apply_search', 'false')
+    sessionStorage.setItem('apply_pagination', 'false')
+  }, [])
 
   // Save to sessionStorage when filters or search change
   React.useEffect(() => {

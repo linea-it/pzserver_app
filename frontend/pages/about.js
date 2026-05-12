@@ -36,7 +36,7 @@ export default function About() {
             <CardContent>
               <Typography
                 variant="body1"
-                component="span"
+                component="div"
                 sx={{ textAlign: 'justify', display: 'block' }}
               >
                 <p>

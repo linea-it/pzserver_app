@@ -8,8 +8,8 @@ import { useQuery } from 'react-query'
 import { getProductsSpecz } from '../services/product'
 
 const DataTableWrapper = ({
-  filters,
-  query,
+  filters = {},
+  query = '',
   onProductSelect,
   selectedProductId
 }) => {
@@ -113,11 +113,6 @@ DataTableWrapper.propTypes = {
   query: PropTypes.string,
   onProductSelect: PropTypes.func,
   selectedProductId: PropTypes.number
-}
-
-DataTableWrapper.defaultProps = {
-  filters: {},
-  query: ''
 }
 
 export default DataTableWrapper

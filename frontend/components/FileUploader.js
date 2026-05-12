@@ -3,15 +3,14 @@ import prettyBytes from 'pretty-bytes'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-export default function FileUploader(props) {
-  const {
-    id,
-    onFileSelectSuccess,
-    onFileSelectError,
-    maxSize,
-    buttonProps,
-    ...rest
-  } = props
+export default function FileUploader({
+  id,
+  onFileSelectSuccess,
+  onFileSelectError,
+  maxSize = 50,
+  buttonProps,
+  ...rest
+}) {
   // const fileInput = useRef(null)
 
   const handleFileInput = e => {
@@ -62,7 +61,4 @@ FileUploader.propTypes = {
   onFileSelectError: PropTypes.func.isRequired,
   maxSize: PropTypes.number,
   buttonProps: PropTypes.object
-}
-FileUploader.defaultProps = {
-  maxSize: 50
 }

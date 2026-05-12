@@ -1,13 +1,9 @@
 import MuiLink from '@mui/material/Link'
-import { styled } from '@mui/styles'
 import clsx from 'clsx'
 import NextLink from 'next/link'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
 import { forwardRef } from 'react'
-
-// Add support for the sx prop for consistency with the other branches.
-const Anchor = styled('a')({})
 
 export const NextLinkComposed = forwardRef(function NextLinkComposed(
   props,
@@ -16,7 +12,6 @@ export const NextLinkComposed = forwardRef(function NextLinkComposed(
   const {
     to,
     linkAs,
-    href,
     replace,
     scroll,
     shallow,
@@ -33,10 +28,11 @@ export const NextLinkComposed = forwardRef(function NextLinkComposed(
       replace={replace}
       scroll={scroll}
       shallow={shallow}
-      passHref
       locale={locale}
+      ref={ref}
+      {...other}
     >
-      <Anchor ref={ref} {...other} />
+      {other.children}
     </NextLink>
   )
 })
@@ -78,7 +74,7 @@ const Link = forwardRef(function Link(props, ref) {
 
   if (isExternal) {
     if (noLinkStyle) {
-      return <Anchor className={className} href={href} ref={ref} {...other} />
+      return <a className={className} href={href} ref={ref} {...other} />
     }
 
     return <MuiLink className={className} href={href} ref={ref} {...other} />

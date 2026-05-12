@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { buildSamlLoginUrl, sanitizeRedirectUrl } from '../utils/redirect'
 
-function Login({ shibLoginUrl, CILogonUrl, returnUrl }) {
+function Login({ shibLoginUrl = null, CILogonUrl = null, returnUrl = null }) {
   const { signIn } = useAuth()
   const [formError, setFormError] = useState('')
   const [username, setUsername] = useState('')
@@ -263,7 +263,7 @@ export async function getServerSideProps(ctx) {
     props: {
       shibLoginUrl: null,
       CILogonUrl: CILogonLoginUrl,
-      returnUrl: returnUrl
+      returnUrl
     }
   }
 }
@@ -272,12 +272,6 @@ Login.propTypes = {
   shibLoginUrl: PropTypes.string,
   CILogonUrl: PropTypes.string,
   returnUrl: PropTypes.string
-}
-
-Login.defaultProps = {
-  shibLoginUrl: null,
-  CILogonUrl: null,
-  returnUrl: null
 }
 
 export default Login
