@@ -33,7 +33,7 @@ export default function Documentation() {
                 Photo-z Server Documentation for Users
               </Typography>
               <Divider />
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="div">
                 <p>
                   Please find the complete documentation about how to use the
                   Photo-z Server website on its{' '}
@@ -50,7 +50,7 @@ export default function Documentation() {
               </Typography>
               <Typography variant="h6">Access via API</Typography>
               <Divider />
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="div">
                 <p>
                   The registered data products can also be accessed directly
                   from Python code using the PZ Server&apos;s library. The
@@ -74,7 +74,7 @@ export default function Documentation() {
               </Typography>
               <Typography variant="h6">Tutorial notebook</Typography>
               <Divider />
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="div">
                 <p>
                   A tutorial notebook with examples for all pzserver methods is
                   available on{' '}
@@ -91,7 +91,7 @@ export default function Documentation() {
               </Typography>
               <Typography variant="h6">Data Products</Typography>
               <Divider />
-              <Typography variant="body1" component="span">
+              <Typography variant="body1" component="div">
                 <p>
                   The photo-z-related products are organized into four
                   categories (product types):

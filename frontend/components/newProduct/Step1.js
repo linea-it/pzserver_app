@@ -222,7 +222,7 @@ export default function NewProductStep1({ productId, onNext, onDiscard }) {
               name="release"
               value={product.release ? product.release : ''}
               onChange={value => {
-                handleInputValue({ target: { name: 'release', value: value } })
+                handleInputValue({ target: { name: 'release', value } })
               }}
               onBlur={handleInputValue}
               error={!!fieldErrors.release}
