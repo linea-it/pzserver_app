@@ -40,8 +40,8 @@ import ProductNotFound from '../components/ProductNotFound'
 import { getProcessByUpload } from '../services/process'
 import {
   getProduct,
-  getProductDownloadStatus,
   getProductConfigFiles,
+  getProductDownloadStatus,
   getProductFiles,
   getProducts,
   prepareProductDownload
@@ -294,7 +294,7 @@ export default function ProductDetail({ productId, internalName }) {
       }
     }
 
-    throw new Error('The download is still being prepared. Please try again.')
+    throw new Error('The download is still being prepared. Please try again later.')
   }
 
   const startDownload = () => {
