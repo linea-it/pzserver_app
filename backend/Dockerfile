@@ -15,6 +15,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     build-essential \
     iputils-ping \
     xmlsec1 \
+    tzdata \
     libssl-dev \
     libsasl2-dev \
     && apt-get clean \

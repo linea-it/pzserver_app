@@ -16,6 +16,7 @@ DJANGO_ENVIRONMENT_NAME=Development
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
 LOGGING_LEVEL=DEBUG
+TZ=America/Sao_Paulo
 # AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must
 # disable it.
 AUTORELOAD=1

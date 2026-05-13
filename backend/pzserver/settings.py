@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import logging
 import os
+import time
 from pathlib import Path
 
 import saml2
@@ -22,6 +24,12 @@ APPS_DIR = Path(BASE_DIR) / "core"
 
 LOG_DIR = os.getenv("LOG_DIR", "/archive/log")
 LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
+
+
+class LocalTimeFormatter(logging.Formatter):
+    """Ensure log timestamps use container localtime."""
+
+    converter = time.localtime
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -267,7 +275,11 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
+        "standard": {
+            "()": LocalTimeFormatter,
+            "format": "%(asctime)s [%(levelname)s] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
     "handlers": {
         "default": {
