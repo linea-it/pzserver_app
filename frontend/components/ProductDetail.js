@@ -50,7 +50,14 @@ import useStyles from '../styles/pages/product'
 import ProductShare from './ProductShare'
 export default function ProductDetail({ productId, internalName }) {
   const downloadPollingIntervalMs = 2000
-  const downloadPollingMaxAttempts = 60
+  const downloadPollingTimeoutMinutes = Number.parseFloat(
+    process.env.NEXT_PUBLIC_DOWNLOAD_POLLING_TIMEOUT_MINUTES || '30'
+  )
+  const downloadPollingTimeoutMs =
+    Number.isFinite(downloadPollingTimeoutMinutes) &&
+    downloadPollingTimeoutMinutes > 0
+      ? downloadPollingTimeoutMinutes * 60 * 1000
+      : 30 * 60 * 1000
   const router = useRouter()
   const classes = useStyles()
 
@@ -277,7 +284,9 @@ export default function ProductDetail({ productId, internalName }) {
     })
 
   const waitForDownloadReady = async () => {
-    for (let attempt = 0; attempt < downloadPollingMaxAttempts; attempt += 1) {
+    const deadline = Date.now() + downloadPollingTimeoutMs
+
+    while (Date.now() < deadline) {
       await sleep(downloadPollingIntervalMs)
 
       const archive = await getProductDownloadStatus(product.id)
@@ -294,7 +303,9 @@ export default function ProductDetail({ productId, internalName }) {
       }
     }
 
-    throw new Error('The download is still being prepared. Please try again later.')
+    throw new Error(
+      'The download is still being prepared in background. Please wait a bit longer and try again.'
+    )
   }
 
   const startDownload = () => {
