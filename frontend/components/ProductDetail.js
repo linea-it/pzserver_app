@@ -55,7 +55,7 @@ export default function ProductDetail({ productId, internalName }) {
   )
   const downloadPollingTimeoutMs =
     Number.isFinite(downloadPollingTimeoutMinutes) &&
-    downloadPollingTimeoutMinutes > 0
+      downloadPollingTimeoutMinutes > 0
       ? downloadPollingTimeoutMinutes * 60 * 1000
       : 30 * 60 * 1000
   const router = useRouter()
