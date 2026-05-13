@@ -164,7 +164,18 @@ export const fetchProductData = ({ queryKey } = {}) => {
       timeout: 120000,
       params: { page: requestPage, page_size }
     })
-    .then(res => res.data)
+    .then(res => {
+      if (res.data && typeof res.data === 'object') {
+        return {
+          ...res.data,
+          _httpStatus: res.status
+        }
+      }
+
+      return {
+        _httpStatus: res.status
+      }
+    })
 }
 
 export const deleteProduct = product_id => {
