@@ -62,9 +62,10 @@ export default function ProductDataGrid(props) {
 
       setProcessingPollCount(0)
       setError(null)
-      setRowCount(data.count)
-      setRows(data.results)
-      makeColumns(data.columns)
+      const nextRows = Array.isArray(data.results) ? data.results : []
+      setRowCount(Number.isFinite(data.count) ? data.count : 0)
+      setRows(nextRows)
+      makeColumns(data.columns, nextRows)
     } else if (status === 'error') {
       setProcessingPollCount(0)
       const message =
@@ -81,8 +82,15 @@ export default function ProductDataGrid(props) {
   if (error !== null) return <Alert severity="error">{error}</Alert>
   if (status !== 'success' || !data) return null
 
-  function makeColumns(names) {
-    const cols = names.map(name => {
+  function makeColumns(names, sampleRows = []) {
+    const safeNames =
+      Array.isArray(names) && names.length > 0
+        ? names
+        : sampleRows.length > 0 && sampleRows[0] != null
+          ? Object.keys(sampleRows[0])
+          : []
+
+    const cols = safeNames.map(name => {
       return {
         field: name,
         headerName: name,
