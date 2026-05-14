@@ -10,10 +10,11 @@ from core.models import (
     ProductDownloadArchive,
     ProductDownloadArchiveStatus,
     ProductType,
+    Release,
 )
 from core.services.product_download import ProductDownloadArchiveService
 from core.tasks import build_product_download_archive, cleanup_product_download_archives
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -658,13 +659,55 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data["status"], "not_found")
 
-    def test_download_file_uses_signed_url_without_authentication_header(self):
+    def test_download_file_uses_signed_url_with_authenticated_user(self):
         with tempfile.TemporaryDirectory() as media_root:
             archive_relative_path = Path("downloads/products/1/existing.zip")
             archive_path = Path(media_root) / archive_relative_path
             archive_path.parent.mkdir(parents=True)
             archive_path.write_bytes(b"ready zip")
             archive_size = archive_path.stat().st_size
+
+            archive = ProductDownloadArchive.objects.create(
+                product=self.product,
+                created_by=self.user,
+                status=ProductDownloadArchiveStatus.READY,
+                archive_path=archive_relative_path.as_posix(),
+                filename="existing.zip",
+                size=archive_path.stat().st_size,
+                checksum="a" * 64,
+                source_signature="b" * 64,
+            )
+            token = ProductDownloadArchiveService.build_download_token(
+                archive, self.user
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/file/",
+                    {"token": token},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["X-Accel-Redirect"],
+            "/internal-downloads/products/1/existing.zip",
+        )
+        self.assertEqual(response["Content-Length"], str(archive_size))
+        self.assertEqual(
+            response["Content-Disposition"],
+            "attachment; filename=existing.zip",
+        )
+
+    def test_download_file_rejects_unauthenticated_request_even_with_valid_token(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            archive_relative_path = Path("downloads/products/1/existing.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
 
             archive = ProductDownloadArchive.objects.create(
                 product=self.product,
@@ -691,19 +734,104 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                     {"token": token},
                 )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-                response["X-Accel-Redirect"],
-                "/internal-downloads/products/1/existing.zip",
+        self.assertIn(response.status_code, [401, 403])
+
+    def test_download_file_accepts_token_generated_for_another_user_with_access(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            archive_relative_path = Path("downloads/products/1/existing.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
+
+            archive = ProductDownloadArchive.objects.create(
+                product=self.product,
+                created_by=self.user,
+                status=ProductDownloadArchiveStatus.READY,
+                archive_path=archive_relative_path.as_posix(),
+                filename="existing.zip",
+                size=archive_path.stat().st_size,
+                checksum="a" * 64,
+                source_signature="b" * 64,
             )
-        self.assertEqual(response["Content-Length"], str(archive_size))
-        self.assertEqual(
-            response["Content-Disposition"],
-            "attachment; filename=existing.zip",
+            another_user = User.objects.create_user(
+                username="ygritte",
+                email="ygritte@north.com",
+                password="you_know_nothing",
+            )
+            token = ProductDownloadArchiveService.build_download_token(
+                archive, another_user
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/file/",
+                    {"token": token},
+                )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_download_file_rejects_authenticated_user_without_product_access(self):
+        restricted_group = Group.objects.create(name="release-group-restricted")
+        restricted_release = Release.objects.create(
+            name="release-restricted",
+            display_name="Release Restricted",
+            description="Restricted release.",
+            indexing_column="id",
+            has_mag_hats=False,
+            has_flux_hats=True,
+            is_public=False,
         )
+        restricted_release.access_groups.add(restricted_group)
+        self.product.release = restricted_release
+        self.product.save(update_fields=["release", "updated_at"])
+
+        blocked_user = User.objects.create_user(
+            username="blocked_user",
+            email="blocked@north.com",
+            password="you_know_nothing",
+        )
+        blocked_token = Token.objects.create(user=blocked_user)
+
+        with tempfile.TemporaryDirectory() as media_root:
+            archive_relative_path = Path("downloads/products/1/existing.zip")
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_bytes(b"ready zip")
+
+            archive = ProductDownloadArchive.objects.create(
+                product=self.product,
+                created_by=self.user,
+                status=ProductDownloadArchiveStatus.READY,
+                archive_path=archive_relative_path.as_posix(),
+                filename="existing.zip",
+                size=archive_path.stat().st_size,
+                checksum="a" * 64,
+                source_signature="b" * 64,
+            )
+            token = ProductDownloadArchiveService.build_download_token(
+                archive, self.user
+            )
+
+            self.client.credentials(
+                HTTP_AUTHORIZATION="Token " + blocked_token.key
+            )
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/file/",
+                    {"token": token},
+                )
+
+        self.assertEqual(response.status_code, 404)
 
     def test_download_file_rejects_invalid_token(self):
-        self.client.credentials()
         response = self.client.get(
             f"/api/products/{self.product.pk}/download/file/",
             {"token": "invalid"},
