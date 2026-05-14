@@ -46,6 +46,7 @@ else:
         a.task_id or '',
         a.status or '',
         (a.error_message or '').replace('\\n', ' ')[:400],
+        a.created_at.isoformat() if a.created_at else '',
         a.updated_at.isoformat() if a.updated_at else '',
         a.archive_path or '',
         str(a.size or ''),
@@ -57,16 +58,29 @@ if [[ "$ARCHIVE_LINE" == "NONE" ]]; then
   exit 0
 fi
 
-IFS='|' read -r ARCHIVE_ID TASK_ID STATUS ERROR_MESSAGE UPDATED_AT ARCHIVE_PATH ARCHIVE_SIZE <<< "$ARCHIVE_LINE"
+IFS='|' read -r ARCHIVE_ID TASK_ID STATUS ERROR_MESSAGE CREATED_AT UPDATED_AT ARCHIVE_PATH ARCHIVE_SIZE <<< "$ARCHIVE_LINE"
 
 echo "== Latest Archive =="
 echo "archive_id=${ARCHIVE_ID}"
 echo "task_id=${TASK_ID:-<empty>}"
 echo "status=${STATUS}"
+echo "created_at=${CREATED_AT}"
 echo "updated_at=${UPDATED_AT}"
 echo "archive_path=${ARCHIVE_PATH:-<empty>}"
 echo "size=${ARCHIVE_SIZE:-<empty>}"
 echo "error_message=${ERROR_MESSAGE:-<empty>}"
+echo
+
+echo "== App File Logs (/archive/log/*.log) =="
+DJANGO_FILE_LOGS="$(docker compose exec -T backend sh -lc "tail -n ${TAIL_LINES} /archive/log/django.log 2>/dev/null || true")"
+TASKS_FILE_LOGS="$(docker compose exec -T backend sh -lc "tail -n ${TAIL_LINES} /archive/log/tasks.log 2>/dev/null || true")"
+if command -v rg >/dev/null 2>&1; then
+  printf '%s\n' "$DJANGO_FILE_LOGS" | rg -n "download_prepare queued|download_prepare reusing|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  printf '%s\n' "$TASKS_FILE_LOGS" | rg -n "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+else
+  printf '%s\n' "$DJANGO_FILE_LOGS" | grep -nE "download_prepare queued|download_prepare reusing|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  printf '%s\n' "$TASKS_FILE_LOGS" | grep -nE "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+fi
 echo
 
 echo "== Backend Logs (download_prepare/status) =="

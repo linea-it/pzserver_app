@@ -62,7 +62,7 @@ export default function ProductDetail({ productId, internalName }) {
   const classes = useStyles()
 
   const [product, setProduct] = React.useState(null)
-  const [process, setProcess] = React.useState(null)
+  const [uploadProcess, setUploadProcess] = React.useState(null)
   const [files, setFiles] = React.useState([])
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
@@ -143,7 +143,7 @@ export default function ProductDetail({ productId, internalName }) {
     getProcessByUpload(product.id)
       .then(res => {
         console.log('res', res)
-        setProcess(res)
+        setUploadProcess(res)
         setLoading(false)
       })
       .catch(error => {
@@ -531,11 +531,12 @@ export default function ProductDetail({ productId, internalName }) {
                   </Typography>
                 )}
 
-                {process !== null && (
+                {uploadProcess !== null && (
                   <>
                     <Typography variant="subtitle1" color="textSecondary">
                       <strong>
-                        Source{process.provenance_inputs.length !== 1 && 's'}:
+                        Source
+                        {uploadProcess.provenance_inputs.length !== 1 && 's'}:
                       </strong>
                     </Typography>
                     <Typography variant="subtitle1" color="textSecondary">
@@ -551,7 +552,7 @@ export default function ProductDetail({ productId, internalName }) {
                         }}
                         subheader={<li />}
                       >
-                        {process.provenance_inputs.map(provInput => (
+                        {uploadProcess.provenance_inputs.map(provInput => (
                           <ListItem
                             key={`section-${provInput.id}`}
                             component="div"
