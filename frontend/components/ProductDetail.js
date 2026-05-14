@@ -50,12 +50,19 @@ import useStyles from '../styles/pages/product'
 import ProductShare from './ProductShare'
 export default function ProductDetail({ productId, internalName }) {
   const downloadPollingIntervalMs = 2000
-  const downloadPollingMaxAttempts = 60
+  const downloadPollingTimeoutMinutes = Number.parseFloat(
+    process.env.NEXT_PUBLIC_DOWNLOAD_POLLING_TIMEOUT_MINUTES || '30'
+  )
+  const downloadPollingTimeoutMs =
+    Number.isFinite(downloadPollingTimeoutMinutes) &&
+      downloadPollingTimeoutMinutes > 0
+      ? downloadPollingTimeoutMinutes * 60 * 1000
+      : 30 * 60 * 1000
   const router = useRouter()
   const classes = useStyles()
 
   const [product, setProduct] = React.useState(null)
-  const [process, setProcess] = React.useState(null)
+  const [uploadProcess, setUploadProcess] = React.useState(null)
   const [files, setFiles] = React.useState([])
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
@@ -136,7 +143,7 @@ export default function ProductDetail({ productId, internalName }) {
     getProcessByUpload(product.id)
       .then(res => {
         console.log('res', res)
-        setProcess(res)
+        setUploadProcess(res)
         setLoading(false)
       })
       .catch(error => {
@@ -277,7 +284,9 @@ export default function ProductDetail({ productId, internalName }) {
     })
 
   const waitForDownloadReady = async () => {
-    for (let attempt = 0; attempt < downloadPollingMaxAttempts; attempt += 1) {
+    const deadline = Date.now() + downloadPollingTimeoutMs
+
+    while (Date.now() < deadline) {
       await sleep(downloadPollingIntervalMs)
 
       const archive = await getProductDownloadStatus(product.id)
@@ -294,7 +303,9 @@ export default function ProductDetail({ productId, internalName }) {
       }
     }
 
-    throw new Error('The download is still being prepared. Please try again later.')
+    throw new Error(
+      'The download is still being prepared in background. Please wait a bit longer and try again.'
+    )
   }
 
   const startDownload = () => {
@@ -520,11 +531,12 @@ export default function ProductDetail({ productId, internalName }) {
                   </Typography>
                 )}
 
-                {process !== null && (
+                {uploadProcess !== null && (
                   <>
                     <Typography variant="subtitle1" color="textSecondary">
                       <strong>
-                        Source{process.provenance_inputs.length !== 1 && 's'}:
+                        Source
+                        {uploadProcess.provenance_inputs.length !== 1 && 's'}:
                       </strong>
                     </Typography>
                     <Typography variant="subtitle1" color="textSecondary">
@@ -540,7 +552,7 @@ export default function ProductDetail({ productId, internalName }) {
                         }}
                         subheader={<li />}
                       >
-                        {process.provenance_inputs.map(provInput => (
+                        {uploadProcess.provenance_inputs.map(provInput => (
                           <ListItem
                             key={`section-${provInput.id}`}
                             component="div"

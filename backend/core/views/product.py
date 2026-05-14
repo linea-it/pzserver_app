@@ -274,6 +274,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
     def __serialize_download_archive(self, archive, request):
         data = {
             "id": archive.pk,
+            "task_id": archive.task_id,
             "status": archive.status,
             "filename": archive.filename,
             "size": archive.size,
@@ -316,6 +317,13 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             ProductDownloadArchiveStatus.RUNNING,
             ProductDownloadArchiveStatus.READY,
         ):
+            logger.info(
+                "download_prepare reusing archive_id=%s task_id=%s product_id=%s status=%s",
+                archive.pk,
+                archive.task_id,
+                product.pk,
+                archive.status,
+            )
             response_status = (
                 status.HTTP_200_OK
                 if archive.status == ProductDownloadArchiveStatus.READY
@@ -335,6 +343,13 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         task = build_product_download_archive.delay(archive.pk)
         archive.task_id = task.id
         archive.save(update_fields=["task_id", "updated_at"])
+        logger.info(
+            "download_prepare queued archive_id=%s task_id=%s product_id=%s source_signature=%s",
+            archive.pk,
+            archive.task_id,
+            product.pk,
+            source_signature,
+        )
         archive = ProductDownloadArchiveService.wait_for_archive_preparation(archive)
         response_status = (
             status.HTTP_200_OK
