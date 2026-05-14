@@ -27,7 +27,6 @@ from django.http import FileResponse, HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
@@ -383,10 +382,9 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         methods=["GET"],
         detail=True,
         url_path="download/file",
-        permission_classes=[AllowAny],
-        authentication_classes=[],
     )
     def download_file(self, request, **kwargs):
+        product = self.get_object()
         token = request.GET.get("token")
         if not token:
             raise exceptions.PermissionDenied("Missing download token.")
@@ -398,13 +396,13 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         except signing.BadSignature:
             raise exceptions.PermissionDenied("Invalid download token.")
 
-        if str(payload.get("product_id")) != str(kwargs.get("pk")):
+        if str(payload.get("product_id")) != str(product.pk):
             raise exceptions.PermissionDenied("Invalid download token.")
 
         try:
             archive = ProductDownloadArchive.objects.select_related("product").get(
                 pk=payload.get("archive_id"),
-                product_id=payload.get("product_id"),
+                product_id=product.pk,
                 status=ProductDownloadArchiveStatus.READY,
             )
         except ProductDownloadArchive.DoesNotExist:
