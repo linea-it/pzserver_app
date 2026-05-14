@@ -20,15 +20,23 @@ echo "product_id=${PRODUCT_ID}"
 echo "tail_lines=${TAIL_LINES}"
 echo
 
+if docker compose config --services | grep -qx "pzworker"; then
+  WORKER_SERVICE="pzworker"
+elif docker compose config --services | grep -qx "pz-worker"; then
+  WORKER_SERVICE="pz-worker"
+else
+  WORKER_SERVICE="pzworker"
+fi
+
 echo "== Services =="
-docker compose ps backend pz-worker rabbitmq || true
+docker compose ps backend "${WORKER_SERVICE}" rabbitmq || true
 RUNNING_BACKEND="$(docker compose ps --status running --services backend 2>/dev/null || true)"
-RUNNING_WORKER="$(docker compose ps --status running --services pz-worker 2>/dev/null || true)"
+RUNNING_WORKER="$(docker compose ps --status running --services "${WORKER_SERVICE}" 2>/dev/null || true)"
 RUNNING_RABBITMQ="$(docker compose ps --status running --services rabbitmq 2>/dev/null || true)"
-if [[ "$RUNNING_BACKEND" != "backend" || "$RUNNING_WORKER" != "pz-worker" || "$RUNNING_RABBITMQ" != "rabbitmq" ]]; then
+if [[ "$RUNNING_BACKEND" != "backend" || "$RUNNING_WORKER" != "${WORKER_SERVICE}" || "$RUNNING_RABBITMQ" != "rabbitmq" ]]; then
   echo
-  echo "backend, pz-worker and rabbitmq must be running for this trace."
-  echo "Try: docker compose up -d backend pz-worker rabbitmq"
+  echo "backend, ${WORKER_SERVICE} and rabbitmq must be running for this trace."
+  echo "Try: docker compose up -d backend ${WORKER_SERVICE} rabbitmq"
   exit 2
 fi
 echo
@@ -74,12 +82,15 @@ echo
 echo "== App File Logs (/archive/log/*.log) =="
 DJANGO_FILE_LOGS="$(docker compose exec -T backend sh -lc "tail -n ${TAIL_LINES} /archive/log/django.log 2>/dev/null || true")"
 TASKS_FILE_LOGS="$(docker compose exec -T backend sh -lc "tail -n ${TAIL_LINES} /archive/log/tasks.log 2>/dev/null || true")"
+WORKER_FILE_LOGS="$(docker compose exec -T "${WORKER_SERVICE}" sh -lc "tail -n ${TAIL_LINES} /archive/log/*.log 2>/dev/null || true")"
 if command -v rg >/dev/null 2>&1; then
   printf '%s\n' "$DJANGO_FILE_LOGS" | rg -n "download_prepare queued|download_prepare reusing|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
   printf '%s\n' "$TASKS_FILE_LOGS" | rg -n "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  printf '%s\n' "$WORKER_FILE_LOGS" | rg -n "build_product_download_archive|task_id=${TASK_ID}|archive_id=${ARCHIVE_ID}|Received unregistered task|Traceback|ERROR|CRITICAL" || true
 else
   printf '%s\n' "$DJANGO_FILE_LOGS" | grep -nE "download_prepare queued|download_prepare reusing|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
   printf '%s\n' "$TASKS_FILE_LOGS" | grep -nE "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  printf '%s\n' "$WORKER_FILE_LOGS" | grep -nE "build_product_download_archive|task_id=${TASK_ID}|archive_id=${ARCHIVE_ID}|Received unregistered task|Traceback|ERROR|CRITICAL" || true
 fi
 echo
 
@@ -93,17 +104,17 @@ echo
 
 echo "== Worker Logs (task lifecycle) =="
 if command -v rg >/dev/null 2>&1; then
-  docker compose logs --tail "$TAIL_LINES" pz-worker | rg -n "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  docker compose logs --tail "$TAIL_LINES" "${WORKER_SERVICE}" | rg -n "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
 else
-  docker compose logs --tail "$TAIL_LINES" pz-worker | grep -nE "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
+  docker compose logs --tail "$TAIL_LINES" "${WORKER_SERVICE}" | grep -nE "build_product_download_archive started|build_product_download_archive finished|build_product_download_archive failed|archive_id=${ARCHIVE_ID}|task_id=${TASK_ID}|product_id=${PRODUCT_ID}" || true
 fi
 echo
 
 if [[ -n "${TASK_ID}" ]]; then
   echo "== Celery Inspect (active/reserved/scheduled) =="
-  ACTIVE="$(docker compose exec -T pz-worker celery -A pzserver inspect active 2>/dev/null || true)"
-  RESERVED="$(docker compose exec -T pz-worker celery -A pzserver inspect reserved 2>/dev/null || true)"
-  SCHEDULED="$(docker compose exec -T pz-worker celery -A pzserver inspect scheduled 2>/dev/null || true)"
+  ACTIVE="$(docker compose exec -T "${WORKER_SERVICE}" celery -A pzserver inspect active 2>/dev/null || true)"
+  RESERVED="$(docker compose exec -T "${WORKER_SERVICE}" celery -A pzserver inspect reserved 2>/dev/null || true)"
+  SCHEDULED="$(docker compose exec -T "${WORKER_SERVICE}" celery -A pzserver inspect scheduled 2>/dev/null || true)"
 
   if command -v rg >/dev/null 2>&1; then
     printf '%s\n' "$ACTIVE" | rg -n "$TASK_ID" || true

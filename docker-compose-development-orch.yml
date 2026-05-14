@@ -41,16 +41,15 @@ services:
       - database
       - orchestration-api
 
-  pz-beat:
+  pzbeat:
     <<: *pzbackend
     hostname: "pzbeat"
     command: /app/pz-beat.sh
     depends_on:
       - backend
 
-  pz-worker:
+  pzworker:
     <<: *pzbackend
-    hostname: "pzworker"
     command: /app/worker.sh
     depends_on:
       - backend
