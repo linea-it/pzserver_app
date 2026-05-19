@@ -13,6 +13,21 @@ export default class MyDocument extends Document {
             href="https://fonts.googleapis.com/css?family=Oxanium|League+Gothic|Roboto+Condensed|Roboto:300,400,500,700&display=swap"
           />
           <link rel="shortcut icon" href="/favicon.png" />
+          {/* Google tag (gtag.js) */}
+          <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-V6TRZC4Q11"
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-V6TRZC4Q11');
+              `
+            }}
+          />
         </Head>
         <body>
           <Main />
