@@ -22,6 +22,7 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import SearchField from '../components/SearchField'
 import SpeczData from '../components/SpeczData'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
@@ -48,6 +49,7 @@ function SpeczCatalogs() {
   const [fieldErrors] = useState({})
   const [selectedProducts, setSelectedProducts] = useState([])
   const [outputFormat, setOutputFormat] = useState('parquet')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -264,13 +266,12 @@ function SpeczCatalogs() {
               <Typography variant="body1" mb={1}>
                 3. Select the Redshift Catalogs to include in your sample:
               </Typography>
-              {/* <SearchField onChange={query => setSearch(query)} /> */}
+              <SearchField onChange={query => setSearch(query)} />
             </Box>
             <Card>
               <CardContent>
                 <SpeczData
-                  // query={search}
-                  // filters={filters}
+                  query={search}
                   onSelectionChange={handleProductSelection}
                   clearSelection={selectedProducts.length === 0}
                 />

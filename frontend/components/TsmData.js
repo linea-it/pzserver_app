@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridToolbarFilterButton } from '@mui/x-data-grid'
 import moment from 'moment'
 import PropTypes from 'prop-types'
 import * as React from 'react'
@@ -14,12 +14,16 @@ const DataTableWrapper = ({
   selectedProductId
 }) => {
   const [page, setPage] = React.useState(0)
-  const [pageSize, setPageSize] = React.useState(10)
+  const [pageSize, setPageSize] = React.useState(25)
   const [selectedRowId, setSelectedRowId] = React.useState(null)
 
   React.useEffect(() => {
     setSelectedRowId(selectedProductId)
   }, [selectedProductId])
+
+  React.useEffect(() => {
+    setPage(0)
+  }, [query, filters])
 
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
@@ -32,6 +36,7 @@ const DataTableWrapper = ({
         search: query
       }),
     {
+      keepPreviousData: true,
       staleTime: Infinity,
       refetchInterval: false,
       retry: false
@@ -96,12 +101,13 @@ const DataTableWrapper = ({
           rowCount={data?.count || 0}
           onPageChange={newPage => setPage(newPage)}
           onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-          rowsPerPageOptions={[10]}
+          rowsPerPageOptions={[10, 25, 50]}
           loading={isLoading}
           localeText={{
             noRowsLabel: isLoading ? 'Loading...' : 'No products found'
           }}
           onRowClick={params => handleRowSelection(params.row.id)}
+          components={{ Toolbar: GridToolbarFilterButton }}
         />
       </Box>
     </>

@@ -5,30 +5,53 @@ import PropTypes from 'prop-types'
 import * as React from 'react'
 import { useEffect } from 'react'
 import { useQuery } from 'react-query'
-import { getAllProductsSpecz } from '../services/product'
+import { getProductsSpecz } from '../services/product'
 
 const DataTableWrapper = ({
+  filters = {},
+  query = '',
   onSelectionChange = () => {},
   clearSelection = false
 }) => {
+  const [page, setPage] = React.useState(0)
+  const [pageSize, setPageSize] = React.useState(25)
   const [selectedRows, setSelectedRows] = React.useState([])
 
   const { data, isLoading } = useQuery(
-    ['productData'],
-    () => getAllProductsSpecz(),
+    ['productData', { filters, query, page, pageSize }],
+    () =>
+      getProductsSpecz({
+        filters,
+        page,
+        page_size: pageSize,
+        sort: [{ field: 'created_at', sort: 'desc' }],
+        search: query
+      }),
     {
+      keepPreviousData: true,
       staleTime: Infinity,
       refetchInterval: false,
       retry: false
     }
   )
 
+  // Reset paginação quando a busca/filtros mudam
+  useEffect(() => {
+    setPage(0)
+  }, [query, filters])
+
   const handleSelectionChange = selection => {
-    const selectedProducts = selection.map(
-      id => data?.results?.find(product => product.id === id) || {}
+    const currentPageProducts = data?.results || []
+    const previousSelection = selectedRows.filter(
+      row => !currentPageProducts.some(p => p.id === row.id)
     )
-    setSelectedRows(selectedProducts)
-    onSelectionChange(selectedProducts)
+    const newSelectionFromPage = selection
+      .map(id => currentPageProducts.find(product => product.id === id))
+      .filter(Boolean)
+
+    const merged = [...previousSelection, ...newSelectionFromPage]
+    setSelectedRows(merged)
+    onSelectionChange(merged)
   }
 
   useEffect(() => {
@@ -67,7 +90,7 @@ const DataTableWrapper = ({
   return (
     <Box
       sx={{
-        height: 300,
+        height: 400,
         minHeight: 200,
         width: '100%',
         resize: 'vertical',
@@ -76,10 +99,18 @@ const DataTableWrapper = ({
     >
       <DataGrid
         checkboxSelection
+        keepNonExistentRowsSelected
         getRowId={row => row.id || row.unique_key}
         rows={data?.results || []}
         columns={columns}
         loading={isLoading}
+        paginationMode="server"
+        page={page}
+        pageSize={pageSize}
+        rowCount={data?.count || 0}
+        onPageChange={newPage => setPage(newPage)}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+        rowsPerPageOptions={[10, 25, 50]}
         onSelectionModelChange={newSelection =>
           handleSelectionChange(newSelection)
         }
@@ -94,6 +125,8 @@ const DataTableWrapper = ({
 }
 
 DataTableWrapper.propTypes = {
+  filters: PropTypes.object,
+  query: PropTypes.string,
   onSelectionChange: PropTypes.func,
   clearSelection: PropTypes.bool
 }
