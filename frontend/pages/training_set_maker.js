@@ -11,6 +11,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import MenuItem from '@mui/material/MenuItem'
@@ -45,6 +46,7 @@ function TrainingSetMaker() {
   const [disabledFluxToMag, setDisabledConvertFluxToMag] = useState(false)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
+  const [officialOnly, setOfficialOnly] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -192,6 +194,7 @@ function TrainingSetMaker() {
     setSelectedProductId(null)
     setUniqueGalaxies(false)
     setSearch('')
+    setOfficialOnly(false)
   }
 
   const handleRelease = (releaseName, releasesData) => {
@@ -438,6 +441,16 @@ function TrainingSetMaker() {
                 3. Select the Redshift Catalog for the cross-matching:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
+              <FormControlLabel
+                sx={{ ml: 1 }}
+                control={
+                  <Checkbox
+                    checked={officialOnly}
+                    onChange={e => setOfficialOnly(e.target.checked)}
+                  />
+                }
+                label="Official products"
+              />
             </Box>
           </Grid>
 
@@ -446,6 +459,7 @@ function TrainingSetMaker() {
               <CardContent>
                 <TsmData
                   query={search}
+                  filters={officialOnly ? { official_product: true } : {}}
                   onProductSelect={setSelectedProductId}
                   selectedProductId={selectedProductId}
                 />

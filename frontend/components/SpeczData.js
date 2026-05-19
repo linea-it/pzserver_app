@@ -1,4 +1,9 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Stack from '@mui/material/Stack'
 import { DataGrid, GridToolbarFilterButton } from '@mui/x-data-grid'
 import moment from 'moment'
 import PropTypes from 'prop-types'
@@ -54,11 +59,22 @@ const DataTableWrapper = ({
     onSelectionChange(merged)
   }
 
+  const handleClearAll = () => {
+    setSelectedRows([])
+    onSelectionChange([])
+  }
+
   useEffect(() => {
     if (clearSelection) {
       setSelectedRows([])
     }
   }, [clearSelection])
+
+  const visibleIds = new Set((data?.results || []).map(r => r.id))
+  const visibleSelectedCount = selectedRows.filter(r =>
+    visibleIds.has(r.id)
+  ).length
+  const hiddenSelectedCount = selectedRows.length - visibleSelectedCount
 
   const columns = [
     {
@@ -88,39 +104,66 @@ const DataTableWrapper = ({
   ]
 
   return (
-    <Box
-      sx={{
-        height: 400,
-        minHeight: 200,
-        width: '100%',
-        resize: 'vertical',
-        overflow: 'auto'
-      }}
-    >
-      <DataGrid
-        checkboxSelection
-        keepNonExistentRowsSelected
-        getRowId={row => row.id || row.unique_key}
-        rows={data?.results || []}
-        columns={columns}
-        loading={isLoading}
-        paginationMode="server"
-        page={page}
-        pageSize={pageSize}
-        rowCount={data?.count || 0}
-        onPageChange={newPage => setPage(newPage)}
-        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-        rowsPerPageOptions={[10, 25, 50]}
-        onSelectionModelChange={newSelection =>
-          handleSelectionChange(newSelection)
-        }
-        localeText={{
-          noRowsLabel: isLoading ? 'Loading...' : 'No products found'
+    <Stack spacing={1}>
+      {selectedRows.length > 0 && (
+        <Alert
+          severity={hiddenSelectedCount > 0 ? 'warning' : 'info'}
+          icon={<InfoOutlinedIcon fontSize="inherit" />}
+          action={
+            <Button color="inherit" size="small" onClick={handleClearAll}>
+              Clear all
+            </Button>
+          }
+          sx={{ py: 0 }}
+        >
+          <Chip
+            label={`${selectedRows.length} selected`}
+            size="small"
+            color="primary"
+            sx={{ mr: 1 }}
+          />
+          {hiddenSelectedCount > 0 && (
+            <span>
+              {hiddenSelectedCount} item{hiddenSelectedCount > 1 ? 's' : ''}{' '}
+              currently hidden by search/filter. They will still be submitted.
+            </span>
+          )}
+        </Alert>
+      )}
+      <Box
+        sx={{
+          height: 400,
+          minHeight: 200,
+          width: '100%',
+          resize: 'vertical',
+          overflow: 'auto'
         }}
-        selectionModel={selectedRows.map(row => row.id)}
-        components={{ Toolbar: GridToolbarFilterButton }}
-      />
-    </Box>
+      >
+        <DataGrid
+          checkboxSelection
+          keepNonExistentRowsSelected
+          getRowId={row => row.id || row.unique_key}
+          rows={data?.results || []}
+          columns={columns}
+          loading={isLoading}
+          paginationMode="server"
+          page={page}
+          pageSize={pageSize}
+          rowCount={data?.count || 0}
+          onPageChange={newPage => setPage(newPage)}
+          onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+          rowsPerPageOptions={[10, 25, 50]}
+          onSelectionModelChange={newSelection =>
+            handleSelectionChange(newSelection)
+          }
+          localeText={{
+            noRowsLabel: isLoading ? 'Loading...' : 'No products found'
+          }}
+          selectionModel={selectedRows.map(row => row.id)}
+          components={{ Toolbar: GridToolbarFilterButton }}
+        />
+      </Box>
+    </Stack>
   )
 }
 

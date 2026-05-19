@@ -1,5 +1,9 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Radio from '@mui/material/Radio'
+import Stack from '@mui/material/Stack'
 import { DataGrid, GridToolbarFilterButton } from '@mui/x-data-grid'
 import moment from 'moment'
 import PropTypes from 'prop-types'
@@ -16,6 +20,7 @@ const DataTableWrapper = ({
   const [page, setPage] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(25)
   const [selectedRowId, setSelectedRowId] = React.useState(null)
+  const [selectedRowName, setSelectedRowName] = React.useState(null)
 
   React.useEffect(() => {
     setSelectedRowId(selectedProductId)
@@ -43,12 +48,26 @@ const DataTableWrapper = ({
     }
   )
 
-  const handleRowSelection = rowId => {
+  const handleRowSelection = (rowId, rowName) => {
     setSelectedRowId(rowId)
+    setSelectedRowName(rowName)
     if (onProductSelect) {
       onProductSelect(rowId)
     }
   }
+
+  const handleClear = () => {
+    setSelectedRowId(null)
+    setSelectedRowName(null)
+    if (onProductSelect) {
+      onProductSelect(null)
+    }
+  }
+
+  const isSelectionVisible =
+    selectedRowId != null &&
+    (data?.results || []).some(r => r.id === selectedRowId)
+  const hasHiddenSelection = selectedRowId != null && !isSelectionVisible
 
   const columns = [
     {
@@ -57,7 +76,9 @@ const DataTableWrapper = ({
       renderCell: params => (
         <Radio
           checked={selectedRowId === params.row.id}
-          onChange={() => handleRowSelection(params.row.id)}
+          onChange={() =>
+            handleRowSelection(params.row.id, params.row.display_name)
+          }
         />
       ),
       width: 50
@@ -89,7 +110,23 @@ const DataTableWrapper = ({
   ]
 
   return (
-    <>
+    <Stack spacing={1}>
+      {hasHiddenSelection && (
+        <Alert
+          severity="warning"
+          icon={<InfoOutlinedIcon fontSize="inherit" />}
+          action={
+            <Button color="inherit" size="small" onClick={handleClear}>
+              Clear
+            </Button>
+          }
+          sx={{ py: 0 }}
+        >
+          The selected catalog
+          {selectedRowName ? ` (${selectedRowName})` : ''} is hidden by the
+          current search/filter. It will still be submitted.
+        </Alert>
+      )}
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
           getRowId={row => row.id || row.unique_key}
@@ -106,11 +143,13 @@ const DataTableWrapper = ({
           localeText={{
             noRowsLabel: isLoading ? 'Loading...' : 'No products found'
           }}
-          onRowClick={params => handleRowSelection(params.row.id)}
+          onRowClick={params =>
+            handleRowSelection(params.row.id, params.row.display_name)
+          }
           components={{ Toolbar: GridToolbarFilterButton }}
         />
       </Box>
-    </>
+    </Stack>
   )
 }
 
