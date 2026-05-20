@@ -26,9 +26,14 @@ const DataTableWrapper = ({
     setSelectedRowId(selectedProductId)
   }, [selectedProductId])
 
+  // Reset paginação quando a busca/filtros mudam.
+  // Serializa os filtros: como `filters` é um objeto recriado a cada render,
+  // usar ele direto como dependência dispararia o efeito em todo render,
+  // travando a paginação sempre na primeira página.
+  const filtersKey = JSON.stringify(filters)
   React.useEffect(() => {
     setPage(0)
-  }, [query, filters])
+  }, [query, filtersKey])
 
   const { data, isLoading } = useQuery(
     ['productData', { filters, query, page, pageSize }],
