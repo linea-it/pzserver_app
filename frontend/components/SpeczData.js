@@ -35,10 +35,14 @@ const DataTableWrapper = ({
     }
   )
 
-  // Reset paginação quando a busca/filtros mudam
+  // Reset paginação quando a busca/filtros mudam.
+  // Serializa os filtros: como `filters` é um objeto recriado a cada render,
+  // usar ele direto como dependência dispararia o efeito em todo render,
+  // travando a paginação sempre na primeira página.
+  const filtersKey = JSON.stringify(filters)
   useEffect(() => {
     setPage(0)
-  }, [query, filters])
+  }, [query, filtersKey])
 
   const handleSelectionChange = selection => {
     const currentPageProducts = data?.results || []
