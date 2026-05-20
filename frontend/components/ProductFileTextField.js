@@ -10,9 +10,14 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { deleteProductFile } from '../services/product'
 
-export default function ProductFileTextField(props) {
-  const { id, role, name, size, readOnly, onDelete } = props
-
+export default function ProductFileTextField({
+  id,
+  role,
+  name,
+  size,
+  readOnly = false,
+  onDelete
+}) {
   const [errorSnackbar, setErrorSnackbar] = React.useState({
     open: false,
     message: ''
@@ -106,7 +111,4 @@ ProductFileTextField.propTypes = {
   role: PropTypes.number.isRequired,
   onDelete: PropTypes.func.isRequired,
   readOnly: PropTypes.bool
-}
-ProductFileTextField.defaultProps = {
-  readOnly: false
 }

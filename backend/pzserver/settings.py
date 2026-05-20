@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import logging
 import os
+import time
 from pathlib import Path
 
 import saml2
@@ -22,6 +24,12 @@ APPS_DIR = Path(BASE_DIR) / "core"
 
 LOG_DIR = os.getenv("LOG_DIR", "/archive/log")
 LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO")
+
+
+class LocalTimeFormatter(logging.Formatter):
+    """Ensure log timestamps use container localtime."""
+
+    converter = time.localtime
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -170,6 +178,27 @@ STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/archive/data/")
 MEDIA_URL = "/archive/data/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
+PRODUCT_DOWNLOAD_COMPRESSION_LEVEL = int(
+    os.getenv("PRODUCT_DOWNLOAD_COMPRESSION_LEVEL", "6")
+)
+PRODUCT_DOWNLOAD_ROOT = os.getenv(
+    "PRODUCT_DOWNLOAD_ROOT", os.path.join(MEDIA_ROOT, "downloads")
+)
+PRODUCT_DOWNLOAD_INTERNAL_URL = os.getenv(
+    "PRODUCT_DOWNLOAD_INTERNAL_URL", "/internal-downloads/"
+)
+PRODUCT_DOWNLOAD_TOKEN_MAX_AGE_SECONDS = int(
+    os.getenv("PRODUCT_DOWNLOAD_TOKEN_MAX_AGE_SECONDS", "900")
+)
+PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS = int(
+    os.getenv("PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS", "72")
+)
+PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS = float(
+    os.getenv("PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS", "10")
+)
+PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS = float(
+    os.getenv("PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS", "0.5")
+)
 
 # Criando VA APPEND
 APPEND_SLASH = False
@@ -246,7 +275,11 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {"format": "%(asctime)s [%(levelname)s] %(message)s"},
+        "standard": {
+            "()": LocalTimeFormatter,
+            "format": "%(asctime)s [%(levelname)s] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
     "handlers": {
         "default": {

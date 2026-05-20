@@ -2,19 +2,21 @@ import Box from '@mui/material/Box'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import Head from 'next/head'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import Script from 'next/script'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import AlertEnvironment from '../components/AlertEnvironment'
-import Footer from '../components/Footer'
-import Header from '../components/Header'
 import { AuthProvider } from '../contexts/AuthContext'
 import { whichEnvironment } from '../services/api'
 import '../styles/global.css'
 import darkTheme from '../themes/dark'
 import lightTheme from '../themes/light'
+
+const Header = dynamic(() => import('../components/Header'), { ssr: false })
+const Footer = dynamic(() => import('../components/Footer'), { ssr: false })
 
 const queryClient = new QueryClient()
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID

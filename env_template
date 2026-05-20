@@ -16,6 +16,7 @@ DJANGO_ENVIRONMENT_NAME=Development
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=1
 LOGGING_LEVEL=DEBUG
+TZ=America/Sao_Paulo
 # AUTORELOAD: Select 1 to enable auto reload and 0 to turn off. In production we must
 # disable it.
 AUTORELOAD=1
@@ -73,6 +74,13 @@ DJANGO_CSRF_TRUSTED_ORIGINS=${URI} http://127.0.0.1
 
 UPLOAD_DIR=/archive/data/
 MEDIA_ROOT=/archive/data/
+PRODUCT_DOWNLOAD_COMPRESSION_LEVEL=6
+PRODUCT_DOWNLOAD_ROOT=/archive/data/downloads
+PRODUCT_DOWNLOAD_INTERNAL_URL=/internal-downloads/
+PRODUCT_DOWNLOAD_TOKEN_MAX_AGE_SECONDS=900
+PRODUCT_DOWNLOAD_ARCHIVE_EXPIRE_HOURS=72
+PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS=10
+PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS=0.5
 
 # directory where it will contain the processing of the pipelines.
 PROCESSING_DIR=/processes

@@ -1,16 +1,118 @@
 import logging
 import pathlib
+import time
 
 from celery import shared_task
 from core.maestro import Maestro
-from core.models import Process
+from core.models import (
+    Process,
+    ProductDownloadArchive,
+    ProductDownloadArchiveStatus,
+)
 from core.models.product_file import FileRoles
 from core.product_steps import RegistryProduct
+from core.product_handle import NotTableError
+from core.services.product_download import ProductDownloadArchiveService
 from core.utils import get_ucd_columns, load_yaml
 from django.conf import settings
 from django.utils import dateparse, timezone
 
 LOGGER = logging.getLogger("tasks")
+
+
+@shared_task(bind=True)
+def build_product_download_archive(self, archive_id):
+    """Builds a product download ZIP and updates its archive record."""
+    started_at = time.monotonic()
+    archive = ProductDownloadArchive.objects.select_related(
+        "product",
+        "product__product_type",
+        "product__release",
+        "product__user",
+    ).get(pk=archive_id)
+    task_id = self.request.id
+
+    archive.status = ProductDownloadArchiveStatus.RUNNING
+    archive.task_id = task_id
+    archive.error_message = None
+    archive.save(
+        update_fields=["status", "task_id", "error_message", "updated_at"]
+    )
+    LOGGER.info(
+        "build_product_download_archive started task_id=%s archive_id=%s product_id=%s",
+        task_id,
+        archive.pk,
+        archive.product_id,
+    )
+
+    try:
+        archive = ProductDownloadArchiveService.prepare_archive(archive)
+    except Exception as error:
+        elapsed = time.monotonic() - started_at
+        LOGGER.exception(
+            "build_product_download_archive failed task_id=%s archive_id=%s product_id=%s elapsed_seconds=%.3f",
+            task_id,
+            archive_id,
+            archive.product_id,
+            elapsed,
+        )
+        archive.status = ProductDownloadArchiveStatus.FAILED
+        archive.error_message = str(error)
+        archive.save(update_fields=["status", "error_message", "updated_at"])
+        raise
+
+    elapsed = time.monotonic() - started_at
+    LOGGER.info(
+        "build_product_download_archive finished task_id=%s archive_id=%s product_id=%s elapsed_seconds=%.3f archive_path=%s size=%s",
+        task_id,
+        archive.pk,
+        archive.product_id,
+        elapsed,
+        archive.archive_path,
+        archive.size,
+    )
+
+    return {
+        "archive_id": archive.pk,
+        "task_id": task_id,
+        "status": archive.status,
+        "archive_path": archive.archive_path,
+    }
+
+
+@shared_task(bind=True)
+def build_product_table_preview(self, product_id):
+    """Builds product table preview in background and clears processing marker."""
+    registry = RegistryProduct(product_id)
+
+    try:
+        table_data = registry.build_table_preview()
+        return {
+            "product_id": product_id,
+            "status": "ready",
+            "rows": int(table_data.get("n_rows") or 0),
+        }
+    except NotTableError as error:
+        LOGGER.warning("Table preview unavailable for product %s: %s", product_id, error)
+        registry.remove_table_preview()
+        return {"product_id": product_id, "status": "not_table", "message": str(error)}
+    except Exception:
+        LOGGER.exception("Failed to build table preview for product %s", product_id)
+        raise
+    finally:
+        RegistryProduct.stop_table_preview_processing(registry.product)
+
+
+@shared_task()
+def cleanup_product_download_archives():
+    """Removes obsolete product download archives and their ZIP files."""
+    result = ProductDownloadArchiveService.cleanup_obsolete_archives()
+    LOGGER.info(
+        "Product download archive cleanup removed %s records and %s files.",
+        result["deleted_archives"],
+        result["deleted_files"],
+    )
+    return result
 
 
 @shared_task()

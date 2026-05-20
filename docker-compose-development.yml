@@ -12,7 +12,7 @@ services:
     volumes:
       - ./pg_data:/var/lib/postgresql/data
 
-  backend:
+  backend: &pzbackend
     build:
       context: ./backend
       args:
@@ -41,6 +41,18 @@ services:
     stdin_open: true
     command: yarn dev
 
+  pzbeat:
+    <<: *pzbackend
+    command: /app/pz-beat.sh
+    depends_on:
+      - backend
+
+  pzworker:
+    <<: *pzbackend
+    command: /app/worker.sh
+    depends_on:
+      - backend
+
   nginx:
     image: nginx:1.21.6-alpine
     ports:
@@ -52,3 +64,12 @@ services:
     depends_on:
       - backend
       - frontend
+
+  rabbitmq:
+    image: "rabbitmq:3.12.12-management"
+    hostname: "rabbitmq"
+    env_file:
+      - .env
+    ports:
+      - "15672:15672"
+      - "5672:5672"

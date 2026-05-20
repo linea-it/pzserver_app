@@ -1,5 +1,7 @@
 import json
 import mimetypes
+from pathlib import Path
+from unittest import mock
 
 from core.models import (
     FileStorageKind,
@@ -9,7 +11,10 @@ from core.models import (
     ProductType,
     Release,
 )
+from core.product_handle import ProductHandle
+from core.product_steps import RegistryProduct
 from core.test.util import sample_product_file
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -70,6 +75,7 @@ class ProductRegistryTestCase(APITestCase):
         filename = sample_product_file(extension, compression, header)
 
         with open(filename, "rb") as fp:
+            mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
             response = self.client.post(
                 reverse("product_files-list"),
@@ -78,7 +84,7 @@ class ProductRegistryTestCase(APITestCase):
                         "product": product.pk,
                         "file": fp,
                         "role": 0,
-                        "type": mimetypes.guess_type(filename)[0],
+                        "type": mime_type,
                     }
                 ),
                 format="multipart",
@@ -116,6 +122,10 @@ class ProductRegistryTestCase(APITestCase):
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, 200)
+        preview_path = Path(
+            settings.MEDIA_ROOT, product.path, RegistryProduct.TABLE_PREVIEW_FILENAME
+        )
+        self.assertTrue(preview_path.exists())
 
     def test_registry_without_columns(self):
 
@@ -128,6 +138,41 @@ class ProductRegistryTestCase(APITestCase):
 
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_registry_non_textual_file_keeps_n_rows(self):
+        product = self.create_product(specz=True)
+        product_file = self.upload_main_file(product, extension="fits")
+        url = reverse("products-registry", kwargs={"pk": product.pk})
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+
+        product_file.refresh_from_db()
+        self.assertIsNotNone(product_file.n_rows)
+
+    def test_registry_parquet_uses_chunked_path(self):
+        product = self.create_product(specz=True)
+        product_file = self.upload_main_file(product, extension="pq")
+        url = reverse("products-registry", kwargs={"pk": product.pk})
+
+        original_df_from_file = ProductHandle.df_from_file
+
+        def guarded_df_from_file(instance, filepath, **kwargs):
+            if str(filepath).lower().endswith((".pq", ".parquet")):
+                raise Exception("Parquet should use chunked pyarrow path.")
+            return original_df_from_file(instance, filepath, **kwargs)
+
+        with mock.patch.object(
+            ProductHandle,
+            "df_from_file",
+            autospec=True,
+            side_effect=guarded_df_from_file,
+        ):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        product_file.refresh_from_db()
+        self.assertIsNotNone(product_file.n_rows)
 
     def test_registry_retry(self):
         """Verifica se a função registry pode ser repetida para o mesmo produto/file."""
@@ -167,6 +212,98 @@ class ProductRegistryTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(ProductContent.objects.filter(product=product).count(), 3)
+
+    def test_registry_generates_table_preview_file(self):
+        product = self.create_product(specz=True)
+        self.upload_main_file(product, extension="csv")
+        url = reverse("products-registry", kwargs={"pk": product.pk})
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+
+        preview_path = Path(
+            settings.MEDIA_ROOT, product.path, RegistryProduct.TABLE_PREVIEW_FILENAME
+        )
+        self.assertTrue(preview_path.exists())
+
+        payload = json.loads(preview_path.read_text(encoding="utf-8"))
+        self.assertIn("count", payload)
+        self.assertIn("columns", payload)
+        self.assertIn("results", payload)
+        self.assertLessEqual(
+            len(payload["results"]), RegistryProduct.TABLE_PREVIEW_ROWS
+        )
+
+    def test_read_data_uses_cached_table_preview(self):
+        product = self.create_product(specz=True)
+        self.upload_main_file(product, extension="csv")
+        self.client.post(reverse("products-registry", kwargs={"pk": product.pk}))
+
+        with mock.patch(
+            "core.views.product.FileHandle.to_df",
+            side_effect=Exception("Should not parse file when preview exists."),
+        ):
+            response = self.client.get(
+                reverse("products-read-data", kwargs={"pk": product.pk}),
+                {"page": 1, "page_size": 10},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertIn("results", data)
+        self.assertLessEqual(len(data["results"]), RegistryProduct.TABLE_PREVIEW_ROWS)
+
+    def test_read_data_starts_background_preview_when_missing(self):
+        product = self.create_product(specz=True)
+        self.upload_main_file(product, extension="csv")
+
+        preview_path = RegistryProduct.get_table_preview_path(product)
+        processing_path = RegistryProduct.get_table_preview_processing_path(product)
+        preview_path.unlink(missing_ok=True)
+        processing_path.unlink(missing_ok=True)
+
+        with mock.patch(
+            "core.views.product.build_product_table_preview.delay"
+        ) as delay_mock:
+            response = self.client.get(
+                reverse("products-read-data", kwargs={"pk": product.pk}),
+                {"page": 1, "page_size": 10},
+            )
+
+        self.assertEqual(response.status_code, 202)
+        data = json.loads(response.content)
+        self.assertEqual(
+            data["message"],
+            "Table preview is being processed in the background.",
+        )
+        delay_mock.assert_called_once_with(product.pk)
+        self.assertTrue(processing_path.exists())
+
+    def test_read_data_does_not_restart_preview_when_already_processing(self):
+        product = self.create_product(specz=True)
+        self.upload_main_file(product, extension="csv")
+
+        preview_path = RegistryProduct.get_table_preview_path(product)
+        processing_path = RegistryProduct.get_table_preview_processing_path(product)
+        preview_path.unlink(missing_ok=True)
+        processing_path.unlink(missing_ok=True)
+        RegistryProduct.start_table_preview_processing(product)
+
+        with mock.patch(
+            "core.views.product.build_product_table_preview.delay"
+        ) as delay_mock:
+            response = self.client.get(
+                reverse("products-read-data", kwargs={"pk": product.pk}),
+                {"page": 1, "page_size": 10},
+            )
+
+        self.assertEqual(response.status_code, 202)
+        data = json.loads(response.content)
+        self.assertEqual(
+            data["message"],
+            "Table preview is being processed in the background.",
+        )
+        delay_mock.assert_not_called()
 
     # def test_registry_redshift_without_header(self):
     #     """Redshift need a file with header"""

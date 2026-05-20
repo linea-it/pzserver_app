@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import debounce from 'lodash/debounce'
 import FormControl from '@mui/material/FormControl'
@@ -8,6 +8,10 @@ import SearchIcon from '@mui/icons-material/Search'
 
 export default function SearchField({ initialValue, onChange }) {
   const [inputValue, setInputValue] = useState(initialValue || '')
+
+  useEffect(() => {
+    setInputValue(initialValue || '')
+  }, [initialValue])
 
   const sendQuery = query => {
     onChange(query)

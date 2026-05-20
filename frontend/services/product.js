@@ -3,15 +3,20 @@ import forIn from 'lodash/forIn'
 import { api } from './api'
 // import isEmpty from 'lodash/isEmpty'
 
-export const getProductTypes = ({ }) => {
+export const getProductTypes = (_params = {}) => {
   return api.get('/api/product-types/?ordering=order').then(res => res.data)
 }
 
-export const downloadProduct = (id, internalName) => {
-  return api.get('/api/products/' + id + '/download/', {
-    responseType: 'blob',
-    timeout: 120000
-  })
+export const prepareProductDownload = id => {
+  return api
+    .post(`/api/products/${id}/download/prepare/`, null, { timeout: 120000 })
+    .then(res => res.data)
+}
+
+export const getProductDownloadStatus = id => {
+  return api
+    .get(`/api/products/${id}/download/status/`, { timeout: 120000 })
+    .then(res => res.data)
 }
 
 export const MAX_UPLOAD_SIZE = 200
@@ -147,14 +152,30 @@ export const getProductByInternalName = (internalName) => {
 
 }
 
-export const fetchProductData = ({ queryKey }) => {
-  const [_, params] = queryKey
-  const { productId, page, pageSize: page_size } = params
+export const fetchProductData = ({ queryKey } = {}) => {
+  const [_, params = {}] = queryKey || []
+  const { productId, page = 0, pageSize: page_size = 25 } = params
   if (!productId) {
     return
   }
-  page += 1
-  return api.get(`/api/products/${productId}/read_data/`, { timeout: 120000, params: { page, page_size } }).then(res => res.data)
+  const requestPage = page + 1
+  return api
+    .get(`/api/products/${productId}/read_data/`, {
+      timeout: 120000,
+      params: { page: requestPage, page_size }
+    })
+    .then(res => {
+      if (res.data && typeof res.data === 'object') {
+        return {
+          ...res.data,
+          _httpStatus: res.status
+        }
+      }
+
+      return {
+        _httpStatus: res.status
+      }
+    })
 }
 
 export const deleteProduct = product_id => {

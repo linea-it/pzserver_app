@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pzserver.settings")
@@ -18,6 +19,10 @@ app.conf.beat_schedule = {
     "check-processes": {
         "task": "core.tasks.check_processes",
         "schedule": 10.0,
+    },
+    "cleanup-product-download-archives": {
+        "task": "core.tasks.cleanup_product_download_archives",
+        "schedule": crontab(hour=23, minute=0),
     },
 }
 app.conf.timezone = "UTC"

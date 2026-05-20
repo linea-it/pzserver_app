@@ -1,25 +1,20 @@
-FROM node:16.14.2-slim AS dependencies
+FROM node:20-slim AS dependencies
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-FROM node:16.14.2-slim AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
 RUN yarn build
 
-FROM node:16.14.2-slim AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
 ARG USERID=1000
 ARG GROUPID=1000
-
-# RUN apt-get update \
-#   && apt-get install -y --no-install-recommends build-essential \
-#   && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man \
-#   && apt-get clean 
 
 RUN echo "Creating user with UID ${USERID} and GID ${GROUPID}"
 

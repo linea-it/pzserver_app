@@ -39,24 +39,36 @@ import ProductDataGrid from '../components/ProductDataGrid'
 import ProductNotFound from '../components/ProductNotFound'
 import { getProcessByUpload } from '../services/process'
 import {
-  downloadProduct,
   getProduct,
   getProductConfigFiles,
+  getProductDownloadStatus,
   getProductFiles,
-  getProducts
+  getProducts,
+  prepareProductDownload
 } from '../services/product'
 import useStyles from '../styles/pages/product'
 import ProductShare from './ProductShare'
 export default function ProductDetail({ productId, internalName }) {
+  const downloadPollingIntervalMs = 2000
+  const downloadPollingTimeoutMinutes = Number.parseFloat(
+    process.env.NEXT_PUBLIC_DOWNLOAD_POLLING_TIMEOUT_MINUTES || '30'
+  )
+  const downloadPollingTimeoutMs =
+    Number.isFinite(downloadPollingTimeoutMinutes) &&
+      downloadPollingTimeoutMinutes > 0
+      ? downloadPollingTimeoutMinutes * 60 * 1000
+      : 30 * 60 * 1000
   const router = useRouter()
   const classes = useStyles()
 
   const [product, setProduct] = React.useState(null)
-  const [process, setProcess] = React.useState(null)
+  const [uploadProcess, setUploadProcess] = React.useState(null)
   const [files, setFiles] = React.useState([])
   const [isLoading, setLoading] = React.useState(false)
   const [notFound, setNotFound] = React.useState(false)
   const [isDownloading, setDownloading] = React.useState(false)
+  const [downloadUrl, setDownloadUrl] = React.useState(null)
+  const [downloadError, setDownloadError] = React.useState(null)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [snackbarOpen, setSnackbarOpen] = React.useState(false)
   const productShareRef = React.useRef(null)
@@ -131,7 +143,7 @@ export default function ProductDetail({ productId, internalName }) {
     getProcessByUpload(product.id)
       .then(res => {
         console.log('res', res)
-        setProcess(res)
+        setUploadProcess(res)
         setLoading(false)
       })
       .catch(error => {
@@ -231,23 +243,97 @@ export default function ProductDetail({ productId, internalName }) {
     }
   }, [loadFiles, product])
 
-  const downloadFile = () => {
-    setDownloading(true)
-    downloadProduct(product.id, product.internal_name)
-      .then(res => {
-        const link = document.createElement('a')
-        link.target = '_blank'
-        link.download = product.internal_name
-        link.href = URL.createObjectURL(
-          new Blob([res.data], { type: res.headers['content-type'] })
+  const setDownloadArchive = React.useCallback(archive => {
+    if (archive.status === 'ready' && archive.download_url) {
+      setDownloadUrl(archive.download_url)
+    }
+
+    if (archive.status === 'failed') {
+      setDownloadError(
+        archive.error_message || 'Failed to prepare product download.'
+      )
+    }
+  }, [])
+
+  const loadDownloadStatus = React.useCallback(async () => {
+    if (!product?.id) return
+
+    try {
+      const archive = await getProductDownloadStatus(product.id)
+      setDownloadArchive(archive)
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        setDownloadUrl(null)
+        setDownloadError(null)
+        return
+      }
+
+      console.error('Error loading download status:', error.message)
+    }
+  }, [product, setDownloadArchive])
+
+  React.useEffect(() => {
+    if (product) {
+      loadDownloadStatus()
+    }
+  }, [loadDownloadStatus, product])
+
+  const sleep = ms =>
+    new Promise(resolve => {
+      window.setTimeout(resolve, ms)
+    })
+
+  const waitForDownloadReady = async () => {
+    const deadline = Date.now() + downloadPollingTimeoutMs
+
+    while (Date.now() < deadline) {
+      await sleep(downloadPollingIntervalMs)
+
+      const archive = await getProductDownloadStatus(product.id)
+      setDownloadArchive(archive)
+
+      if (archive.status === 'ready' && archive.download_url) {
+        return archive
+      }
+
+      if (archive.status === 'failed') {
+        throw new Error(
+          archive.error_message || 'Failed to prepare product download.'
         )
-        link.click()
-        setDownloading(false)
-      })
-      .catch(error => {
-        console.error('Error downloading file:', error.message)
-        setDownloading(false)
-      })
+      }
+    }
+
+    throw new Error(
+      'The download is still being prepared in background. Please wait a bit longer and try again.'
+    )
+  }
+
+  const startDownload = () => {
+    if (downloadUrl) {
+      window.location.href = downloadUrl
+    }
+  }
+
+  const buildDownload = async () => {
+    setDownloading(true)
+    setDownloadError(null)
+    setDownloadUrl(null)
+
+    try {
+      let archive = await prepareProductDownload(product.id)
+      setDownloadArchive(archive)
+
+      if (archive.status !== 'ready') {
+        archive = await waitForDownloadReady()
+      }
+
+      setDownloadArchive(archive)
+    } catch (error) {
+      console.error('Error downloading file:', error.message)
+      setDownloadError(error.message)
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const handleEdit = row => {
@@ -445,11 +531,12 @@ export default function ProductDetail({ productId, internalName }) {
                   </Typography>
                 )}
 
-                {process !== null && (
+                {uploadProcess !== null && (
                   <>
                     <Typography variant="subtitle1" color="textSecondary">
                       <strong>
-                        Source{process.provenance_inputs.length !== 1 && 's'}:
+                        Source
+                        {uploadProcess.provenance_inputs.length !== 1 && 's'}:
                       </strong>
                     </Typography>
                     <Typography variant="subtitle1" color="textSecondary">
@@ -465,7 +552,7 @@ export default function ProductDetail({ productId, internalName }) {
                         }}
                         subheader={<li />}
                       >
-                        {process.provenance_inputs.map(provInput => (
+                        {uploadProcess.provenance_inputs.map(provInput => (
                           <ListItem
                             key={`section-${provInput.id}`}
                             component="div"
@@ -537,16 +624,21 @@ export default function ProductDetail({ productId, internalName }) {
                   <>
                     <LoadingButton
                       loading={isDownloading}
+                      color={downloadUrl ? 'primary' : 'warning'}
                       variant="contained"
-                      onClick={downloadFile}
+                      onClick={downloadUrl ? startDownload : buildDownload}
                       fullWidth
                     >
-                      Download
+                      {downloadUrl ? 'Download Now' : 'Build Download'}
                     </LoadingButton>
                     {isDownloading && (
                       <Alert variant="outlined" severity="info">
-                        The files with data and metadata are being prepared for
-                        the transfer. The download will begin shortly.
+                        Building the download package...
+                      </Alert>
+                    )}
+                    {!isDownloading && downloadError && (
+                      <Alert variant="outlined" severity="error">
+                        {downloadError}
                       </Alert>
                     )}
                   </>

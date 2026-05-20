@@ -1,11 +1,8 @@
-const withTM = require('next-transpile-modules')([
-  'react-markdown',
-  'remark-gfm'
-])
-
-module.exports = withTM({
+module.exports = {
   reactStrictMode: true,
+  transpilePackages: ['react-markdown', 'remark-gfm'],
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   async rewrites() {
     return [{ source: '/front-api/:path*', destination: '/api/:path*' }]
   },
-})
+}

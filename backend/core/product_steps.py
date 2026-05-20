@@ -1,9 +1,12 @@
 import logging
 import pathlib
+import time
+from json import dumps, loads
 
 from core.models import FileStorageKind, Product, ProductContent, ProductFile
 from core.product_handle import NotTableError, ProductHandle
 from core.serializers import ProductSerializer
+from core.table_data_collector import MainTableDataCollector
 from django.conf import settings
 
 LOGGER = logging.getLogger("products")
@@ -178,6 +181,22 @@ class CreateProduct:
 
 
 class RegistryProduct:
+    TABLE_PREVIEW_FILENAME = "__table_preview.json"
+    TABLE_PREVIEW_PROCESSING_FILENAME = "__table_preview.processing"
+    TABLE_PREVIEW_PROCESSING_TTL_SECONDS = 1800
+    TABLE_PREVIEW_ROWS = 10
+    TABULAR_SUFFIXES = {
+        ".csv",
+        ".txt",
+        ".fits",
+        ".fit",
+        ".h5",
+        ".hf5",
+        ".hdf5",
+        ".hdf",
+        ".parquet",
+        ".pq",
+    }
 
     def __init__(self, product_id):
         self.main_file = None
@@ -210,35 +229,21 @@ class RegistryProduct:
             LOGGER.debug("Main File: [%s]" % self.main_file)
 
             product_columns = list()
-            if mf.storage_kind == FileStorageKind.HATS_COLLECTION:
-                product_columns = mf.metadata.get("columns", [])
-                mf.n_rows = mf.metadata.get("n_rows")
-                mf.save()
-                LOGGER.debug(
-                    "HATS collection registered with %s columns and %s partitions",
-                    len(product_columns),
-                    mf.metadata.get("npartitions"),
-                )
-            elif self.product.product_type.name not in (
-                "other",
-                "photoz_estimates",
-                "validation_results",
-            ):
-                try:
-                    # Le o arquivo principal e converte para pandas.Dataframe
-                    df_product = ProductHandle().df_from_file(self.main_file)
+            table_data = None
+            try:
+                # Faz uma única leitura dos dados tabulares para reutilizar
+                # preview, colunas e número de linhas no registro.
+                table_data = self.build_table_preview()
+            except NotTableError as err:
+                LOGGER.warning(err)
+                self.remove_table_preview()
 
-                    # Lista de Colunas no arquivo.
-                    product_columns = df_product.columns.tolist()
-
-                    # Record number of lines of the main product
-                    mf.n_rows = len(df_product)
-                    mf.save()
-                    LOGGER.debug(f"Number of rows: {str(mf.n_rows)}")
-                except NotTableError as err:
-                    LOGGER.warning(err)
-                    # Acontece com arquivos comprimidos .zip etc.
-                    pass
+            if table_data:
+                product_columns = table_data["columns"]
+                if table_data["n_rows"] is not None:
+                    mf.n_rows = table_data["n_rows"]
+                    mf.save(update_fields=["n_rows", "updated"])
+                    LOGGER.debug("Number of rows: %s", str(mf.n_rows))
 
             # Verifica se o product type é redshift_catalog
             # Para esses produtos é mandatório ter acesso as colunas da tabela
@@ -268,6 +273,102 @@ class RegistryProduct:
         except Exception as e:
             LOGGER.error(e)
             raise Exception(e)
+
+    @classmethod
+    def get_table_preview_path(cls, product):
+        """Build the absolute path to the cached table preview JSON file."""
+        return pathlib.Path(
+            settings.MEDIA_ROOT, product.path, cls.TABLE_PREVIEW_FILENAME
+        )
+
+    @classmethod
+    def get_table_preview_processing_path(cls, product):
+        """Build the absolute path to the table preview processing marker file."""
+        return pathlib.Path(
+            settings.MEDIA_ROOT, product.path, cls.TABLE_PREVIEW_PROCESSING_FILENAME
+        )
+
+    @classmethod
+    def start_table_preview_processing(cls, product):
+        """Create a processing marker atomically.
+
+        Returns:
+            bool: True if this call created the marker, False if it already exists.
+        """
+        processing_path = cls.get_table_preview_processing_path(product)
+        try:
+            with processing_path.open("x", encoding="utf-8") as marker:
+                marker.write(str(time.time()))
+            return True
+        except FileExistsError:
+            return False
+
+    @classmethod
+    def stop_table_preview_processing(cls, product):
+        """Remove the table preview processing marker file."""
+        processing_path = cls.get_table_preview_processing_path(product)
+        processing_path.unlink(missing_ok=True)
+
+    @classmethod
+    def is_table_preview_processing(cls, product):
+        """Check whether preview generation is currently in progress.
+
+        A stale marker older than TABLE_PREVIEW_PROCESSING_TTL_SECONDS is
+        automatically removed.
+        """
+        processing_path = cls.get_table_preview_processing_path(product)
+        if not processing_path.exists():
+            return False
+
+        age = time.time() - processing_path.stat().st_mtime
+        if age > cls.TABLE_PREVIEW_PROCESSING_TTL_SECONDS:
+            processing_path.unlink(missing_ok=True)
+            return False
+        return True
+
+    def remove_table_preview(self):
+        """Delete any existing cached table preview file for the product."""
+        preview_path = self.get_table_preview_path(self.product)
+        preview_path.unlink(missing_ok=True)
+
+    def _load_main_file(self):
+        """Load and cache the absolute path of the product main file."""
+        if self.main_file is None:
+            main_file = self.product.files.get(role=0)
+            self.main_file = pathlib.Path(main_file.file.path)
+            LOGGER.debug("Main File: [%s]" % self.main_file)
+        return self.main_file
+
+    def build_table_preview(self):
+        """Collect tabular metadata and update the preview cache.
+
+        Returns:
+            dict: Table metadata with keys `preview_df`, `columns`, and `n_rows`.
+        """
+        main_file = self._load_main_file()
+        collector = MainTableDataCollector(
+            main_file=main_file,
+            preview_rows=self.TABLE_PREVIEW_ROWS,
+            tabular_suffixes=self.TABULAR_SUFFIXES,
+        )
+        table_data = collector.collect()
+        self.create_table_preview(table_data["preview_df"])
+        return table_data
+
+    def create_table_preview(self, df_preview):
+        """Persist the table preview payload to a JSON file.
+
+        Args:
+            df_preview (pandas.DataFrame): DataFrame containing preview rows.
+        """
+        payload = {
+            "count": int(df_preview.shape[0]),
+            "columns": list(df_preview.columns),
+            "results": loads(df_preview.to_json(orient="records")),
+        }
+        preview_path = self.get_table_preview_path(self.product)
+        preview_path.write_text(dumps(payload), encoding="utf-8")
+        LOGGER.debug("Table preview generated: %s", preview_path)
 
     def create_product_contents(self, columns):
         """Registrar as colunas na tabela Product Contents
