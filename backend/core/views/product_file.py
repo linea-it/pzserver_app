@@ -1,6 +1,6 @@
 import logging
-import os
 
+from core.file_utils import get_file_extension
 from core.models import Product, ProductFile
 from core.serializers import ProductFileSerializer
 from rest_framework import exceptions, mixins, status, viewsets
@@ -48,12 +48,13 @@ class ProductFileViewSet(
 
         file = self.request.data.get("file")
         size = file.size
-        filename, extension = os.path.splitext(file.name)
+        extension = get_file_extension(file.name)
 
         return serializer.save(
             size=size,
             name=file.name,
             extension=extension,
+            is_directory=False,
         )
 
     def destroy(self, request, pk=None, *args, **kwargs):

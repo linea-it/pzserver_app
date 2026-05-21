@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from core.models import Product
 from django.db import models
@@ -37,12 +38,18 @@ class ProductFile(models.Model):
     extension = models.CharField(
         verbose_name="Extension", max_length=10, null=True, blank=True
     )
+    is_directory = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
 
     def delete(self, *args, **kwargs):
         if self.file:
-            self.file.delete()
+            file_path = self.file.path
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path, ignore_errors=True)
+                self.file.name = None
+            else:
+                self.file.delete()
         super().delete(*args, **kwargs)
 
     def can_delete(self, user) -> bool:

@@ -3,11 +3,13 @@ import pathlib
 import time
 from json import dumps, loads
 
+from core.file_utils import get_file_extension
 from core.models import Product, ProductContent, ProductFile
 from core.product_handle import NotTableError
 from core.serializers import ProductSerializer
 from core.table_data_collector import MainTableDataCollector
 from django.conf import settings
+from django.utils import timezone
 
 LOGGER = logging.getLogger("products")
 
@@ -197,6 +199,15 @@ class RegistryProduct:
         ".parquet",
         ".pq",
     }
+    TABULAR_MAIN_FILE_REQUIRED_PRODUCT_TYPES = {
+        "redshift_catalog",
+        "training_set",
+        "object_catalog",
+    }
+    NON_HATS_MULTI_FILE_ERROR_MESSAGE = (
+        "Please provide your data as a single table in one of the supported "
+        "formats of a HATS collection"
+    )
 
     def __init__(self, product_id):
         self.main_file = None
@@ -227,9 +238,15 @@ class RegistryProduct:
             mf = self.product.files.get(role=0)
             self.main_file = pathlib.Path(mf.file.path)
             LOGGER.debug("Main File: [%s]" % self.main_file)
+            self.replace_compressed_main_file_with_extracted_content(mf)
+            self.validate_main_file_business_rules()
 
             product_columns = list()
             table_data = None
+            requires_tabular_main_file = (
+                self.product.product_type.name
+                in self.TABULAR_MAIN_FILE_REQUIRED_PRODUCT_TYPES
+            )
             try:
                 # Faz uma única leitura dos dados tabulares para reutilizar
                 # preview, colunas e número de linhas no registro.
@@ -237,23 +254,33 @@ class RegistryProduct:
             except NotTableError as err:
                 LOGGER.warning(err)
                 self.remove_table_preview()
+                if requires_tabular_main_file:
+                    raise
+            except Exception as err:
+                LOGGER.warning(err)
+                self.remove_table_preview()
+                if requires_tabular_main_file:
+                    raise
 
             if table_data:
                 product_columns = table_data["columns"]
                 if table_data["n_rows"] is not None:
                     mf.n_rows = table_data["n_rows"]
-                    mf.save(update_fields=["n_rows", "updated"])
+                    ProductFile.objects.filter(pk=mf.pk).update(
+                        n_rows=table_data["n_rows"],
+                        updated=timezone.now(),
+                    )
                     LOGGER.debug("Number of rows: %s", str(mf.n_rows))
 
             # Verifica se o product type é redshift_catalog
             # Para esses produtos é mandatório ter acesso as colunas da tabela
             # Para os demais produtos é opicional.
-            if self.product.product_type.name == "redshift_catalog":
+            if requires_tabular_main_file:
                 if len(product_columns) == 0:
                     raise Exception(
                         (
                             "It was not possible to identify the product columns. "
-                            "For Redshift Catalogs this is mandatory. "
+                            "For Redshift Catalogs, Object Catalogs and Training Set this is mandatory. "
                             "Please check the file format."
                         )
                     )
@@ -274,10 +301,131 @@ class RegistryProduct:
             LOGGER.error(e)
             raise Exception(e)
 
+    def validate_main_file_business_rules(self):
+        """Apply product-type rules for supported main-file structures."""
+        product_type_name = self.product.product_type.name
+        if product_type_name not in self.TABULAR_MAIN_FILE_REQUIRED_PRODUCT_TYPES:
+            return
+
+        collector = MainTableDataCollector(
+            main_file=self._load_main_file(),
+            preview_rows=self.TABLE_PREVIEW_ROWS,
+            tabular_suffixes=self.TABULAR_SUFFIXES,
+        )
+
+        if not collector.is_compressed_main_file():
+            return
+
+        archive_info = collector.inspect_compressed_main_file()
+        if archive_info["is_hats"]:
+            return
+
+        if archive_info["file_count"] == 1 and archive_info["tabular_file_count"] == 1:
+            return
+
+        raise Exception(self.NON_HATS_MULTI_FILE_ERROR_MESSAGE)
+
+    def replace_compressed_main_file_with_extracted_content(self, main_file_record):
+        """Replace compressed main file with extracted supported content.
+
+        Replacement is performed only when compressed content maps to:
+        - a single tabular file; or
+        - a HATS collection layout.
+        """
+        collector = MainTableDataCollector(
+            main_file=self._load_main_file(),
+            preview_rows=self.TABLE_PREVIEW_ROWS,
+            tabular_suffixes=self.TABULAR_SUFFIXES,
+        )
+
+        if not collector.is_compressed_main_file():
+            return
+
+        product_dir = pathlib.Path(settings.MEDIA_ROOT, self.product.path)
+        archive_path = self._load_main_file()
+
+        try:
+            extraction = collector.extract_supported_main_content(product_dir)
+        except NotTableError:
+            return
+
+        extracted_path = pathlib.Path(extraction["path"]).resolve()
+        self._replace_main_file_record(
+            main_file_record,
+            extracted_path,
+            extraction["kind"],
+            extracted_size=extraction.get("size_bytes"),
+        )
+
+        if (
+            archive_path.exists()
+            and archive_path.is_file()
+            and archive_path != extracted_path
+        ):
+            archive_path.unlink(missing_ok=True)
+
+        self.main_file = extracted_path
+
+    def _replace_main_file_record(
+        self,
+        main_file_record,
+        extracted_path,
+        extracted_kind,
+        extracted_size=None,
+    ):
+        """Persist extracted main-file metadata back into ProductFile."""
+        media_root = pathlib.Path(settings.MEDIA_ROOT).resolve()
+        product_root = pathlib.Path(settings.MEDIA_ROOT, self.product.path).resolve()
+
+        relative_media_path = extracted_path.relative_to(media_root).as_posix()
+        relative_product_name = extracted_path.relative_to(product_root).as_posix()
+        extension = (
+            ".hats"
+            if extracted_kind == "hats"
+            else get_file_extension(extracted_path.name)
+        )
+
+        main_file_record.file.name = relative_media_path
+        main_file_record.name = relative_product_name
+        main_file_record.extension = extension
+        main_file_record.is_directory = extracted_kind == "hats"
+        main_file_record.size = (
+            int(extracted_size)
+            if extracted_size is not None
+            else self._path_size(extracted_path)
+        )
+        main_file_record.n_rows = None
+        main_file_record.save(
+            update_fields=[
+                "file",
+                "name",
+                "extension",
+                "is_directory",
+                "size",
+                "n_rows",
+                "updated",
+            ]
+        )
+
+    @staticmethod
+    def _path_size(path):
+        """Compute byte size for file or directory."""
+        path = pathlib.Path(path)
+        if path.is_file():
+            return path.stat().st_size
+
+        size = 0
+        for file_path in path.rglob("*"):
+            if file_path.is_file():
+                size += file_path.stat().st_size
+        return size
+
     @classmethod
     def get_table_preview_path(cls, product):
         """Build the absolute path to the cached table preview JSON file."""
-        return pathlib.Path(settings.MEDIA_ROOT, product.path, cls.TABLE_PREVIEW_FILENAME)
+        return pathlib.Path(
+            settings.MEDIA_ROOT, product.path, cls.TABLE_PREVIEW_FILENAME
+        )
 
     @classmethod
     def get_table_preview_processing_path(cls, product):

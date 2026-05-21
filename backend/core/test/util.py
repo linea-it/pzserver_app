@@ -157,10 +157,16 @@ def sample_product_file(
         with zipfile.ZipFile(result, mode="w") as archive:
             archive.write(filepath)
 
-    elif compression in ["tar", "gz"]:
-        filename = "sample_file.tar.gz" if compression == "gz" else "sample_file.tar"
+    elif compression in ["tar", "gz", "tgz"]:
+        if compression == "gz":
+            filename = "sample_file.tar.gz"
+        elif compression == "tgz":
+            filename = "sample_file.tgz"
+        else:
+            filename = "sample_file.tar"
         result = Path("/tmp/", filename)
-        with tarfile.open(result, "w:gz") as tar:
+        mode = "w" if compression == "tar" else "w:gz"
+        with tarfile.open(result, mode) as tar:
             tar.add(filepath)
 
     return result

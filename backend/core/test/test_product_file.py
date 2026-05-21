@@ -1,8 +1,8 @@
 import json
 import mimetypes
-import os
 from pathlib import Path
 
+from core.file_utils import get_file_extension
 from core.models import Product, ProductFile, ProductType, Release, FileRoles
 from core.serializers import ProductFileSerializer
 from core.test.util import sample_product_file
@@ -214,12 +214,11 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
             "role": self.product_file.role,
             "role_name": serializer_data["role_name"],
             "name": self.product_file.name,
-            "type": mimetypes.guess_type(os.path.basename(self.product_file.file.name))[
-                0
-            ],
+            "type": mimetypes.guess_type(Path(self.product_file.file.name).name)[0],
             "size": self.product_file.file.size,
             "n_rows": None,
-            "extension": os.path.splitext(self.product_file.file.name)[1],
+            "extension": get_file_extension(self.product_file.file.name),
+            "is_directory": False,
             "created": self.product_file.created.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "updated": self.product_file.updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "can_delete": True,
