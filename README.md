@@ -140,10 +140,6 @@ And then, go to `https://localhost` to open the application.
 The Pz Server uses [orchestration](https://github.com/linea-it/orchestration/) to process its pipelines and for this you need to configure it:
 
 ``` bash
-mkdir orchestration/db orchestration/logs orchestration/processes
-```
-
-``` bash
 cp docker-compose-development-orch.yml docker-compose.yml
 docker network create orchestration-network  # create internal network
 ```
@@ -157,6 +153,7 @@ git submodule update
 
 Enter the orchestration-local-worker container:
 ``` bash
+mkdir orchestration/db
 docker compose run orchestration-local-worker bash
 ```
 
