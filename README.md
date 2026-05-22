@@ -144,11 +144,20 @@ cp docker-compose-development-orch.yml docker-compose.yml
 docker network create orchestration-network  # create internal network
 ```
 
-Loading pipelines (submodules):
+Loading orchestration (submodules):
 
 ``` bash
 git submodule init
 git submodule update
+```
+
+Loading pipelines (submodules):
+
+``` bash
+cd orchestration
+git submodule init
+git submodule update
+cd ..
 ```
 
 Enter the orchestration-local-worker container:
