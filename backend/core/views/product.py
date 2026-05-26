@@ -473,6 +473,17 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 settings.MEDIA_ROOT, product.path, main_file_path
             )
 
+            if product_path.is_dir():
+                return Response(
+                    {
+                        "error": (
+                            "Main file is a directory-based dataset. "
+                            "Please use the full product download endpoint."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             # Abre o arquivo e envia em bites para o navegador
             mimetype, _ = mimetypes.guess_type(product_path)
             size = product_path.stat().st_size

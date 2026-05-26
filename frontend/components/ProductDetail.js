@@ -194,7 +194,13 @@ export default function ProductDetail({ productId, internalName }) {
         setActiveTab(hasHtmlFile ? 1 : 0)
 
         const isTabularData = res.results.some(file => {
-          const lowerName = file.name.toLowerCase()
+          const lowerName = (file.name || '').toLowerCase()
+          const lowerExtension = (file.extension || '').toLowerCase()
+
+          if (file.is_directory || lowerExtension === '.hats') {
+            return true
+          }
+
           return (
             lowerName.endsWith('.csv') ||
             lowerName.endsWith('.xls') ||
@@ -208,19 +214,20 @@ export default function ProductDetail({ productId, internalName }) {
             lowerName.endsWith('.hdf5') ||
             lowerName.endsWith('.pq') ||
             lowerName.endsWith('.parq') ||
-            lowerName.endsWith('.parquet')
+            lowerName.endsWith('.parquet') ||
+            lowerExtension === '.csv' ||
+            lowerExtension === '.txt' ||
+            lowerExtension === '.fit' ||
+            lowerExtension === '.fits' ||
+            lowerExtension === '.h5' ||
+            lowerExtension === '.hf5' ||
+            lowerExtension === '.hdf' ||
+            lowerExtension === '.hdf5' ||
+            lowerExtension === '.pq' ||
+            lowerExtension === '.parq' ||
+            lowerExtension === '.parquet'
           )
         })
-
-        if (
-          ['other', 'photoz_estimates', 'validation_results'].includes(
-            product.product_type_internal_name
-          )
-        ) {
-          // If the product type is 'other', 'photoz_estimates', or 'validation_results' we don't load files
-          setIsTabular(false)
-          return
-        }
 
         setIsTabular(isTabularData)
 

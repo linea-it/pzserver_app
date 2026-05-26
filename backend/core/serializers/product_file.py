@@ -22,6 +22,7 @@ class ProductFileSerializer(serializers.ModelSerializer):
             "size",
             "n_rows",
             "extension",
+            "is_directory",
         )
         fields = "__all__"
 
