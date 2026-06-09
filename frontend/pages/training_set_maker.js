@@ -657,6 +657,7 @@ function TrainingSetMaker() {
                 <MenuItem value="fits">fits</MenuItem>
                 <MenuItem value="parquet">parquet</MenuItem>
                 <MenuItem value="hdf5">hdf5</MenuItem>
+                <MenuItem value="hats">hats</MenuItem>
                 <MenuItem value="votable" disabled>
                   VOTable
                 </MenuItem>

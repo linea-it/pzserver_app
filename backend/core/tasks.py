@@ -262,7 +262,7 @@ def register_outputs(process_id):
                 reg_product.create_product_contents(_columns)
 
             role_id = file_roles.get(rolename, file_roles.get("description"))
-            reg_product.create_product_file(filepath, relative_path, role_id)
+            reg_product.create_product_artifact(filepath, relative_path, role_id)
             LOGGER.debug(f"--> created file: {filepath}")
             process.upload.save()
 

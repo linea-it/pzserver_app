@@ -141,7 +141,7 @@ class ProductRegistryTestCase(APITestCase):
         dataset_dir.mkdir(parents=True, exist_ok=True)
 
         (hats_root / properties_filename).write_text(
-            "catalog_name=mock_hats\n",
+            "catalog_name=mock_hats\ndataproduct_type=object\n",
             encoding="utf-8",
         )
         (dataset_dir / "part-0.parquet").write_text("", encoding="utf-8")
@@ -149,6 +149,39 @@ class ProductRegistryTestCase(APITestCase):
         archive_path = temp_dir / "mock_hats.zip"
         with zipfile.ZipFile(archive_path, "w") as archive:
             for file_path in hats_root.rglob("*"):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(temp_dir).as_posix()
+                    archive.write(file_path, arcname=arcname)
+        return archive_path
+
+    def create_fake_hats_collection_archive(self):
+        temp_dir = Path(tempfile.mkdtemp(prefix="pz_hats_collection_archive_"))
+        collection_root = temp_dir / "mock_collection"
+        catalog_root = collection_root / "catalog"
+        catalog_dataset_dir = catalog_root / "dataset" / "Norder=0" / "Npix=0"
+        margin_root = collection_root / "margin_10arcs"
+        margin_dataset_dir = margin_root / "dataset" / "Norder=0" / "Npix=0"
+        catalog_dataset_dir.mkdir(parents=True, exist_ok=True)
+        margin_dataset_dir.mkdir(parents=True, exist_ok=True)
+
+        (collection_root / "collection.properties").write_text(
+            "collection_name=mock_collection\n",
+            encoding="utf-8",
+        )
+        (catalog_root / "hats.properties").write_text(
+            "catalog_name=mock_catalog\ndataproduct_type=object\n",
+            encoding="utf-8",
+        )
+        (margin_root / "hats.properties").write_text(
+            "catalog_name=mock_margin\ndataproduct_type=margin\n",
+            encoding="utf-8",
+        )
+        (catalog_dataset_dir / "part-0.parquet").write_text("", encoding="utf-8")
+        (margin_dataset_dir / "part-0.parquet").write_text("", encoding="utf-8")
+
+        archive_path = temp_dir / "mock_collection.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            for file_path in collection_root.rglob("*"):
                 if file_path.is_file():
                     arcname = file_path.relative_to(temp_dir).as_posix()
                     archive.write(file_path, arcname=arcname)
@@ -282,10 +315,29 @@ class ProductRegistryTestCase(APITestCase):
         main_file = ProductFile.objects.get(product=product, role=0)
         extracted_main_path = Path(main_file.file.path)
         self.assertTrue(extracted_main_path.is_dir())
-        self.assertEqual(main_file.extension, ".hats")
         self.assertTrue(main_file.is_directory)
         self.assertTrue((extracted_main_path / "hats.properties").exists())
         self.assertFalse(original_archive_path.exists())
+
+    def test_registry_replaces_hats_collection_archive_with_collection_directory(self):
+        product = self.create_product(product_type_name="validation_results")
+        archive_path = self.create_fake_hats_collection_archive()
+        self.upload_main_file_from_path(product, archive_path)
+        url = reverse("products-registry", kwargs={"pk": product.pk})
+        fake_lsdb = self.create_fake_lsdb_module(n_rows=12)
+
+        with mock.patch.dict(sys.modules, {"lsdb": fake_lsdb}):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        main_file = ProductFile.objects.get(product=product, role=0)
+        extracted_main_path = Path(main_file.file.path)
+        self.assertTrue(main_file.is_directory)
+        self.assertTrue((extracted_main_path / "collection.properties").exists())
+        self.assertTrue((extracted_main_path / "catalog" / "hats.properties").exists())
+        self.assertTrue(
+            (extracted_main_path / "margin_10arcs" / "hats.properties").exists()
+        )
 
     def test_registry_uses_lsdb_probe_for_hats_detection(self):
         product = self.create_product(product_type_name="validation_results")
@@ -316,7 +368,6 @@ class ProductRegistryTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         main_file = ProductFile.objects.get(product=product, role=0)
-        self.assertEqual(main_file.extension, ".hats")
         self.assertTrue(main_file.is_directory)
         self.assertTrue(Path(main_file.file.path).is_dir())
 
@@ -343,7 +394,6 @@ class ProductRegistryTestCase(APITestCase):
 
         main_file = ProductFile.objects.get(product=product, role=0)
         self.assertEqual(main_file.n_rows, 12)
-        self.assertEqual(main_file.extension, ".hats")
         self.assertTrue(main_file.is_directory)
         self.assertTrue(Path(main_file.file.path).is_dir())
 

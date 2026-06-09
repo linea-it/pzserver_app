@@ -35,17 +35,30 @@ class InputsBuilder:
                 main_file.name,
             )
 
-            if not filepath.is_file():
+            if not filepath.exists():
                 raise FileNotFoundError(f"file not found: {filepath}")
+
+            input_format = self._resolve_input_format(main_file, filepath)
 
             inputfiles.append({
                 "path": str(filepath),
-                "format": main_file.extension.replace(".", ""),
+                "format": input_format,
                 "columns": self._build_columns(product),
                 "internal_name": product.internal_name,
             })
 
         return inputfiles
+
+    def _resolve_input_format(self, main_file, filepath):
+        if getattr(main_file, "is_directory", False) or filepath.is_dir():
+            return "hats"
+
+        extension = (main_file.extension or "").replace(".", "").lower()
+        if extension:
+            return extension
+
+        suffix = filepath.suffix.replace(".", "").lower()
+        return suffix
 
     def _build_columns(self, product):
         columns = {}

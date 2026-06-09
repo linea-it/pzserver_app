@@ -302,12 +302,9 @@ class MainTableDataCollector:
         raise NotTableError("Compressed extraction is not supported for this file.")
 
     def _resolve_hats_root_from_members(self, destination_dir, members):
-        """Resolve HATS root directory after extraction using hats.properties path."""
+        """Resolve HATS root using collection/object properties priority."""
         destination_dir = pathlib.Path(destination_dir)
-        hats_member = next(
-            (m for m in members if m.name in self.HATS_PROPERTIES_FILENAMES),
-            None,
-        )
+        hats_member = self._find_hats_root_properties_member(members)
         if hats_member is None:
             return destination_dir
 
@@ -331,12 +328,73 @@ class MainTableDataCollector:
             return None
 
         try:
-            catalog = lsdb.open_catalog(path=str(hats_root))
+            catalog = self._open_hats_catalog_with_lsdb(lsdb, hats_root)
             _ = getattr(catalog, "columns", None)
             return True
         except Exception as error:
             LOGGER.debug("LSDB could not open HATS path %s: %s", hats_root, error)
             return False
+
+    def _open_hats_catalog_with_lsdb(self, lsdb, hats_root):
+        """Open a HATS catalog, falling back from collection root to object catalog."""
+        errors = []
+        for candidate in self._lsdb_catalog_open_candidates(hats_root):
+            try:
+                return lsdb.open_catalog(path=str(candidate))
+            except Exception as error:
+                errors.append(f"{candidate}: {error}")
+
+        raise NotTableError(
+            "Could not open HATS collection with LSDB. Tried: "
+            + "; ".join(errors)
+        )
+
+    def _lsdb_catalog_open_candidates(self, hats_root):
+        """Return LSDB open paths while preserving collection roots as product files."""
+        hats_root = pathlib.Path(hats_root)
+        candidates = [hats_root]
+
+        # A HATS collection should be opened from its root so LSDB can use
+        # the catalog together with any margin/index metadata in the collection.
+        if (hats_root / "collection.properties").is_file():
+            return candidates
+
+        object_root = self._resolve_hats_object_root_from_directory(hats_root)
+        if object_root is not None and object_root != hats_root:
+            candidates.append(object_root)
+
+        return candidates
+
+    def _resolve_hats_object_root_from_directory(self, hats_root):
+        """Find the object catalog inside a HATS directory or collection."""
+        hats_root = pathlib.Path(hats_root)
+        if not hats_root.is_dir():
+            return None
+
+        hats_properties = [
+            path for path in hats_root.rglob("hats.properties") if path.is_file()
+        ]
+        for candidate in sorted(hats_properties, key=str):
+            if self._is_object_hats_properties_file(candidate):
+                return candidate.parent
+
+        legacy_properties = [
+            path
+            for path in hats_root.rglob("properties")
+            if path.is_file() and path.name.lower() == "properties"
+        ]
+        for candidate in sorted(legacy_properties, key=str):
+            if self._is_object_hats_properties_file(candidate):
+                return candidate.parent
+
+        return None
+
+    def _is_object_hats_properties_file(self, filepath):
+        try:
+            text = pathlib.Path(filepath).read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            return False
+        return self._is_object_hats_properties_text(text)
 
     def _finalize_hats_extraction(self, staging_dir, hats_root, destination_dir):
         """Move validated extracted HATS directory from staging into destination."""
@@ -385,11 +443,8 @@ class MainTableDataCollector:
 
         # Remove leading '.' or wrapper directories for easier matching.
         normalized_members = [pathlib.PurePosixPath(str(m).lstrip("./")) for m in members]
-
-        has_hats_properties = any(
-            member.name in self.HATS_PROPERTIES_FILENAMES
-            for member in normalized_members
-        )
+        properties_member = self._find_hats_root_properties_member(normalized_members)
+        has_hats_properties = properties_member is not None
 
         has_dataset_parquet = False
         has_norder_npix_parquet = False
@@ -409,6 +464,98 @@ class MainTableDataCollector:
                 has_norder_npix_parquet = True
 
         return has_hats_properties and (has_dataset_parquet or has_norder_npix_parquet)
+
+    def _find_hats_root_properties_member(self, members):
+        """Find root properties using collection/object priority."""
+        normalized_members = [pathlib.PurePosixPath(str(m).lstrip("./")) for m in members]
+
+        collection_candidates = [
+            member for member in normalized_members
+            if member.name.lower() == "collection.properties"
+        ]
+        if collection_candidates:
+            return sorted(collection_candidates, key=str)[0]
+
+        hats_properties = [
+            member for member in normalized_members
+            if member.name.lower() == "hats.properties"
+        ]
+        for member in sorted(hats_properties, key=str):
+            text = self._read_compressed_member_text(member)
+            if self._is_object_hats_properties_text(text):
+                return member
+
+        legacy_properties = [
+            member for member in normalized_members
+            if member.name.lower() == "properties"
+        ]
+        for member in sorted(legacy_properties, key=str):
+            text = self._read_compressed_member_text(member)
+            if self._is_object_hats_properties_text(text):
+                return member
+
+        return None
+
+    def _looks_like_properties_filename(self, name):
+        return str(name).lower().endswith("properties")
+
+    def _looks_like_text_member(self, member):
+        if self._looks_like_properties_filename(member.name):
+            return True
+        return pathlib.Path(member.name).suffix.lower() in self.HATS_TEXT_SUFFIXES
+
+    def _read_compressed_member_text(self, member_path, max_bytes=262144):
+        """Read up to max_bytes from a compressed member as UTF-8 text."""
+        member_path = pathlib.PurePosixPath(str(member_path).lstrip("./"))
+
+        try:
+            if zipfile.is_zipfile(self.main_file):
+                with zipfile.ZipFile(self.main_file) as archive:
+                    for info in archive.infolist():
+                        if info.is_dir():
+                            continue
+                        candidate = pathlib.PurePosixPath(str(info.filename).lstrip("./"))
+                        if candidate != member_path:
+                            continue
+                        with archive.open(info, "r") as source:
+                            return source.read(max_bytes).decode("utf-8", errors="ignore")
+                return ""
+
+            if tarfile.is_tarfile(self.main_file):
+                with tarfile.open(self.main_file, mode="r:*") as archive:
+                    for member in archive.getmembers():
+                        if not member.isfile():
+                            continue
+                        candidate = pathlib.PurePosixPath(str(member.name).lstrip("./"))
+                        if candidate != member_path:
+                            continue
+                        fileobj = archive.extractfile(member)
+                        if not fileobj:
+                            return ""
+                        return fileobj.read(max_bytes).decode("utf-8", errors="ignore")
+                return ""
+
+            if get_file_extension(self.main_file.name) in {".gz", ".gzip"}:
+                with gzip_open(self.main_file, "rb") as source:
+                    return source.read(max_bytes).decode("utf-8", errors="ignore")
+        except Exception:
+            return ""
+
+        return ""
+
+    def _is_object_hats_properties_text(self, text):
+        if not text:
+            return False
+        for raw_line in str(text).splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key = line.split("=", 1)[0].strip().lower()
+            if not key:
+                continue
+            if key == "dataproduct_type":
+                return line.split("=", 1)[1].strip().lower() == "object"
+        return False
 
     def _collect_from_path(self, filepath):
         """Collect tabular metadata from a regular file path.
@@ -484,7 +631,7 @@ class MainTableDataCollector:
             ) from error
 
         try:
-            catalog = lsdb.open_catalog(path=str(hats_root))
+            catalog = self._open_hats_catalog_with_lsdb(lsdb, hats_root)
         except Exception as error:
             raise NotTableError(
                 f"Could not open HATS collection with LSDB: {error}"
@@ -737,4 +884,16 @@ class MainTableDataCollector:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(content)
             return pathlib.Path(tmp.name)
-    HATS_PROPERTIES_FILENAMES = {"hats.properties", "properties"}
+    HATS_PROPERTIES_FILENAMES = {"hats.properties", "properties", "collection.properties"}
+    HATS_TEXT_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".ini", ".yaml", ".yml", ".properties"}
+    HATS_PROPERTY_KEYS = {
+        "catalog_name",
+        "obs_collection",
+        "dataproduct_type",
+        "hats_col_ra",
+        "hats_col_dec",
+        "hats_order",
+        "hats_nrows",
+        "hats_builder",
+        "hats_version",
+    }

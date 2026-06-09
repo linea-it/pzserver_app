@@ -332,8 +332,17 @@ class RegistryProduct:
         - a single tabular file; or
         - a HATS collection layout.
         """
+        current_main_file = pathlib.Path(self._load_main_file())
+        if main_file_record.is_directory or current_main_file.is_dir():
+            LOGGER.debug(
+                "Main file is directory-based; skipping compressed extraction: %s",
+                current_main_file,
+            )
+            self.main_file = current_main_file
+            return
+
         collector = MainTableDataCollector(
-            main_file=self._load_main_file(),
+            main_file=current_main_file,
             preview_rows=self.TABLE_PREVIEW_ROWS,
             tabular_suffixes=self.TABULAR_SUFFIXES,
         )
@@ -342,7 +351,7 @@ class RegistryProduct:
             return
 
         product_dir = pathlib.Path(settings.MEDIA_ROOT, self.product.path)
-        archive_path = self._load_main_file()
+        archive_path = current_main_file
 
         try:
             extraction = collector.extract_supported_main_content(product_dir)
@@ -379,11 +388,7 @@ class RegistryProduct:
 
         relative_media_path = extracted_path.relative_to(media_root).as_posix()
         relative_product_name = extracted_path.relative_to(product_root).as_posix()
-        extension = (
-            ".hats"
-            if extracted_kind == "hats"
-            else get_file_extension(extracted_path.name)
-        )
+        extension = get_file_extension(extracted_path.name)
 
         main_file_record.file.name = relative_media_path
         main_file_record.name = relative_product_name
@@ -554,8 +559,8 @@ class RegistryProduct:
             LOGGER.error(message)
             raise Exception(message)
 
-    def create_product_file(self, filepath, relative_path, role=0):
-        """Create product file
+    def create_product_artifact(self, filepath, relative_path, role=0):
+        """Create product artifact (file or directory)
 
         Args:
             filepath (str): Product path
@@ -563,14 +568,17 @@ class RegistryProduct:
 
         _file = pathlib.Path(filepath)
 
+        is_directory = _file.is_dir()
+
         fileobj = ProductFile(
             name=_file.name,
             role=role,
             product=self.product,
-            size=_file.stat().st_size,
+            size=self._path_size(_file),
             file=relative_path,
             product_id=self.product.pk,
             extension=_file.suffix,
+            is_directory=is_directory,
         )
 
         return fileobj.save()
