@@ -4,12 +4,14 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import MenuItem from '@mui/material/MenuItem'
@@ -50,6 +52,7 @@ function SpeczCatalogs() {
   const [selectedProducts, setSelectedProducts] = useState([])
   const [outputFormat, setOutputFormat] = useState('parquet')
   const [search, setSearch] = useState('')
+  const [officialOnly, setOfficialOnly] = useState(false)
 
   useEffect(() => {
     const fetchPipelineData = async () => {
@@ -267,11 +270,22 @@ function SpeczCatalogs() {
                 3. Select the Redshift Catalogs to include in your sample:
               </Typography>
               <SearchField onChange={query => setSearch(query)} />
+              <FormControlLabel
+                sx={{ ml: 1 }}
+                control={
+                  <Checkbox
+                    checked={officialOnly}
+                    onChange={e => setOfficialOnly(e.target.checked)}
+                  />
+                }
+                label="Official products"
+              />
             </Box>
             <Card>
               <CardContent>
                 <SpeczData
                   query={search}
+                  filters={officialOnly ? { official_product: true } : {}}
                   onSelectionChange={handleProductSelection}
                   clearSelection={selectedProducts.length === 0}
                 />
