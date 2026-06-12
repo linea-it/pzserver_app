@@ -2,6 +2,7 @@ import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import React from 'react'
 
+
 function AlertEnvironment() {
   return (
     <Alert severity="warning">
@@ -10,15 +11,22 @@ function AlertEnvironment() {
       </AlertTitle>
       Do not use its data or reference it in any way.
       <br />
-      The production instance will be available soon.
-      <br />
-      For more information, please access &nbsp;
+      The production instance is available at:
       <a
-        href="https://linea-it.github.io/pz-lsst-inkind-doc/"
+        href="https://pzserver.linea.org.br/"
         target="blank"
         rel="noopener noreferrer"
       >
-        https://linea-it.github.io/pz-lsst-inkind-doc/.
+        https://pzserver.linea.org.br/
+      </a>
+      <br />
+      For more information, please access &nbsp;
+      <a
+        href="https://docs.linea.org.br/en/sci-platforms/pz_server.html/"
+        target="blank"
+        rel="noopener noreferrer"
+      >
+        https://docs.linea.org.br/en/sci-platforms/pz_server.html/
       </a>
     </Alert>
   )
