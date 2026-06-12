@@ -464,10 +464,10 @@ Change user to `app.pzserver`
 sudo -u app.pzserver -s /bin/bash
 ```
 
-Go to the `pz-server` directory in the home directory
+Go to the `pz-server-dev` directory in the home directory
 
 ```
-cd $HOME/pz-server/
+cd $HOME/pz-server-dev/
 ```
 
 Edit the file `docker-compose.yml` to update the docker image name suffixes with the last commit hash in two places, one for the back-end and another for the front-end. 
