@@ -456,7 +456,7 @@ After merging new commits into the main branch, github workflow will create the 
 Access the Testing environment
 ```
 ssh login.linea.org.br 
-ssh srvpz-dev
+ssh <server name> 
 ```
 
 Change user to `app.pzserver` 
