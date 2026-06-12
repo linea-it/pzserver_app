@@ -22,11 +22,11 @@ function AlertEnvironment() {
       <br />
       For more information, please access &nbsp;
       <a
-        href="https://docs.linea.org.br/en/sci-platforms/pz_server.html/"
+        href="https://docs.linea.org.br/en/sci-platforms/pz_server.html"
         target="blank"
         rel="noopener noreferrer"
       >
-        https://docs.linea.org.br/en/sci-platforms/pz_server.html/
+        https://docs.linea.org.br/en/sci-platforms/pz_server.html
       </a>
     </Alert>
   )
