@@ -607,6 +607,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             main_file["extension"] = product_file.extension
             main_file["size"] = product_file.size
             main_file["n_rows"] = product_file.n_rows
+            main_file["is_directory"] = product_file.is_directory
 
             product_contents = self.__get_product_contents(product)
             if product_contents:
