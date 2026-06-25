@@ -6,9 +6,11 @@ from unittest import mock
 
 import yaml
 from core.models import (
+    FileRoles,
     Product,
     ProductDownloadArchive,
     ProductDownloadArchiveStatus,
+    ProductFile,
     ProductType,
     Release,
 )
@@ -486,6 +488,31 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
         (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
         return product_path
 
+    def create_hats_main_file(self, media_root):
+        product_path = Path(media_root) / self.product.path
+        hats_path = product_path / "hats_catalog"
+        data_path = hats_path / "dataset" / "Norder=0" / "Dir=0"
+        data_path.mkdir(parents=True)
+
+        (hats_path / "collection.properties").write_text(
+            "catalog_name=hats_catalog\n",
+            encoding="utf-8",
+        )
+        (data_path / "Npix=0.parquet").write_bytes(b"parquet")
+
+        ProductFile.objects.create(
+            product=self.product,
+            role=FileRoles.MAIN,
+            name="hats_catalog",
+            type="application/x-hats",
+            extension="",
+            size=0,
+            file=f"{self.product.path}/hats_catalog",
+            is_directory=True,
+        )
+
+        return hats_path
+
     def test_download_prepare_creates_archive_and_queues_task(self):
         with tempfile.TemporaryDirectory() as media_root:
             self.create_product_source_file(media_root)
@@ -854,3 +881,38 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             f"/api/products/{self.product.pk}/download/prepare/",
             response["Link"],
         )
+
+    def test_download_main_file_returns_zip_for_hats_directory(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_hats_main_file(media_root)
+
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download_main_file/"
+                )
+
+            content = b"".join(response.streaming_content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/zip")
+        self.assertIn(
+            'filename="hats_catalog.zip"',
+            response["Content-Disposition"],
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            zip_path = Path(tmpdirname) / "hats_catalog.zip"
+            zip_path.write_bytes(content)
+
+            with zipfile.ZipFile(zip_path) as archive:
+                self.assertEqual(
+                    sorted(archive.namelist()),
+                    [
+                        "collection.properties",
+                        "dataset/Norder=0/Dir=0/Npix=0.parquet",
+                    ],
+                )
+                self.assertEqual(
+                    archive.read("collection.properties").decode("utf-8"),
+                    "catalog_name=hats_catalog\n",
+                )
