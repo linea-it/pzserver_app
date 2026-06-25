@@ -12,7 +12,7 @@ class InputsBuilder:
         "ra": "RA",
         "dec": "Dec",
         "z": "z",
-        "id": "id",
+        "id": "ID",
         "z_flag": "z_flag",
         "z_err": "z_err",
         "survey": "survey",
@@ -76,7 +76,7 @@ class InputsBuilder:
         return columns
 
     def _get_column(self, product, alias):
-        matches = product.contents.filter(alias=alias)
+        matches = product.contents.filter(alias__iexact=alias)
 
         if matches.count() != 1:
             LOGGER.warning(

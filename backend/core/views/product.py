@@ -2,6 +2,7 @@ import logging
 import mimetypes
 import pathlib
 import tempfile
+import zipfile
 from json import dumps, loads
 from pathlib import Path
 
@@ -222,6 +223,32 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 )
 
         return product_full
+
+    def __build_directory_zip_response(self, directory_path):
+        zip_handle = tempfile.TemporaryFile()
+
+        with zipfile.ZipFile(
+            zip_handle,
+            "w",
+            compression=zipfile.ZIP_DEFLATED,
+            compresslevel=ProductDownloadArchiveService.get_compression_level(),
+        ) as zip_file:
+            for file_path in sorted(directory_path.rglob("*")):
+                if not file_path.is_file():
+                    continue
+
+                arcname = file_path.relative_to(directory_path).as_posix()
+                zip_file.write(file_path, arcname=arcname)
+
+        size = zip_handle.tell()
+        zip_handle.seek(0)
+
+        response = FileResponse(zip_handle, content_type="application/zip")
+        response["Content-Length"] = size
+        response["Content-Disposition"] = (
+            f'attachment; filename="{directory_path.name}.zip"'
+        )
+        return response
 
     def __get_flag_translation_name(self, config):
         """Extract the flags translation filename from a nested config."""
@@ -474,15 +501,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             )
 
             if product_path.is_dir():
-                return Response(
-                    {
-                        "error": (
-                            "Main file is a directory-based dataset. "
-                            "Please use the full product download endpoint."
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return self.__build_directory_zip_response(product_path)
 
             # Abre o arquivo e envia em bites para o navegador
             mimetype, _ = mimetypes.guess_type(product_path)
@@ -588,6 +607,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             main_file["extension"] = product_file.extension
             main_file["size"] = product_file.size
             main_file["n_rows"] = product_file.n_rows
+            main_file["is_directory"] = product_file.is_directory
 
             product_contents = self.__get_product_contents(product)
             if product_contents:
