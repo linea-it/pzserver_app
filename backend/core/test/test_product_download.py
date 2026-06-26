@@ -15,7 +15,11 @@ from core.models import (
     Release,
 )
 from core.services.product_download import ProductDownloadArchiveService
-from core.tasks import build_product_download_archive, cleanup_product_download_archives
+from core.tasks import (
+    build_product_download_archive,
+    build_product_main_file_archive,
+    cleanup_product_download_archives,
+)
 from django.contrib.auth.models import Group, User
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -428,6 +432,111 @@ class ProductDownloadArchiveModelTestCase(TestCase):
                     self.assertIn("data.csv", zip_file.namelist())
                     self.assertIn("product_metadata.yaml", zip_file.namelist())
 
+    def test_build_product_main_file_archive_task_caches_regular_file(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            download_root = Path(media_root) / "downloads"
+            product_path = Path(media_root) / self.product.path
+            product_path.mkdir(parents=True)
+            data_path = product_path / "data.csv"
+            data_path.write_text("a,b\n1,2\n", encoding="utf-8")
+
+            ProductFile.objects.create(
+                product=self.product,
+                role=FileRoles.MAIN,
+                name="data.csv",
+                type="text/csv",
+                extension=".csv",
+                size=data_path.stat().st_size,
+                file=f"{self.product.path}/data.csv",
+                is_directory=False,
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=download_root,
+            ):
+                archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    filename="data.csv",
+                    source_signature="0" * 64,
+                )
+
+                result = build_product_main_file_archive(archive.pk)
+
+                archive.refresh_from_db()
+                archive_path = Path(media_root) / archive.archive_path
+                cached_content = archive_path.read_text(encoding="utf-8")
+
+        self.assertEqual(result["archive_id"], archive.pk)
+        self.assertEqual(archive.status, ProductDownloadArchiveStatus.READY)
+        self.assertEqual(archive.filename, "data.csv")
+        self.assertEqual(cached_content, "a,b\n1,2\n")
+        self.assertEqual(
+            archive.archive_path,
+            f"downloads/main-files/{self.product.pk}/data.csv",
+        )
+        self.assertEqual(len(archive.checksum), 64)
+        self.assertNotEqual(archive.source_signature, "0" * 64)
+
+    def test_build_product_main_file_archive_task_zips_directory(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            download_root = Path(media_root) / "downloads"
+            product_path = Path(media_root) / self.product.path
+            hats_path = product_path / "hats_catalog"
+            data_path = hats_path / "dataset" / "Norder=0" / "Dir=0"
+            data_path.mkdir(parents=True)
+            (hats_path / "collection.properties").write_text(
+                "catalog_name=hats_catalog\n",
+                encoding="utf-8",
+            )
+            (data_path / "Npix=0.parquet").write_bytes(b"parquet")
+
+            ProductFile.objects.create(
+                product=self.product,
+                role=FileRoles.MAIN,
+                name="hats_catalog",
+                type="application/x-hats",
+                extension="",
+                size=0,
+                file=f"{self.product.path}/hats_catalog",
+                is_directory=True,
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=download_root,
+            ):
+                archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    filename="hats_catalog.zip",
+                    source_signature="0" * 64,
+                )
+
+                result = build_product_main_file_archive(archive.pk)
+
+                archive.refresh_from_db()
+                archive_path = Path(media_root) / archive.archive_path
+
+                with zipfile.ZipFile(archive_path) as zip_file:
+                    names = sorted(zip_file.namelist())
+
+        self.assertEqual(result["archive_id"], archive.pk)
+        self.assertEqual(archive.status, ProductDownloadArchiveStatus.READY)
+        self.assertEqual(archive.filename, "hats_catalog.zip")
+        self.assertEqual(
+            archive.archive_path,
+            f"downloads/main-files/{self.product.pk}/hats_catalog.zip",
+        )
+        self.assertEqual(
+            names,
+            [
+                "collection.properties",
+                "dataset/Norder=0/Dir=0/Npix=0.parquet",
+            ],
+        )
+
     def test_build_product_download_archive_task_marks_archive_failed(self):
         archive = ProductDownloadArchive.objects.create(
             product=self.product,
@@ -487,6 +596,23 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
         product_path.mkdir(parents=True)
         (product_path / "data.csv").write_text("a,b\n1,2\n", encoding="utf-8")
         return product_path
+
+    def create_product_main_file(self, media_root):
+        product_path = self.create_product_source_file(media_root)
+        data_path = product_path / "data.csv"
+
+        ProductFile.objects.create(
+            product=self.product,
+            role=FileRoles.MAIN,
+            name="data.csv",
+            type="text/csv",
+            extension=".csv",
+            size=data_path.stat().st_size,
+            file=f"{self.product.path}/data.csv",
+            is_directory=False,
+        )
+
+        return data_path
 
     def create_hats_main_file(self, media_root):
         product_path = Path(media_root) / self.product.path
@@ -882,37 +1008,221 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             response["Link"],
         )
 
-    def test_download_main_file_returns_zip_for_hats_directory(self):
+    def test_download_main_file_prepare_caches_regular_file_synchronously(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_product_main_file(media_root)
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+                PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS=0,
+            ):
+                source_signature = (
+                    ProductDownloadArchiveService.build_main_file_source_signature(
+                        self.product
+                    )
+                )
+                with mock.patch(
+                    "core.views.product.build_product_main_file_archive.delay"
+                ) as delay_mock:
+                    response = self.client.post(
+                        f"/api/products/{self.product.pk}/download/main-file/prepare/"
+                    )
+                    cached_path = (
+                        Path(media_root)
+                        / "downloads"
+                        / "main-files"
+                        / str(self.product.pk)
+                        / "data.csv"
+                    )
+                    cached_content = cached_path.read_text(encoding="utf-8")
+
+        archive = ProductDownloadArchive.objects.get(product=self.product)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], archive.pk)
+        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.READY)
+        self.assertIsNone(archive.task_id)
+        self.assertEqual(archive.filename, "data.csv")
+        self.assertEqual(archive.source_signature, source_signature)
+        self.assertEqual(cached_content, "a,b\n1,2\n")
+        self.assertIn("/download/main-file/file/", response.data["download_url"])
+        delay_mock.assert_not_called()
+
+    def test_download_main_file_prepare_queues_task_for_hats_directory(self):
         with tempfile.TemporaryDirectory() as media_root:
             self.create_hats_main_file(media_root)
 
-            with override_settings(MEDIA_ROOT=media_root):
-                response = self.client.get(
-                    f"/api/products/{self.product.pk}/download_main_file/"
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+                PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS=0,
+            ):
+                source_signature = (
+                    ProductDownloadArchiveService.build_main_file_source_signature(
+                        self.product
+                    )
+                )
+                with mock.patch(
+                    "core.views.product.build_product_main_file_archive.delay"
+                ) as delay_mock:
+                    delay_mock.return_value.id = "main-task-1"
+
+                    response = self.client.post(
+                        f"/api/products/{self.product.pk}/download/main-file/prepare/"
+                    )
+
+        archive = ProductDownloadArchive.objects.get(product=self.product)
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data["id"], archive.pk)
+        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.PENDING)
+        self.assertEqual(archive.task_id, "main-task-1")
+        self.assertEqual(archive.filename, "hats_catalog.zip")
+        self.assertEqual(archive.source_signature, source_signature)
+        delay_mock.assert_called_once_with(archive.pk)
+
+    def test_download_main_file_prepare_reuses_ready_archive(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_product_main_file(media_root)
+            archive_relative_path = Path(
+                f"downloads/main-files/{self.product.pk}/data.csv"
+            )
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_text("a,b\n1,2\n", encoding="utf-8")
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                source_signature = (
+                    ProductDownloadArchiveService.build_main_file_source_signature(
+                        self.product
+                    )
+                )
+                archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path=archive_relative_path.as_posix(),
+                    filename="data.csv",
+                    size=archive_path.stat().st_size,
+                    checksum="a" * 64,
+                    source_signature=source_signature,
                 )
 
-            content = b"".join(response.streaming_content)
+                with mock.patch(
+                    "core.views.product.build_product_main_file_archive.delay"
+                ) as delay_mock:
+                    response = self.client.post(
+                        f"/api/products/{self.product.pk}/download/main-file/prepare/"
+                    )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Type"], "application/zip")
-        self.assertIn(
-            'filename="hats_catalog.zip"',
+        self.assertEqual(response.data["id"], archive.pk)
+        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.READY)
+        self.assertIn("/download/main-file/file/", response.data["download_url"])
+        delay_mock.assert_not_called()
+
+    def test_download_main_file_status_returns_not_found_when_no_archive_matches(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_product_main_file(media_root)
+
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/main-file/status/"
+                )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data["status"], "not_found")
+
+    def test_download_main_file_file_uses_internal_redirect_for_regular_file(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            data_path = self.create_product_main_file(media_root)
+            data_size = data_path.stat().st_size
+            archive_relative_path = Path(
+                f"downloads/main-files/{self.product.pk}/data.csv"
+            )
+            archive_path = Path(media_root) / archive_relative_path
+            archive_path.parent.mkdir(parents=True)
+            archive_path.write_text(
+                data_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+            ):
+                source_signature = (
+                    ProductDownloadArchiveService.build_main_file_source_signature(
+                        self.product
+                    )
+                )
+                archive = ProductDownloadArchive.objects.create(
+                    product=self.product,
+                    created_by=self.user,
+                    status=ProductDownloadArchiveStatus.READY,
+                    archive_path=archive_relative_path.as_posix(),
+                    filename="data.csv",
+                    size=archive_path.stat().st_size,
+                    checksum="a" * 64,
+                    source_signature=source_signature,
+                )
+                token = ProductDownloadArchiveService.build_download_token(
+                    archive, self.user
+                )
+                response = self.client.get(
+                    f"/api/products/{self.product.pk}/download/main-file/file/",
+                    {"token": token},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Length"], str(data_size))
+        self.assertEqual(
             response["Content-Disposition"],
+            "attachment; filename=data.csv",
+        )
+        self.assertEqual(
+            response["X-Accel-Redirect"],
+            f"/internal-downloads/main-files/{self.product.pk}/data.csv",
         )
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            zip_path = Path(tmpdirname) / "hats_catalog.zip"
-            zip_path.write_bytes(content)
+    def test_download_main_file_legacy_endpoint_returns_accepted_while_task_runs(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            self.create_hats_main_file(media_root)
 
-            with zipfile.ZipFile(zip_path) as archive:
-                self.assertEqual(
-                    sorted(archive.namelist()),
-                    [
-                        "collection.properties",
-                        "dataset/Norder=0/Dir=0/Npix=0.parquet",
-                    ],
+            with override_settings(
+                MEDIA_ROOT=media_root,
+                PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
+                PRODUCT_DOWNLOAD_INTERNAL_URL="/internal-downloads/",
+                PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS=0,
+            ):
+                zip_path = (
+                    Path(media_root)
+                    / "downloads"
+                    / "main-files"
+                    / str(self.product.pk)
+                    / "hats_catalog.zip"
                 )
-                self.assertEqual(
-                    archive.read("collection.properties").decode("utf-8"),
-                    "catalog_name=hats_catalog\n",
-                )
+                with mock.patch(
+                    "core.views.product.build_product_main_file_archive.delay"
+                ) as delay_mock:
+                    delay_mock.return_value.id = "main-task-1"
+
+                    response = self.client.get(
+                        f"/api/products/{self.product.pk}/download_main_file/"
+                    )
+                    zip_exists = zip_path.exists()
+
+        archive = ProductDownloadArchive.objects.get(product=self.product)
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data["id"], archive.pk)
+        self.assertEqual(response.data["status"], ProductDownloadArchiveStatus.PENDING)
+        self.assertFalse(zip_exists)
+        delay_mock.assert_called_once_with(archive.pk)

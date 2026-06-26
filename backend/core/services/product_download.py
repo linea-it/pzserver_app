@@ -1,14 +1,22 @@
 import hashlib
 import json
+import os
 import pathlib
 import secrets
+import shutil
 import time
 import zipfile
 from datetime import timedelta
 from urllib.parse import quote, urlencode
 
 import yaml
-from core.models import Product, ProductDownloadArchiveStatus, ProductStatus
+from core.models import (
+    FileRoles,
+    Product,
+    ProductDownloadArchiveStatus,
+    ProductFile,
+    ProductStatus,
+)
 from django.conf import settings
 from django.core import signing
 from django.utils import timezone
@@ -41,6 +49,38 @@ class ProductDownloadArchiveService:
         archive.filename = zip_path.name
         archive.size = zip_path.stat().st_size
         archive.checksum = cls.build_file_checksum(zip_path)
+        archive.source_signature = source_signature
+        archive.source_updated_at = now
+        archive.error_message = None
+        archive.save(
+            update_fields=[
+                "status",
+                "archive_path",
+                "filename",
+                "size",
+                "checksum",
+                "source_signature",
+                "source_updated_at",
+                "error_message",
+                "updated_at",
+            ]
+        )
+
+        return archive
+
+    @classmethod
+    def prepare_main_file_archive(cls, archive):
+        product = archive.product
+        source_signature = cls.build_main_file_source_signature(product)
+        download_path = cls.get_or_create_main_file_download(product)
+        archive_path = cls.get_archive_relative_path(download_path)
+        now = timezone.now()
+
+        archive.status = ProductDownloadArchiveStatus.READY
+        archive.archive_path = archive_path
+        archive.filename = download_path.name
+        archive.size = download_path.stat().st_size
+        archive.checksum = cls.build_file_checksum(download_path)
         archive.source_signature = source_signature
         archive.source_updated_at = now
         archive.error_message = None
@@ -117,6 +157,7 @@ class ProductDownloadArchiveService:
                 "extension": product_file.extension,
                 "size": product_file.size,
                 "n_rows": product_file.n_rows,
+                "is_directory": product_file.is_directory,
             }
 
             if product_file.role == 0:
@@ -169,6 +210,21 @@ class ProductDownloadArchiveService:
     def build_source_signature(cls, product_path):
         snapshot = cls.build_source_snapshot(product_path)
         payload = json.dumps(snapshot, sort_keys=True, separators=(",", ":"))
+
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    @classmethod
+    def build_main_file_source_signature(cls, product):
+        main_file = cls.get_product_main_file(product)
+        payload = json.dumps(
+            {
+                "scope": "main_file",
+                "file": main_file.file.name,
+                "is_directory": main_file.is_directory,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
 
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -254,15 +310,30 @@ class ProductDownloadArchiveService:
     @classmethod
     def cleanup_product_archives(cls, product):
         product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
-        current_signature = None
-        keep_ready_id = None
+        current_signatures = set()
+        keep_ready_ids = set()
 
         if product_path.exists():
             current_signature = cls.build_source_signature(product_path)
+            current_signatures.add(current_signature)
             ready_archive = cls.find_non_expired_ready_archive(
                 product, current_signature
             )
-            keep_ready_id = ready_archive.pk if ready_archive else None
+            if ready_archive:
+                keep_ready_ids.add(ready_archive.pk)
+
+        try:
+            main_file_signature = cls.build_main_file_source_signature(product)
+        except ProductFile.DoesNotExist:
+            main_file_signature = None
+
+        if main_file_signature:
+            current_signatures.add(main_file_signature)
+            ready_archive = cls.find_non_expired_ready_archive(
+                product, main_file_signature
+            )
+            if ready_archive:
+                keep_ready_ids.add(ready_archive.pk)
 
         totals = {
             "deleted_archives": 0,
@@ -270,7 +341,7 @@ class ProductDownloadArchiveService:
         }
 
         for archive in product.download_archives.all():
-            if cls.should_delete_archive(archive, current_signature, keep_ready_id):
+            if cls.should_delete_archive(archive, current_signatures, keep_ready_ids):
                 deleted_file = cls.delete_archive_file(archive)
                 archive.delete()
                 totals["deleted_archives"] += 1
@@ -279,14 +350,16 @@ class ProductDownloadArchiveService:
         return totals
 
     @classmethod
-    def should_delete_archive(cls, archive, current_signature, keep_ready_id=None):
-        if current_signature is None:
+    def should_delete_archive(cls, archive, current_signatures, keep_ready_ids=None):
+        keep_ready_ids = keep_ready_ids or set()
+
+        if not current_signatures:
             return True
 
         if archive.status == ProductDownloadArchiveStatus.FAILED:
             return True
 
-        if archive.source_signature != current_signature:
+        if archive.source_signature not in current_signatures:
             return True
 
         if archive.status == ProductDownloadArchiveStatus.READY:
@@ -296,7 +369,7 @@ class ProductDownloadArchiveService:
             if cls.is_archive_expired(archive):
                 return True
 
-            return keep_ready_id is not None and archive.pk != keep_ready_id
+            return keep_ready_ids and archive.pk not in keep_ready_ids
 
         return False
 
@@ -328,17 +401,121 @@ class ProductDownloadArchiveService:
     @classmethod
     def get_archive_internal_redirect_path(cls, archive):
         archive_file_path = cls.get_archive_file_path(archive).resolve()
+        return cls.get_download_internal_redirect_path(archive_file_path)
+
+    @classmethod
+    def get_download_internal_redirect_path(cls, file_path):
+        file_path = pathlib.Path(file_path).resolve()
         archive_root = cls.get_archive_root().resolve()
-        relative_path = archive_file_path.relative_to(archive_root).as_posix()
+        relative_path = file_path.relative_to(archive_root).as_posix()
         internal_url = cls.get_archive_internal_url().rstrip("/")
 
         return f"{internal_url}/{quote(relative_path, safe='/')}"
+
+    @classmethod
+    def get_main_file_download_output_dir(cls, product):
+        return cls.get_archive_root() / "main-files" / str(product.pk)
+
+    @classmethod
+    def get_main_file_download_path(cls, product, main_file_path=None):
+        main_file_path = main_file_path or cls.get_main_file_path(product)
+        main_file_path = pathlib.Path(main_file_path)
+        suffix = ".zip" if main_file_path.is_dir() else ""
+        filename = f"{main_file_path.name}{suffix}"
+        return cls.get_main_file_download_output_dir(product) / filename
+
+    @classmethod
+    def get_or_create_main_file_download(cls, product, main_file_path=None):
+        main_file_path = main_file_path or cls.get_main_file_path(product)
+        main_file_path = pathlib.Path(main_file_path)
+        download_path = cls.get_main_file_download_path(product, main_file_path)
+
+        if download_path.is_file():
+            return download_path
+
+        download_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if main_file_path.is_dir():
+            return cls.build_directory_zip(main_file_path, download_path)
+
+        return cls.cache_main_file(main_file_path, download_path)
+
+    @classmethod
+    def get_product_main_file(cls, product):
+        return product.files.get(role=FileRoles.MAIN)
+
+    @classmethod
+    def get_main_file_path(cls, product):
+        main_file = cls.get_product_main_file(product)
+        return pathlib.Path(main_file.file.path)
+
+    @classmethod
+    def cache_main_file(cls, source_path, download_path):
+        source_path = pathlib.Path(source_path)
+        download_path = pathlib.Path(download_path)
+
+        try:
+            os.link(source_path, download_path)
+            return download_path
+        except FileExistsError:
+            return download_path
+        except OSError:
+            pass
+
+        temporary_download_path = download_path.with_name(
+            f".{download_path.name}.{secrets.token_hex(8)}.tmp"
+        )
+
+        try:
+            shutil.copy2(source_path, temporary_download_path)
+            temporary_download_path.replace(download_path)
+        finally:
+            temporary_download_path.unlink(missing_ok=True)
+
+        return download_path
+
+    @classmethod
+    def build_directory_zip(cls, directory_path, zip_path):
+        directory_path = pathlib.Path(directory_path)
+        zip_path = pathlib.Path(zip_path)
+        temporary_zip_path = zip_path.with_name(
+            f".{zip_path.name}.{secrets.token_hex(8)}.tmp"
+        )
+
+        try:
+            with zipfile.ZipFile(
+                temporary_zip_path,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+                compresslevel=cls.get_compression_level(),
+            ) as zip_handle:
+                for file_path, arcname in cls.iter_source_files(directory_path):
+                    zip_handle.write(file_path, arcname=arcname)
+
+            temporary_zip_path.replace(zip_path)
+        finally:
+            temporary_zip_path.unlink(missing_ok=True)
+
+        return zip_path
 
     @classmethod
     def build_download_url(cls, archive, user, request=None):
         token = cls.build_download_token(archive, user)
         path = (
             f"/api/products/{archive.product_id}/download/file/"
+            f"?{urlencode({'token': token})}"
+        )
+
+        if request:
+            return request.build_absolute_uri(path)
+
+        return path
+
+    @classmethod
+    def build_main_file_download_url(cls, archive, user, request=None):
+        token = cls.build_download_token(archive, user)
+        path = (
+            f"/api/products/{archive.product_id}/download/main-file/file/"
             f"?{urlencode({'token': token})}"
         )
 
