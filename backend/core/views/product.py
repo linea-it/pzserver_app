@@ -2,7 +2,6 @@ import logging
 import mimetypes
 import pathlib
 import tempfile
-import zipfile
 from json import dumps, loads
 from pathlib import Path
 
@@ -19,7 +18,11 @@ from core.product_handle import FileHandle, NotTableError
 from core.product_steps import CreateProduct, NonAdminError, RegistryProduct
 from core.serializers import ProductSerializer
 from core.services import AccessControlService, ProductDownloadArchiveService
-from core.tasks import build_product_download_archive, build_product_table_preview
+from core.tasks import (
+    build_product_download_archive,
+    build_product_main_file_archive,
+    build_product_table_preview,
+)
 from core.utils import format_query_to_char
 from django.conf import settings
 from django.core import signing
@@ -211,6 +214,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                     "extension": file.extension,
                     "size": file.size,
                     "n_rows": file.n_rows,
+                    "is_directory": file.is_directory,
                 }
                 product_contents = self.__get_product_contents(product)
                 if product_contents:
@@ -223,32 +227,6 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 )
 
         return product_full
-
-    def __build_directory_zip_response(self, directory_path):
-        zip_handle = tempfile.TemporaryFile()
-
-        with zipfile.ZipFile(
-            zip_handle,
-            "w",
-            compression=zipfile.ZIP_DEFLATED,
-            compresslevel=ProductDownloadArchiveService.get_compression_level(),
-        ) as zip_file:
-            for file_path in sorted(directory_path.rglob("*")):
-                if not file_path.is_file():
-                    continue
-
-                arcname = file_path.relative_to(directory_path).as_posix()
-                zip_file.write(file_path, arcname=arcname)
-
-        size = zip_handle.tell()
-        zip_handle.seek(0)
-
-        response = FileResponse(zip_handle, content_type="application/zip")
-        response["Content-Length"] = size
-        response["Content-Disposition"] = (
-            f'attachment; filename="{directory_path.name}.zip"'
-        )
-        return response
 
     def __get_flag_translation_name(self, config):
         """Extract the flags translation filename from a nested config."""
@@ -297,7 +275,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
 
         return Response(response)
 
-    def __serialize_download_archive(self, archive, request):
+    def __serialize_download_archive(self, archive, request, main_file=False):
         data = {
             "id": archive.pk,
             "task_id": archive.task_id,
@@ -311,11 +289,20 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         }
 
         if archive.status == ProductDownloadArchiveStatus.READY:
-            data["download_url"] = ProductDownloadArchiveService.build_download_url(
-                archive,
-                request.user,
-                request,
-            )
+            if main_file:
+                data["download_url"] = (
+                    ProductDownloadArchiveService.build_main_file_download_url(
+                        archive,
+                        request.user,
+                        request,
+                    )
+                )
+            else:
+                data["download_url"] = ProductDownloadArchiveService.build_download_url(
+                    archive,
+                    request.user,
+                    request,
+                )
             data["expired_time"] = (
                 ProductDownloadArchiveService.get_archive_expired_time(archive)
             )
@@ -328,6 +315,73 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
     def __get_current_download_signature(self, product):
         product_path = pathlib.Path(settings.MEDIA_ROOT, product.path)
         return ProductDownloadArchiveService.build_source_signature(product_path)
+
+    def __get_current_main_file_signature(self, product):
+        return ProductDownloadArchiveService.build_main_file_source_signature(product)
+
+    def __build_archive_file_response(self, archive):
+        archive_path = ProductDownloadArchiveService.get_archive_file_path(archive)
+        if not archive_path.exists():
+            return Response(
+                {"error": "Download archive file not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        mimetype, _ = mimetypes.guess_type(archive_path)
+        response = HttpResponse(content_type=mimetype)
+        response["X-Accel-Redirect"] = (
+            ProductDownloadArchiveService.get_archive_internal_redirect_path(archive)
+        )
+        response["Content-Length"] = archive_path.stat().st_size
+        response["Content-Disposition"] = "attachment; filename={}".format(
+            archive.filename
+        )
+        return response
+
+    def __load_ready_archive_from_token(self, product, token):
+        if not token:
+            raise exceptions.PermissionDenied("Missing download token.")
+
+        try:
+            payload = ProductDownloadArchiveService.load_download_token(token)
+        except signing.SignatureExpired:
+            raise exceptions.PermissionDenied("Download token has expired.")
+        except signing.BadSignature:
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        if str(payload.get("product_id")) != str(product.pk):
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        return ProductDownloadArchive.objects.select_related("product").get(
+            pk=payload.get("archive_id"),
+            product_id=product.pk,
+            status=ProductDownloadArchiveStatus.READY,
+        )
+
+    def __prepare_or_queue_main_file_archive(self, archive, product, log_context):
+        if ProductDownloadArchiveService.get_main_file_path(product).is_dir():
+            task = build_product_main_file_archive.delay(archive.pk)
+            archive.task_id = task.id
+            archive.save(update_fields=["task_id", "updated_at"])
+            logger.info(
+                "%s queued archive_id=%s task_id=%s product_id=%s source_signature=%s",
+                log_context,
+                archive.pk,
+                archive.task_id,
+                product.pk,
+                archive.source_signature,
+            )
+            return ProductDownloadArchiveService.wait_for_archive_preparation(archive)
+
+        archive = ProductDownloadArchiveService.prepare_main_file_archive(archive)
+        logger.info(
+            "%s prepared synchronously archive_id=%s product_id=%s source_signature=%s",
+            log_context,
+            archive.pk,
+            product.pk,
+            archive.source_signature,
+        )
+        return archive
 
     @action(methods=["POST"], detail=True, url_path="download/prepare")
     def download_prepare(self, request, **kwargs):
@@ -412,25 +466,10 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
     )
     def download_file(self, request, **kwargs):
         product = self.get_object()
-        token = request.GET.get("token")
-        if not token:
-            raise exceptions.PermissionDenied("Missing download token.")
-
         try:
-            payload = ProductDownloadArchiveService.load_download_token(token)
-        except signing.SignatureExpired:
-            raise exceptions.PermissionDenied("Download token has expired.")
-        except signing.BadSignature:
-            raise exceptions.PermissionDenied("Invalid download token.")
-
-        if str(payload.get("product_id")) != str(product.pk):
-            raise exceptions.PermissionDenied("Invalid download token.")
-
-        try:
-            archive = ProductDownloadArchive.objects.select_related("product").get(
-                pk=payload.get("archive_id"),
-                product_id=product.pk,
-                status=ProductDownloadArchiveStatus.READY,
+            archive = self.__load_ready_archive_from_token(
+                product,
+                request.GET.get("token"),
             )
         except ProductDownloadArchive.DoesNotExist:
             return Response(
@@ -438,23 +477,103 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        archive_path = ProductDownloadArchiveService.get_archive_file_path(archive)
-        if not archive_path.exists():
+        return self.__build_archive_file_response(archive)
+
+    @action(methods=["POST"], detail=True, url_path="download/main-file/prepare")
+    def download_main_file_prepare(self, request, **kwargs):
+        product = self.get_object()
+        source_signature = self.__get_current_main_file_signature(product)
+        archive = ProductDownloadArchiveService.find_current_archive(
+            product,
+            source_signature,
+        )
+
+        if archive and archive.status in (
+            ProductDownloadArchiveStatus.PENDING,
+            ProductDownloadArchiveStatus.RUNNING,
+            ProductDownloadArchiveStatus.READY,
+        ):
+            logger.info(
+                "download_main_file_prepare reusing archive_id=%s task_id=%s product_id=%s status=%s",
+                archive.pk,
+                archive.task_id,
+                product.pk,
+                archive.status,
+            )
+            response_status = (
+                status.HTTP_200_OK
+                if archive.status == ProductDownloadArchiveStatus.READY
+                else status.HTTP_202_ACCEPTED
+            )
             return Response(
-                {"error": "Download archive file not found."},
+                self.__serialize_download_archive(archive, request, main_file=True),
+                status=response_status,
+            )
+
+        archive = ProductDownloadArchive.objects.create(
+            product=product,
+            created_by=request.user,
+            filename=ProductDownloadArchiveService.get_main_file_download_path(
+                product
+            ).name,
+            source_signature=source_signature,
+        )
+        archive = self.__prepare_or_queue_main_file_archive(
+            archive,
+            product,
+            "download_main_file_prepare",
+        )
+        response_status = (
+            status.HTTP_200_OK
+            if archive.status == ProductDownloadArchiveStatus.READY
+            else status.HTTP_202_ACCEPTED
+        )
+
+        return Response(
+            self.__serialize_download_archive(archive, request, main_file=True),
+            status=response_status,
+        )
+
+    @action(methods=["GET"], detail=True, url_path="download/main-file/status")
+    def download_main_file_status(self, request, **kwargs):
+        product = self.get_object()
+        source_signature = self.__get_current_main_file_signature(product)
+        archive = ProductDownloadArchiveService.find_current_archive(
+            product,
+            source_signature,
+        )
+
+        if not archive:
+            return Response(
+                {"status": "not_found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        mimetype, _ = mimetypes.guess_type(archive_path)
-        response = HttpResponse(content_type=mimetype)
-        response["X-Accel-Redirect"] = (
-            ProductDownloadArchiveService.get_archive_internal_redirect_path(archive)
+        return Response(
+            self.__serialize_download_archive(archive, request, main_file=True)
         )
-        response["Content-Length"] = archive_path.stat().st_size
-        response["Content-Disposition"] = "attachment; filename={}".format(
-            archive.filename
-        )
-        return response
+
+    @action(methods=["GET"], detail=True, url_path="download/main-file/file")
+    def download_main_file_file(self, request, **kwargs):
+        product = self.get_object()
+        try:
+            archive = self.__load_ready_archive_from_token(
+                product,
+                request.GET.get("token"),
+            )
+        except ProductDownloadArchive.DoesNotExist:
+            return Response(
+                {"error": "Download archive not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if archive.source_signature != self.__get_current_main_file_signature(product):
+            return Response(
+                {"error": "Download archive not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return self.__build_archive_file_response(archive)
 
     @action(methods=["GET"], detail=True)
     def download(self, request, **kwargs):
@@ -494,26 +613,46 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         """Download product main file"""
         try:
             product = self.get_object()
-            main_file = product.files.get(role=0)
-            main_file_path = Path(main_file.file.path)
-            product_path = pathlib.Path(
-                settings.MEDIA_ROOT, product.path, main_file_path
+            source_signature = self.__get_current_main_file_signature(product)
+            archive = ProductDownloadArchiveService.find_current_archive(
+                product,
+                source_signature,
             )
 
-            if product_path.is_dir():
-                return self.__build_directory_zip_response(product_path)
+            if archive and archive.status == ProductDownloadArchiveStatus.READY:
+                return self.__build_archive_file_response(archive)
 
-            # Abre o arquivo e envia em bites para o navegador
-            mimetype, _ = mimetypes.guess_type(product_path)
-            size = product_path.stat().st_size
-            name = product_path.name
+            if not archive or archive.status == ProductDownloadArchiveStatus.FAILED:
+                archive = ProductDownloadArchive.objects.create(
+                    product=product,
+                    created_by=request.user,
+                    filename=ProductDownloadArchiveService.get_main_file_download_path(
+                        product
+                    ).name,
+                    source_signature=source_signature,
+                )
+                archive = self.__prepare_or_queue_main_file_archive(
+                    archive,
+                    product,
+                    "download_main_file",
+                )
+            else:
+                archive = ProductDownloadArchiveService.wait_for_archive_preparation(
+                    archive
+                )
 
-            file_handle = open(product_path, "rb")
-            response = FileResponse(file_handle, content_type=mimetype)
+            if archive.status == ProductDownloadArchiveStatus.READY:
+                return self.__build_archive_file_response(archive)
 
-            response["Content-Length"] = size
-            response["Content-Disposition"] = "attachment; filename={}".format(name)
-            return response
+            response_status = (
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+                if archive.status == ProductDownloadArchiveStatus.FAILED
+                else status.HTTP_202_ACCEPTED
+            )
+            return Response(
+                self.__serialize_download_archive(archive, request, main_file=True),
+                status=response_status,
+            )
         except Exception as e:
             content = {"error": str(e)}
             return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
