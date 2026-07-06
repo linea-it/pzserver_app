@@ -33,8 +33,10 @@ class ProductFile(models.Model):
     type = models.CharField(
         verbose_name="Mime Type", max_length=128, null=True, blank=True
     )
-    n_rows = models.IntegerField(verbose_name="Number of rows", null=True, blank=True)
-    size = models.IntegerField(verbose_name="Size", null=True, blank=True)
+    n_rows = models.BigIntegerField(
+        verbose_name="Number of rows", null=True, blank=True
+    )
+    size = models.BigIntegerField(verbose_name="Size", null=True, blank=True)
     extension = models.CharField(
         verbose_name="Extension", max_length=10, null=True, blank=True
     )

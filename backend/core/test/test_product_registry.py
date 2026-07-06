@@ -16,6 +16,7 @@ from core.table_data_collector import MainTableDataCollector
 from core.test.util import sample_product_file
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import models
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -251,6 +252,16 @@ class ProductRegistryTestCase(APITestCase):
 
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_product_file_metadata_fields_use_big_integer(self):
+        self.assertIsInstance(
+            ProductFile._meta.get_field("size"),
+            models.BigIntegerField,
+        )
+        self.assertIsInstance(
+            ProductFile._meta.get_field("n_rows"),
+            models.BigIntegerField,
+        )
 
     def test_registry_without_internal_name(self):
         product = self.create_product()
@@ -518,6 +529,48 @@ class ProductRegistryTestCase(APITestCase):
 
         product_file.refresh_from_db()
         self.assertIsNotNone(product_file.n_rows)
+
+    def test_registry_accepts_large_n_rows_metadata(self):
+        product = self.create_product(specz=True)
+        product_file = self.upload_main_file(product, extension="csv")
+        registry = RegistryProduct(product.pk)
+        large_n_rows = 3_000_000_000
+        preview_df = pd.DataFrame([{"ra": 1.0, "dec": 2.0, "z": 0.3}])
+
+        with mock.patch.object(
+            RegistryProduct,
+            "build_table_preview",
+            autospec=True,
+            return_value={
+                "preview_df": preview_df,
+                "columns": list(preview_df.columns),
+                "n_rows": large_n_rows,
+            },
+        ):
+            registry.registry()
+
+        product_file.refresh_from_db()
+        self.assertEqual(product_file.n_rows, large_n_rows)
+
+    def test_create_product_artifact_accepts_large_size_metadata(self):
+        product = self.create_product()
+        registry = RegistryProduct(product.pk)
+        product_dir = Path(settings.MEDIA_ROOT, product.path)
+        artifact_path = product_dir / "large_catalog.parquet"
+        artifact_path.write_text("content", encoding="utf-8")
+        relative_path = artifact_path.relative_to(settings.MEDIA_ROOT).as_posix()
+        large_size = 3_000_000_000
+
+        with mock.patch.object(
+            RegistryProduct,
+            "_path_size",
+            autospec=True,
+            return_value=large_size,
+        ):
+            registry.create_product_artifact(artifact_path, relative_path, role=0)
+
+        product_file = ProductFile.objects.get(product=product, role=0)
+        self.assertEqual(product_file.size, large_size)
 
     def test_registry_parquet_uses_chunked_path(self):
         product = self.create_product(specz=True)
