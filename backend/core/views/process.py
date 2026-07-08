@@ -2,7 +2,7 @@ import logging
 
 import requests
 from core.maestro import Maestro
-from core.models import Process
+from core.models import Process, ProductStatus
 from core.process.builders.upload_builder import UploadBuilder
 from core.process.service import ProcessService
 from core.serializers import ProcessSerializer
@@ -84,7 +84,19 @@ class ProcessViewSet(viewsets.ModelViewSet):
         try:
             ProcessService(request, process).submit()
         except Exception as err:
-            LOGGER.error(err)
+            process.status = "Failed"
+            process.comment = str(err)
+            process.save(update_fields=["status", "comment"])
+            process.upload.status = ProductStatus.FAILED
+            process.upload.save()
+            LOGGER.exception(
+                "Process submission failed: process_id=%s upload_id=%s orchestration_process_id=%s process_path=%s upload_path=%s",
+                process.pk,
+                process.upload_id,
+                process.orchestration_process_id,
+                process.path,
+                process.upload.path,
+            )
             return Response(
                 {"error": str(err)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -36,8 +36,17 @@ def get_logs(process_dir, product_dir):
 
     logs = get_lognames()
 
-    process_dir = pathlib.Path(settings.PROCESSING_DIR, process_dir)
-    product_dir = pathlib.Path(settings.UPLOAD_DIR, product_dir)
+    search_roots = []
+
+    if process_dir:
+        search_roots.append(
+            ("process_dir", pathlib.Path(settings.PROCESSING_DIR, process_dir))
+        )
+
+    if product_dir:
+        search_roots.append(
+            ("product_dir", pathlib.Path(settings.UPLOAD_DIR, product_dir))
+        )
 
     for key, data in logs.items():
         log = []
@@ -45,11 +54,11 @@ def get_logs(process_dir, product_dir):
         logger.debug(f"Searching for log files: {key}")
 
         for fname in lognames:
-            log = glob.glob(f"{process_dir}/**/{fname}", recursive=True)
-            logger.debug(f"process_dir: {process_dir}/**/{fname} -> {log}")
-            if not log:
-                log = glob.glob(f"{product_dir}/**/{fname}", recursive=True)
-                logger.debug(f"product_dir: {product_dir}/**/{fname} -> {log}")
+            for root_name, root_path in search_roots:
+                log = glob.glob(f"{root_path}/**/{fname}", recursive=True)
+                logger.debug(f"{root_name}: {root_path}/**/{fname} -> {log}")
+                if log:
+                    break
 
             if log:
                 break
