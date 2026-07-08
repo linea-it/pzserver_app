@@ -127,8 +127,9 @@ USE_TZ = True
 STATIC_URL = "/django_static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "django_static")
 
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(BASE_DIR, "archive/data/"))
 MEDIA_URL = os.path.join(BASE_DIR, "archive/data/")
-MEDIA_ROOT = os.path.join(BASE_DIR, "archive/data/")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", UPLOAD_DIR)
 PRODUCT_DOWNLOAD_COMPRESSION_LEVEL = int(
     os.getenv("PRODUCT_DOWNLOAD_COMPRESSION_LEVEL", "6")
 )
@@ -150,6 +151,8 @@ PRODUCT_DOWNLOAD_PREPARE_WAIT_SECONDS = float(
 PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS = float(
     os.getenv("PRODUCT_DOWNLOAD_PREPARE_POLL_INTERVAL_SECONDS", "0.5")
 )
+
+PROCESSING_DIR = os.getenv("PROCESSING_DIR", os.path.join(BASE_DIR, "processes"))
 
 
 # Default primary key field type
