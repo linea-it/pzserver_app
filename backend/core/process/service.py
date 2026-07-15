@@ -44,8 +44,11 @@ class ProcessService:
         )
 
         self.process.orchestration_process_id = orch_process.get("id")
-        self.process.used_config = json.loads(orch_process.get("used_config", "{}"))
         self.process.path = orch_process.get("path_str")
+        orch_used_config = orch_process.get("used_config", {})
+        if isinstance(orch_used_config, str):
+            orch_used_config = json.loads(orch_used_config or "{}")
+        self.process.used_config = orch_used_config
         self.process.save()
 
     def stop(self):

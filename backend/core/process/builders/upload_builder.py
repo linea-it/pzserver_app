@@ -28,7 +28,8 @@ class UploadBuilder:
         if not check.get("success"):
             raise ValueError(check.get("message"))
 
-        product.status = ProductStatus.PROCESSING
+        created_product = product.data
+        created_product.status = ProductStatus.PROCESSING
         product.save()
 
-        return product.data
+        return created_product
