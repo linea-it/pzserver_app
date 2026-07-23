@@ -164,6 +164,46 @@ export default function Products() {
           )}
         </Grid>
       </Grid>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1" component="div">
+          <p>
+            <strong>
+              Official Rubin Observatory PZ Data Products
+            </strong>{' '}
+            will be made available starting with <strong>DR1</strong>.
+          </p>
+
+          <p>
+            Preliminary data products generated during commissioning activities
+            and classified as <strong>user-generated data products</strong>{' '}
+            have been shared with the LSST community by the{' '}
+            <strong>Photo-z Science Unit</strong>.
+          </p>
+
+          <p>
+            To facilitate discovery and access, links to these products and
+            their corresponding descriptions have been organized into tables on{' '}
+            <Link
+              href="https://data.linea.org.br/en/sci_products/pzserver.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              this documentation page
+            </Link>
+            , which is maintained by the <strong>PZ Server</strong> staff.
+          </p>
+
+          <p>
+            If you have any questions, please contact us at{' '}
+            <strong>
+              <Link href="mailto:helpdesk@linea.org.br">
+                helpdesk@linea.org.br
+              </Link>
+            </strong>
+            .
+          </p>
+        </Typography>
+      </Box>
       <Card>
         <CardContent>
           <Grid container className={classes.gridContent}>
