@@ -782,8 +782,14 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            # Altera o status do produto para falha
-            # TODO: guardar a causa do erro para debug
+            logger.info(
+                "Product status transition product_id=%s process_id=%s old_status=%s new_status=%s reason=%s",
+                instance.pk,
+                getattr(getattr(instance, "process", None), "pk", None),
+                ProductStatus(instance.status).label,
+                ProductStatus(ProductStatus.FAILED).label,
+                "manual_registry_failed",
+            )
             instance.status = 9
             instance.save()
             content = {"error": str(e)}
@@ -824,6 +830,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         instance = self.get_object()
         data = request.data
 
+        old_status = instance.status
         prodstatus = int(data.get("status", 0))
         is_published = ProductStatus(prodstatus).name == "PUBLISHED"
 
@@ -849,6 +856,17 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         if check_prod and not check_prod.get("success", False):
             content = check_prod.get("message")
             return Response(content, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if old_status != prodstatus:
+            logger.info(
+                "Product status transition product_id=%s process_id=%s old_status=%s new_status=%s reason=%s request_user_id=%s",
+                instance.pk,
+                getattr(getattr(instance, "process", None), "pk", None),
+                ProductStatus(old_status).label,
+                ProductStatus(prodstatus).label,
+                "manual_partial_update",
+                request.user.pk,
+            )
 
         return super(ProductViewSet, self).partial_update(request, *args, **kwargs)
 

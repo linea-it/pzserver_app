@@ -84,18 +84,32 @@ class ProcessViewSet(viewsets.ModelViewSet):
         try:
             ProcessService(request, process).submit()
         except Exception as err:
+            submission_stage = getattr(process, "_submission_stage", "unknown")
+            old_status = process.upload.status
+            LOGGER.info(
+                "Product status transition product_id=%s process_id=%s old_status=%s new_status=%s reason=%s stage=%s",
+                process.upload.pk,
+                process.pk,
+                ProductStatus(old_status).label,
+                ProductStatus(ProductStatus.FAILED).label,
+                "process_submission_failed",
+                submission_stage,
+            )
             process.status = "Failed"
             process.comment = str(err)
             process.save(update_fields=["status", "comment"])
             process.upload.status = ProductStatus.FAILED
             process.upload.save()
             LOGGER.exception(
-                "Process submission failed: process_id=%s upload_id=%s orchestration_process_id=%s process_path=%s upload_path=%s",
+                "Process submission failed process_id=%s pipeline=%s stage=%s upload_id=%s orchestration_process_id=%s process_path=%s upload_path=%s request_keys=%s",
                 process.pk,
+                process.pipeline.name,
+                submission_stage,
                 process.upload_id,
                 process.orchestration_process_id,
                 process.path,
                 process.upload.path,
+                sorted(request.data.keys()),
             )
             return Response(
                 {"error": str(err)},

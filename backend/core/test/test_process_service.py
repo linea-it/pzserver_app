@@ -114,3 +114,23 @@ class ProcessServiceTestCase(TestCase):
             },
             self.process.used_config,
         )
+
+    @mock.patch("core.process.service.Maestro")
+    @mock.patch("core.process.service.BasePipelineHandler.get_handler")
+    def test_submit_logs_stage_on_failure(
+        self,
+        get_handler,
+        _maestro_cls,
+    ):
+        get_handler.side_effect = ValueError("handler missing")
+        request = SimpleNamespace(data={})
+
+        with self.assertLogs("django", level="ERROR") as captured_logs:
+            with self.assertRaisesRegex(ValueError, "handler missing"):
+                ProcessService(request, self.process).submit()
+
+        self.assertEqual("resolve_handler", self.process._submission_stage)
+        joined_logs = "\n".join(captured_logs.output)
+        self.assertIn("Process submission stage failed", joined_logs)
+        self.assertIn("stage=resolve_handler", joined_logs)
+        self.assertIn(f"process_id={self.process.pk}", joined_logs)
