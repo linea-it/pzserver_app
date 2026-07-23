@@ -119,8 +119,8 @@ class ProcessServiceTestCase(TestCase):
     @mock.patch("core.process.service.BasePipelineHandler.get_handler")
     def test_submit_logs_stage_on_failure(
         self,
-        _maestro_cls,
         get_handler,
+        _maestro_cls,
     ):
         get_handler.side_effect = ValueError("handler missing")
         request = SimpleNamespace(data={})
