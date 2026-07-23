@@ -8,6 +8,7 @@ from core.models import (
     Process,
     ProductDownloadArchive,
     ProductDownloadArchiveStatus,
+    ProductStatus,
 )
 from core.models.product_file import FileRoles
 from core.product_steps import RegistryProduct
@@ -18,6 +19,18 @@ from django.conf import settings
 from django.utils import dateparse, timezone
 
 LOGGER = logging.getLogger("tasks")
+
+
+def log_product_status_transition(logger, product, new_status, reason, process=None):
+    old_status = product.status
+    logger.info(
+        "Product status transition product_id=%s process_id=%s old_status=%s new_status=%s reason=%s",
+        product.pk,
+        getattr(process, "pk", None),
+        ProductStatus(old_status).label,
+        ProductStatus(new_status).label,
+        reason,
+    )
 
 
 @shared_task(bind=True)
@@ -269,6 +282,13 @@ def update_process_info(process, process_orch_status, data):
         LOGGER.info(f"Process {process.pk} finished successfully in Orchestration.")
         return process
     if process_orch_status == "Failed":
+        log_product_status_transition(
+            LOGGER,
+            process.upload,
+            ProductStatus.FAILED,
+            "orchestration_reported_failed",
+            process=process,
+        )
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.ended_at = dateparse.parse_datetime(ended_at)
@@ -327,11 +347,25 @@ def register_outputs(process_id):
             process.upload.save()
 
         reg_product.registry()
+        log_product_status_transition(
+            LOGGER,
+            process.upload,
+            ProductStatus.PUBLISHED,
+            "output_registration_completed",
+            process=process,
+        )
         process.upload.status = 1  # Published status
         process.upload.save()
         process.save()
         LOGGER.info(f"[process {process_id}]: registration completed!")
     except Exception as error:
+        log_product_status_transition(
+            LOGGER,
+            process.upload,
+            ProductStatus.FAILED,
+            "output_registration_failed",
+            process=process,
+        )
         process.upload.status = 9  # Failed status
         process.upload.save()
         process.save()

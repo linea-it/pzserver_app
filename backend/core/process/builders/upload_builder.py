@@ -1,5 +1,10 @@
+import logging
+
 from core.models import Pipeline, ProductStatus
 from core.product_steps import CreateProduct
+
+
+LOGGER = logging.getLogger("django")
 
 
 class UploadBuilder:
@@ -12,6 +17,14 @@ class UploadBuilder:
 
         data = self.serializer.initial_data
         pipeline = Pipeline.objects.get(pk=data.get("pipeline"))
+        LOGGER.info(
+            "Creating pipeline upload product pipeline_id=%s pipeline_name=%s user_id=%s display_name=%s release_id=%s",
+            pipeline.pk,
+            pipeline.name,
+            self.user.pk,
+            data.get("display_name"),
+            data.get("release"),
+        )
 
         upload_data = {
             "display_name": data.get("display_name"),
@@ -29,7 +42,22 @@ class UploadBuilder:
             raise ValueError(check.get("message"))
 
         created_product = product.data
+        LOGGER.info(
+            "Product status transition product_id=%s process_id=%s old_status=%s new_status=%s reason=%s",
+            created_product.pk,
+            None,
+            ProductStatus(created_product.status).label,
+            ProductStatus(ProductStatus.PROCESSING).label,
+            "pipeline_upload_created",
+        )
         created_product.status = ProductStatus.PROCESSING
         product.save()
+        LOGGER.info(
+            "Created pipeline upload product product_id=%s pipeline_id=%s status=%s path=%s",
+            created_product.pk,
+            pipeline.pk,
+            ProductStatus(created_product.status).label,
+            created_product.path,
+        )
 
         return created_product
