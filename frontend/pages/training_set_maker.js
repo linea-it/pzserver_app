@@ -41,7 +41,6 @@ function TrainingSetMaker() {
   const warningColor = theme.palette.warning.main
   const [openDialog, setOpenDialog] = useState(false)
   const router = useRouter()
-  const [uniqueGalaxies, setUniqueGalaxies] = useState(false)
   const [convertFluxToMag, setConvertFluxToMag] = useState(true)
   const [disabledFluxToMag, setDisabledConvertFluxToMag] = useState(false)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
@@ -192,7 +191,6 @@ function TrainingSetMaker() {
     setOutputFormat('specz')
     setIsSubmitting(false)
     setSelectedProductId(null)
-    setUniqueGalaxies(false)
     setSearch('')
     setOfficialOnly(false)
   }
@@ -251,10 +249,6 @@ function TrainingSetMaker() {
   const handleDialogClose = () => {
     setOpenDialog(false)
     router.push('/user_products')
-  }
-
-  const handleUniqueGalaxies = event => {
-    setUniqueGalaxies(event.target.checked)
   }
 
   const handleConvertFluxToMag = event => {
@@ -554,6 +548,19 @@ function TrainingSetMaker() {
                 </Typography>
               </Box>
             </Grid>
+            <Grid item xs={12} mt={3}>
+              <Box display="flex" alignItems="center" ml={4}>
+                <Typography variant="body1" component="div">
+                  Convert fluxes into magnitudes:
+                  <Checkbox
+                    checked={convertFluxToMag}
+                    onChange={handleConvertFluxToMag}
+                    disabled={!!disabledFluxToMag}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                  />
+                </Typography>
+              </Box>
+            </Grid>
           </Grid>
 
           <Grid item xs={12} mt={3}>
@@ -607,60 +614,11 @@ function TrainingSetMaker() {
                 />
               </Box>
             </Grid>
-
-            <Grid item xs={12} mt={3}>
-              <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" component="div">
-                  Convert fluxes into magnitudes:
-                  <Checkbox
-                    checked={convertFluxToMag}
-                    onChange={handleConvertFluxToMag}
-                    disabled={!!disabledFluxToMag}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                  />
-                </Typography>
-              </Box>
-            </Grid>
-
-            {/* <Grid item xs={12} mt={3}>
-              <Box ml={4}>
-                In case of multiple redshift measurements for the same object:
-                <Select
-                  value={data.param.duplicate_criteria}
-                  onChange={e => {
-                    setData({
-                      ...data,
-                      param: {
-                        ...data.param,
-                        duplicate_criteria: e.target.value
-                      }
-                    })
-                  }}
-                  sx={{ ml: '16px' }}
-                >
-                  <MenuItem value="closest">Keep the closest only</MenuItem>
-                  <MenuItem value="all">Keep all</MenuItem>
-                </Select>
-              </Box>
-            </Grid> */}
-          </Grid>
-
-          <Grid item xs={12}>
-            <Typography variant="body1" component="div" sx={{ color: '#888' }}>
-              6. Select unique galaxies
-              <Checkbox
-                checked={uniqueGalaxies}
-                onChange={handleUniqueGalaxies}
-                inputProps={{ 'aria-label': 'controlled' }}
-                disabled
-              />
-              <Typography component="span">(soon)</Typography>
-            </Typography>
           </Grid>
 
           <Grid item xs={12} mt={3}>
             <Typography variant="body1" component="div">
-              7. Output format:
+              6. Output format:
               <Select
                 value={outputFormat}
                 onChange={event => setOutputFormat(event.target.value)}
