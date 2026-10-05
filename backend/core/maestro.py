@@ -93,6 +93,13 @@ class Maestro:
         _response = self.api.get_request(url)
         return self.__handle_action(_response)  # type: ignore
 
+    def hats_config(self, release: str) -> dict:
+        """Get the default HATS configuration for a release."""
+
+        url = f"{self.url}/api/releases/hats_config/"
+        _response = self.api.get_request(url, params={"release": release})
+        return self.__handle_action(_response)  # type: ignore
+
     def sysinfo(self) -> dict:
         """Gets Orchestration app information.
 

@@ -83,7 +83,22 @@ Import the application's initial data using the following command:
 docker compose run backend python manage.py loaddata initial_data
 ```
 
-This `loaddata` command will insert some basic records into the database for the application to work. these records are in the `core/fixtures/initial_data.yaml` file.
+This `loaddata` command inserts the records required by the application. The
+initial data is defined in `core/fixtures/initial_data.yaml` and contains DP1
+as its only release. It matches the local sample under
+`orchestration/pipelines/training_set_maker/data-example/dp1`, using the
+`objectId` index, `cModel` flux columns, and no dustmap correction.
+
+After creating a superuser, register the matching DP1 spectroscopic HATS
+sample as an official input product:
+
+```bash
+docker compose run backend python manage.py seed_local_dp1_specz \
+  --username <superuser>
+```
+
+The command is idempotent and copies the collection from `/datasets` into the
+local product archive.
 
 Now install the Frontend dependencies by running the `yarn` command. As this is the first time starting this container, the base image will be pulled, which may take a while.
 
@@ -511,4 +526,3 @@ Procedure to update the production environment or any other that uses built imag
 - Edit the `.env` file to add new variables or change them if necessary.
 - Pull the new images with the `docker compose pull` command.
 - Restart services `docker compose stop && docker compose up -d`.
-

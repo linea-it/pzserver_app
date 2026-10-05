@@ -1,27 +1,22 @@
 - model: core.release
   pk: 1
   fields:
-    name: dr2
-    display_name: Small Dataset
-    description: Small dataset for example runs
-    created_at: 2022-05-18 15:36:16.234786+00:00
-    indexing_column: id
+    name: dp1
+    display_name: DP1
+    description: Local DP1 sample for end-to-end Training Set Maker runs
+    created_at: 2026-10-02 00:00:00+00:00
+    indexing_column: objectId
     dereddening:
-      - name: sfd
-        display_name: SFD
+      - name: none
+        display_name: None
         selected: true
-      - name: csfd
-        display_name: CSFD
-        disabled: true
-    has_mag_hats: true
-    has_flux_hats: false
+    has_mag_hats: false
+    has_flux_hats: true
     fluxes:
-      - name: "auto"
-        display_name: "Auto"
+      - name: cModel
+        display_name: cModel
         selected: true
-      - name: "cmodel"
-        display_name: "cModel"
-        disabled: true
+    is_public: true
 - model: core.producttype
   pk: 1
   fields:

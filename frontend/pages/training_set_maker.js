@@ -1,3 +1,4 @@
+import Alert from '@mui/material/Alert'
 import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
@@ -19,18 +20,25 @@ import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import Snackbar from '@mui/material/Snackbar'
 import SnackbarContent from '@mui/material/SnackbarContent'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/system'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import NNeighbors from '../components/NNeighbors'
 import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
-import { getReleases } from '../services/release'
+import { getReleaseHatsConfig, getReleases } from '../services/release'
+import {
+  customizeHatsConfig,
+  parseHatsConfig,
+  serializeHatsConfig
+} from '../utils/hatsConfig'
 
 const TsmData = dynamic(() => import('../components/TsmData'), {
   ssr: false
@@ -56,6 +64,14 @@ function TrainingSetMaker() {
   const [releases, setReleases] = useState([])
   const [fluxes, setFluxes] = useState([])
   const [dereddening, setDereddening] = useState([])
+  const [hatsConfigTemplate, setHatsConfigTemplate] = useState(null)
+  const [isHatsConfigLoading, setIsHatsConfigLoading] = useState(false)
+  const [hatsConfigMode, setHatsConfigMode] = useState('basic')
+  const [advancedEditingEnabled, setAdvancedEditingEnabled] = useState(false)
+  const [advancedYaml, setAdvancedYaml] = useState('')
+  const [advancedHatsConfig, setAdvancedHatsConfig] = useState(null)
+  const [advancedYamlError, setAdvancedYamlError] = useState('')
+  const hatsConfigRequestId = useRef(0)
   const [outputFormat, setOutputFormat] = useState('specz')
   const [initialData, setInitialData] = useState({
     param: {
@@ -73,6 +89,126 @@ function TrainingSetMaker() {
   const [data, setData] = useState(initialData)
   const [fieldErrors] = useState({})
 
+  const basicHatsConfig = useMemo(
+    () =>
+      customizeHatsConfig(hatsConfigTemplate, {
+        flux: data?.param?.flux_type,
+        dereddening: data?.param?.dereddening,
+        useMagnitude: convertFluxToMag
+      }),
+    [
+      convertFluxToMag,
+      data?.param?.dereddening,
+      data?.param?.flux_type,
+      hatsConfigTemplate
+    ]
+  )
+
+  useEffect(() => {
+    if (!basicHatsConfig || advancedEditingEnabled) return
+
+    setAdvancedYaml(serializeHatsConfig(basicHatsConfig))
+    setAdvancedHatsConfig(basicHatsConfig)
+    setAdvancedYamlError('')
+  }, [advancedEditingEnabled, basicHatsConfig])
+
+  const hatsConfig = advancedEditingEnabled
+    ? advancedYamlError
+      ? null
+      : advancedHatsConfig
+    : basicHatsConfig
+
+  const handleAdvancedYamlChange = event => {
+    const yaml = event.target.value
+    setAdvancedYaml(yaml)
+
+    try {
+      setAdvancedHatsConfig(parseHatsConfig(yaml))
+      setAdvancedYamlError('')
+    } catch (error) {
+      setAdvancedYamlError(error.message)
+    }
+  }
+
+  const handleFormatAdvancedYaml = () => {
+    try {
+      const config = parseHatsConfig(advancedYaml)
+      setAdvancedYaml(serializeHatsConfig(config))
+      setAdvancedHatsConfig(config)
+      setAdvancedYamlError('')
+    } catch (error) {
+      setAdvancedYamlError(error.message)
+    }
+  }
+
+  const handleResetAdvancedYaml = () => {
+    if (!basicHatsConfig) return
+
+    setAdvancedYaml(serializeHatsConfig(basicHatsConfig))
+    setAdvancedHatsConfig(basicHatsConfig)
+    setAdvancedYamlError('')
+  }
+
+  const handleHatsConfigModeChange = (_, mode) => setHatsConfigMode(mode)
+
+  const handleAdvancedEditingChange = event => {
+    const enabled = event.target.checked
+    setAdvancedEditingEnabled(enabled)
+
+    if (!enabled) {
+      handleResetAdvancedYaml()
+    }
+  }
+
+  useEffect(() => {
+    if (hatsConfig) {
+      console.log('HATS config:', hatsConfig)
+    }
+  }, [hatsConfig])
+
+  const loadHatsConfig = useCallback(
+    async release => {
+      const requestId = hatsConfigRequestId.current + 1
+      hatsConfigRequestId.current = requestId
+      setHatsConfigTemplate(null)
+      setHatsConfigMode('basic')
+      setAdvancedEditingEnabled(false)
+      setAdvancedYaml('')
+      setAdvancedHatsConfig(null)
+      setAdvancedYamlError('')
+
+      if (!release) {
+        setIsHatsConfigLoading(false)
+        return
+      }
+
+      setIsHatsConfigLoading(true)
+      try {
+        const response = await getReleaseHatsConfig(release.id)
+
+        // A slower response from a previous selection must not replace the
+        // configuration of the release currently selected by the user.
+        if (requestId !== hatsConfigRequestId.current) return
+
+        setHatsConfigTemplate(response.config)
+      } catch (error) {
+        if (requestId !== hatsConfigRequestId.current) return
+
+        console.error('Error fetching release HATS config from API', error)
+        setSnackbarMessage(
+          `Could not load the HATS configuration for ${release.display_name}.`
+        )
+        setSnackbarColor(theme.palette.error.main)
+        setSnackbarOpen(true)
+      } finally {
+        if (requestId === hatsConfigRequestId.current) {
+          setIsHatsConfigLoading(false)
+        }
+      }
+    },
+    [theme.palette.error.main]
+  )
+
   useEffect(() => {
     const handleReleaseInternal = (releaseName, releasesData) => {
       setSelectedLsstCatalog(releaseName)
@@ -82,6 +218,8 @@ function TrainingSetMaker() {
       )
 
       if (!currentRelease) return
+
+      loadHatsConfig(currentRelease)
 
       if (currentRelease.has_mag_hats === true) {
         setConvertFluxToMag(true)
@@ -95,7 +233,9 @@ function TrainingSetMaker() {
         setConvertFluxToMag(false)
       }
 
-      const fluxRelease = currentRelease.fluxes
+      const fluxRelease = Array.isArray(currentRelease.fluxes)
+        ? currentRelease.fluxes
+        : []
       setFluxes(fluxRelease)
 
       const selectedFlux = fluxRelease.find(flux => flux.selected)
@@ -109,7 +249,9 @@ function TrainingSetMaker() {
         }))
       }
 
-      const dereddeningRelease = currentRelease.dereddening
+      const dereddeningRelease = Array.isArray(currentRelease.dereddening)
+        ? currentRelease.dereddening
+        : []
       setDereddening(dereddeningRelease)
 
       const selectedDereddening = dereddeningRelease.find(der => der.selected)
@@ -156,6 +298,7 @@ function TrainingSetMaker() {
             setSelectedLsstCatalog('')
             setFluxes([])
             setDereddening([])
+            loadHatsConfig(null)
             setSnackbarMessage('No permission to access the objects catalogs.')
             setSnackbarColor(warningColor)
             setSnackbarOpen(true)
@@ -170,7 +313,7 @@ function TrainingSetMaker() {
 
     fetchPipelineData()
     fetchReleases()
-  }, [warningColor])
+  }, [loadHatsConfig, warningColor])
 
   const handleClearForm = () => {
     setCombinedCatalogName('')
@@ -187,6 +330,7 @@ function TrainingSetMaker() {
       setSelectedLsstCatalog('')
       setFluxes([])
       setDereddening([])
+      loadHatsConfig(null)
     }
     setOutputFormat('specz')
     setIsSubmitting(false)
@@ -205,6 +349,8 @@ function TrainingSetMaker() {
 
     if (!currentRelease) return
 
+    loadHatsConfig(currentRelease)
+
     if (currentRelease.has_mag_hats === true) {
       setConvertFluxToMag(true)
       if (currentRelease.has_flux_hats) {
@@ -217,7 +363,9 @@ function TrainingSetMaker() {
       setConvertFluxToMag(false)
     }
 
-    const fluxRelease = currentRelease.fluxes
+    const fluxRelease = Array.isArray(currentRelease.fluxes)
+      ? currentRelease.fluxes
+      : []
     setFluxes(fluxRelease)
 
     const selectedFlux = fluxRelease.find(flux => flux.selected)
@@ -231,7 +379,9 @@ function TrainingSetMaker() {
       }))
     }
 
-    const dereddeningRelease = currentRelease.dereddening
+    const dereddeningRelease = Array.isArray(currentRelease.dereddening)
+      ? currentRelease.dereddening
+      : []
     setDereddening(dereddeningRelease)
 
     const selectedDereddening = dereddeningRelease.find(der => der.selected)
@@ -256,8 +406,6 @@ function TrainingSetMaker() {
   }
 
   const handleRun = async () => {
-    setIsSubmitting(true)
-
     if (combinedCatalogName.trim() === '') {
       setSnackbarMessage(
         'Your process has not been submitted. Please fill in the training set name.'
@@ -266,6 +414,28 @@ function TrainingSetMaker() {
       setSnackbarOpen(true)
       return
     }
+
+    if (isHatsConfigLoading) {
+      setSnackbarMessage(
+        'The HATS configuration is still loading. Please wait before submitting.'
+      )
+      setSnackbarColor(theme.palette.warning.main)
+      setSnackbarOpen(true)
+      return
+    }
+
+    if (!hatsConfig) {
+      setSnackbarMessage(
+        advancedYamlError
+          ? 'Fix the HATS YAML before submitting the process.'
+          : 'A valid HATS configuration is required to submit the process.'
+      )
+      setSnackbarColor(theme.palette.error.main)
+      setSnackbarOpen(true)
+      return
+    }
+
+    setIsSubmitting(true)
 
     const sanitizedCatalogName = combinedCatalogName
       .normalize('NFD')
@@ -302,7 +472,8 @@ function TrainingSetMaker() {
             duplicate_criteria: data.param.duplicate_criteria,
             flux_type: data.param.flux_type,
             dereddening: data.param.dereddening,
-            convert_flux_to_mag: convertFluxToMag
+            convert_flux_to_mag: convertFluxToMag,
+            hats_config: hatsConfig
           }
         },
         output_format: outputFormat,
@@ -475,92 +646,238 @@ function TrainingSetMaker() {
                   </MenuItem>
                 ))}
               </Select>
+              {isHatsConfigLoading && (
+                <CircularProgress size={20} sx={{ ml: 2 }} />
+              )}
             </Typography>
 
-            <Grid item xs={12} mt={2}>
-              <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" component="div" mr="16px">
-                  Flux type:
-                  <Select
-                    value={data.param.flux_type}
-                    onChange={event => {
-                      setData({
-                        ...data,
-                        param: {
-                          ...data.param,
-                          flux_type: event.target.value
-                        }
-                      })
-                    }}
-                    sx={{ marginLeft: '16px' }}
-                  >
-                    {fluxes.map(flux => (
-                      <MenuItem
-                        key={flux.name}
-                        value={flux.name}
-                        selected={!!flux.selected}
-                        disabled={!!flux.disabled}
-                      >
-                        {flux.display_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} mt={2}>
-              <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" component="div" mr="16px">
-                  Apply dereddening from{' '}
-                  <Link
-                    color="inherit"
-                    underline="always"
-                    href="https://dustmaps.readthedocs.io/en/latest/index.html"
-                  >
-                    dustmaps
-                  </Link>
-                  :
-                  {/* None, sfd, csfd, planck, planckGNILC, bayestar, iphas, marshall, chen2014, lenz2017, leikeensslin2019, leike2020, edenhofer2023, gaia_tge, decaps */}
-                  <Select
-                    value={data.param.dereddening}
-                    onChange={event => {
-                      setData({
-                        ...data,
-                        param: {
-                          ...data.param,
-                          dereddening: event.target.value
-                        }
-                      })
-                    }}
-                    sx={{ marginLeft: '16px' }}
-                  >
-                    {dereddening.map(der => (
-                      <MenuItem
-                        key={der.name}
-                        value={der.name}
-                        selected={!!der.selected}
-                        disabled={!!der.disabled}
-                      >
-                        {der.display_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} mt={3}>
-              <Box display="flex" alignItems="center" ml={4}>
-                <Typography variant="body1" component="div">
-                  Convert fluxes into magnitudes:
-                  <Checkbox
-                    checked={convertFluxToMag}
-                    onChange={handleConvertFluxToMag}
-                    disabled={!!disabledFluxToMag}
-                    inputProps={{ 'aria-label': 'controlled' }}
+            <Paper
+              variant="outlined"
+              sx={{ mt: 2, overflow: 'hidden', bgcolor: 'action.hover' }}
+            >
+              <Box
+                sx={{
+                  px: 2,
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper'
+                }}
+              >
+                <Tabs
+                  value={hatsConfigMode}
+                  onChange={handleHatsConfigModeChange}
+                  aria-label="HATS configuration modes"
+                >
+                  <Tab value="basic" label="Basic" />
+                  <Tab
+                    value="advanced"
+                    label="Advanced"
+                    disabled={!basicHatsConfig}
                   />
-                </Typography>
+                </Tabs>
               </Box>
-            </Grid>
+
+              <Box
+                role="tabpanel"
+                aria-label={`${hatsConfigMode} HATS configuration`}
+                sx={{ p: 3 }}
+              >
+                {hatsConfigMode === 'basic' ? (
+                  <>
+                    {advancedEditingEnabled && (
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        Advanced YAML editing is enabled. The advanced
+                        configuration remains active; changes below take effect
+                        only after advanced editing is disabled.
+                      </Alert>
+                    )}
+                    <Grid item xs={12} mt={2}>
+                      <Box display="flex" alignItems="center" ml={4}>
+                        <Typography variant="body1" component="div" mr="16px">
+                          Flux type:
+                          <Select
+                            value={data.param.flux_type}
+                            onChange={event => {
+                              setData({
+                                ...data,
+                                param: {
+                                  ...data.param,
+                                  flux_type: event.target.value
+                                }
+                              })
+                            }}
+                            sx={{ marginLeft: '16px' }}
+                          >
+                            {fluxes.map(flux => (
+                              <MenuItem
+                                key={flux.name}
+                                value={flux.name}
+                                selected={!!flux.selected}
+                                disabled={!!flux.disabled}
+                              >
+                                {flux.display_name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} mt={2}>
+                      <Box display="flex" alignItems="center" ml={4}>
+                        <Typography variant="body1" component="div" mr="16px">
+                          Apply dereddening from{' '}
+                          <Link
+                            color="inherit"
+                            underline="always"
+                            href="https://dustmaps.readthedocs.io/en/latest/index.html"
+                          >
+                            dustmaps
+                          </Link>
+                          :
+                          {/* None, sfd, csfd, planck, planckGNILC, bayestar, iphas, marshall, chen2014, lenz2017, leikeensslin2019, leike2020, edenhofer2023, gaia_tge, decaps */}
+                          <Select
+                            value={data.param.dereddening}
+                            onChange={event => {
+                              setData({
+                                ...data,
+                                param: {
+                                  ...data.param,
+                                  dereddening: event.target.value
+                                }
+                              })
+                            }}
+                            sx={{ marginLeft: '16px' }}
+                          >
+                            {dereddening.map(der => (
+                              <MenuItem
+                                key={der.name}
+                                value={der.name}
+                                selected={!!der.selected}
+                                disabled={!!der.disabled}
+                              >
+                                {der.display_name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} mt={3}>
+                      <Box display="flex" alignItems="center" ml={4}>
+                        <Typography variant="body1" component="div">
+                          Convert fluxes into magnitudes:
+                          <Checkbox
+                            checked={convertFluxToMag}
+                            onChange={handleConvertFluxToMag}
+                            disabled={!!disabledFluxToMag}
+                            inputProps={{ 'aria-label': 'controlled' }}
+                          />
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </>
+                ) : (
+                  <Box>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      flexDirection={{ xs: 'column', sm: 'row' }}
+                      gap={2}
+                      mb={2}
+                    >
+                      <Box>
+                        <Typography variant="h6" component="h3">
+                          Advanced HATS configuration
+                        </Typography>
+                      </Box>
+                      <Box display="flex" gap={1} flexWrap="wrap">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={handleResetAdvancedYaml}
+                          disabled={!advancedEditingEnabled}
+                        >
+                          Restore from Basic
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={handleFormatAdvancedYaml}
+                          disabled={!advancedEditingEnabled}
+                        >
+                          Format YAML
+                        </Button>
+                      </Box>
+                    </Box>
+
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                      <FormControlLabel
+                        sx={{ m: 0, alignItems: 'flex-start' }}
+                        control={
+                          <Checkbox
+                            checked={advancedEditingEnabled}
+                            onChange={handleAdvancedEditingChange}
+                            sx={{ pt: 0 }}
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>
+                              Enable advanced YAML editing
+                            </Typography>
+                            <Typography variant="body2">
+                              I understand that editing this YAML is at my own
+                              risk. When enabled, the advanced configuration
+                              remains active while switching between tabs.
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </Alert>
+
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={22}
+                      maxRows={36}
+                      value={advancedYaml}
+                      onChange={handleAdvancedYamlChange}
+                      error={Boolean(advancedYamlError)}
+                      helperText={
+                        advancedYamlError ||
+                        (advancedEditingEnabled
+                          ? 'YAML is validated as you type.'
+                          : 'Enable advanced editing above to modify this YAML.')
+                      }
+                      inputProps={{
+                        'aria-label': 'Advanced HATS YAML configuration',
+                        spellCheck: false
+                      }}
+                      InputProps={{
+                        readOnly: !advancedEditingEnabled
+                      }}
+                      FormHelperTextProps={{ sx: { ml: 0 } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          alignItems: 'flex-start',
+                          bgcolor: advancedEditingEnabled
+                            ? 'background.paper'
+                            : 'action.disabledBackground'
+                        },
+                        '& textarea': {
+                          fontFamily:
+                            '"Roboto Mono", "SFMono-Regular", Consolas, monospace',
+                          fontSize: '0.875rem',
+                          lineHeight: 1.6,
+                          tabSize: 2
+                        }
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </Paper>
           </Grid>
 
           <Grid item xs={12} mt={3}>

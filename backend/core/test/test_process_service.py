@@ -1,11 +1,11 @@
 from types import SimpleNamespace
 from unittest import mock
 
-from core.models import Pipeline, Process, Product, ProductStatus, ProductType
+from core.models import Pipeline, Process, Product, ProductStatus, ProductType, Release
 from core.process.builders.upload_builder import UploadBuilder
 from core.process.service import ProcessService
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 
 class UploadBuilderTestCase(TestCase):
@@ -114,6 +114,106 @@ class ProcessServiceTestCase(TestCase):
             },
             self.process.used_config,
         )
+
+    @override_settings(
+        DATASETS_DIR="/datasets",
+        ORCHEST_URL="http://orchestrator",
+        UPLOAD_DIR="/uploads",
+    )
+    @mock.patch("core.process.service.InputsBuilder.build", return_value=[])
+    @mock.patch("core.process.pipelines.training_set_maker.Maestro")
+    @mock.patch("core.process.service.Maestro")
+    def test_submit_training_set_maker_sends_hydrated_hats_config(
+        self,
+        service_maestro_cls,
+        handler_maestro_cls,
+        _build_inputs,
+    ):
+        self.pipeline.name = "training_set_maker"
+        self.pipeline.save(update_fields=["name"])
+        release = Release.objects.create(
+            name="dp1",
+            display_name="DP1",
+            indexing_column="objectId",
+        )
+        self.process.release = release
+        self.process.used_config = {
+            "param": {
+                "flux_type": "cmodel",
+                "dereddening": "planck",
+                "convert_flux_to_mag": True,
+                "hats_config": {
+                    "input": {
+                        "catalog_folder": "/tmp/forbidden",
+                        "compute_magnitude": False,
+                    },
+                    "dust": {
+                        "path_to_dustmaps": "/tmp/forbidden",
+                        "use_dustmap": "planck",
+                    },
+                },
+            }
+        }
+        self.process.save(update_fields=["release", "used_config"])
+
+        handler_maestro_cls.return_value.hats_config.return_value = {
+            "config": {
+                "input": {
+                    "catalog_folder": "/datasets/dp1/catalogs/object",
+                    "compute_magnitude": True,
+                },
+                "dust": {
+                    "path_to_dustmaps": "/datasets/dustmaps",
+                    "use_dustmap": "sfd",
+                },
+                "cluster": {"executor": "slurm"},
+            }
+        }
+
+        service_maestro = service_maestro_cls.return_value
+
+        def start_process(*, pipeline, config):
+            return {
+                "id": 321,
+                "path_str": "training_set_maker/00000321",
+                "used_config": config,
+            }
+
+        service_maestro.start.side_effect = start_process
+        request = SimpleNamespace(data={"output_format": "hats"})
+
+        with self.assertLogs("core.services.hats_config", level="WARNING"):
+            ProcessService(request, self.process).submit()
+
+        service_maestro.start.assert_called_once()
+        submitted_config = service_maestro.start.call_args.kwargs["config"]
+        self.assertEqual(
+            "/datasets/dp1",
+            submitted_config["inputs"]["dataset"]["path"],
+        )
+        self.assertEqual(
+            {"id": "objectId"},
+            submitted_config["inputs"]["dataset"]["columns"],
+        )
+        self.assertEqual([], submitted_config["inputs"]["specz"])
+        self.assertEqual("hats", submitted_config["output_format"])
+
+        hats_config = submitted_config["param"]["hats_config"]
+        self.assertEqual(
+            "/datasets/dp1/catalogs/object",
+            hats_config["input"]["catalog_folder"],
+        )
+        self.assertFalse(hats_config["input"]["compute_magnitude"])
+        self.assertEqual(
+            "/datasets/dustmaps",
+            hats_config["dust"]["path_to_dustmaps"],
+        )
+        self.assertEqual("planck", hats_config["dust"]["use_dustmap"])
+        self.assertEqual({"executor": "slurm"}, hats_config["cluster"])
+
+        self.process.refresh_from_db()
+        self.assertEqual(321, self.process.orchestration_process_id)
+        self.assertEqual(hats_config, self.process.used_config["param"]["hats_config"])
 
     @mock.patch("core.process.service.Maestro")
     @mock.patch("core.process.service.BasePipelineHandler.get_handler")
