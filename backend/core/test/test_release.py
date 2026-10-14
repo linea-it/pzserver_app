@@ -92,6 +92,9 @@ class ReleaseDetailAPIViewTestCase(APITestCase):
         serializer_data = ReleaseSerializer(instance=self.release).data
         response_data = json.loads(response.content)
         self.assertEqual(serializer_data, response_data)
+        self.assertFalse(response_data["can_convert_flux_to_mag"])
+        self.assertNotIn("has_mag_hats", response_data)
+        self.assertNotIn("has_flux_hats", response_data)
 
     def test_release_object_update_authorization(self):
         """

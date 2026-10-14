@@ -934,8 +934,6 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             display_name="Release Restricted",
             description="Restricted release.",
             indexing_column="id",
-            has_mag_hats=False,
-            has_flux_hats=True,
             is_public=False,
         )
         restricted_release.access_groups.add(restricted_group)

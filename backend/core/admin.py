@@ -38,7 +38,13 @@ class ReleaseAdmin(admin.ModelAdmin):
         (None, {"fields": ("name", "display_name", "description", "indexing_column")}),
         (
             "Data Configuration",
-            {"fields": ("has_mag_hats", "has_flux_hats", "dereddening", "fluxes")},
+            {
+                "fields": (
+                    "can_convert_flux_to_mag",
+                    "dereddening",
+                    "fluxes",
+                )
+            },
         ),
         ("Access Control", {"fields": ("is_public", "access_groups")}),
     )
