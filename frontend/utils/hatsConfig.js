@@ -36,6 +36,31 @@ const replacePlaceholders = (value, replacements) => {
   return value
 }
 
+const createInvalidHandling = useMagnitude => {
+  const replacementValue = useMagnitude ? 99.0 : null
+  const createChannel = () => ({
+    nonfinite_is_invalid: true,
+    ...(useMagnitude
+      ? {
+          limit: {
+            value: 99.0,
+            comparison: 'greater_or_equal',
+            use_absolute: true
+          }
+        }
+      : {}),
+    replacement: {
+      value: replacementValue,
+      when: 'invalid'
+    }
+  })
+
+  return {
+    value: createChannel(),
+    error: createChannel()
+  }
+}
+
 export const customizeHatsConfig = (
   template,
   { flux, dereddening, useMagnitude }
@@ -52,20 +77,45 @@ export const customizeHatsConfig = (
   const usesDereddening =
     replacements.dereddening !== '' &&
     replacements.dereddening.toLowerCase() !== 'none'
-
-  if (config.input && typeof config.input === 'object') {
-    config.input = {
-      ...config.input,
-      input_col_type: magOrFlux.toLowerCase(),
-      compute_magnitude: Boolean(useMagnitude),
-      compute_dereddening: usesDereddening
-    }
-  }
+  const outputType = `${useMagnitude ? 'mag' : 'flux'}${
+    usesDereddening ? '_dered' : ''
+  }`
+  const dereddeningSuffix = usesDereddening
+    ? `_${replacements.dereddening}`
+    : ''
+  const outputValuePattern = `BAND_${replacements.flux}${magOrFlux}${dereddeningSuffix}`
+  const outputErrorPattern = `BAND_${replacements.flux}${magOrFlux}Err${dereddeningSuffix}`
 
   if (config.dust && typeof config.dust === 'object') {
     config.dust = {
       ...config.dust,
-      use_dustmap: replacements.dereddening
+      use_dustmap: usesDereddening ? replacements.dereddening : null
+    }
+  }
+
+  if (config.photometry && typeof config.photometry === 'object') {
+    const measurements = Array.isArray(config.photometry.measurements)
+      ? config.photometry.measurements.map(measurement => {
+          if (!measurement || typeof measurement !== 'object') {
+            return measurement
+          }
+
+          return {
+            ...measurement,
+            output: {
+              ...(measurement.output || {}),
+              type: outputType,
+              value_pattern: outputValuePattern,
+              error_pattern: outputErrorPattern
+            }
+          }
+        })
+      : config.photometry.measurements
+
+    config.photometry = {
+      ...config.photometry,
+      measurements,
+      invalid_handling: createInvalidHandling(Boolean(useMagnitude))
     }
   }
 

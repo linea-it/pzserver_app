@@ -12,43 +12,54 @@ from django.test import SimpleTestCase
 class HatsConfigPolicyTestCase(SimpleTestCase):
     def setUp(self):
         self.default_config = {
-            "executor": {
-                "name": "slurm",
-                "args": {"queue": "cpu_pipelines"},
-            },
+            "metadata": {"release": "lsst_dp1"},
             "input": {
-                "catalog_folder": "/datasets/lsst_dp1",
+                "catalog_path": "/datasets/lsst_dp1",
                 "catalog_pattern": "objects-*.parquet",
-                "which_release": "LSST_DP1",
-                "input_col_model": "cModelFlux",
-                "compute_magnitude": True,
-                "compute_dereddening": True,
+                "ra_col": "coord_ra",
+                "dec_col": "coord_dec",
+            },
+            "photometry": {
+                "measurements": [
+                    {
+                        "name": "cModel",
+                        "input": {"type": "flux"},
+                        "output": {"type": "mag_dered"},
+                    }
+                ]
             },
             "output": {
                 "base_path": "/processes/science_catalogs",
-                "save_as": "hats",
-                "col_final_pattern": "BAND_cModelMag_dered",
+                "save_as": "parquet",
             },
             "dust": {
                 "path_to_dustmaps": "/datasets/dustmaps",
                 "use_dustmap": "sfd",
             },
-            "collection": {"margin_threshold": 10.0},
+            "collection": {"margin": {"threshold_arcsec": 10.0}},
+            "execution": {
+                "executor": "slurm",
+                "slurm": {"queue": "cpu_pipelines"},
+            },
         }
 
     def test_sanitize_removes_infrastructure_fields(self):
         sanitized = sanitize_for_frontend(self.default_config)
 
-        self.assertNotIn("executor", sanitized)
-        self.assertNotIn("catalog_folder", sanitized["input"])
+        self.assertNotIn("execution", sanitized)
+        self.assertEqual({}, sanitized["metadata"])
+        self.assertNotIn("catalog_path", sanitized["input"])
         self.assertNotIn("catalog_pattern", sanitized["input"])
-        self.assertNotIn("which_release", sanitized["input"])
         self.assertNotIn("base_path", sanitized["output"])
         self.assertNotIn("path_to_dustmaps", sanitized["dust"])
-        self.assertEqual("cModelFlux", sanitized["input"]["input_col_model"])
+        self.assertEqual("coord_ra", sanitized["input"]["ra_col"])
+        self.assertEqual(
+            "mag_dered",
+            sanitized["photometry"]["measurements"][0]["output"]["type"],
+        )
         self.assertEqual("sfd", sanitized["dust"]["use_dustmap"])
 
-    def test_sanitize_removes_nested_path_fields_and_cluster_sections(self):
+    def test_sanitize_removes_nested_path_fields_and_execution_sections(self):
         config = {
             "items": [
                 {
@@ -57,7 +68,7 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
                 }
             ],
             "runtime": {
-                "dask": {"scheduler": "tcp://scheduler:8786"},
+                "execution": {"executor": "local"},
                 "value": 42,
             },
         }
@@ -66,6 +77,56 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
 
         self.assertEqual({"name": "catalog"}, sanitized["items"][0])
         self.assertEqual({"value": 42}, sanitized["runtime"])
+
+    def test_sanitize_protects_canonical_science_catalogs_infrastructure(self):
+        config = {
+            "metadata": {"release": "lsst_dp1"},
+            "input": {
+                "catalog_path": "/datasets/dp1",
+                "ra_col": "coord_ra",
+            },
+            "photometry": {
+                "measurements": [
+                    {
+                        "name": "cModel",
+                        "output": {"type": "mag_dered"},
+                    }
+                ]
+            },
+            "output": {
+                "save_as": "parquet",
+                "base_path": "/processes/science_catalogs",
+            },
+            "execution": {
+                "executor": "local",
+                "local": {"n_workers": 3},
+            },
+        }
+
+        sanitized = sanitize_for_frontend(config)
+
+        self.assertEqual({}, sanitized["metadata"])
+        self.assertNotIn("catalog_path", sanitized["input"])
+        self.assertEqual("coord_ra", sanitized["input"]["ra_col"])
+        self.assertNotIn("base_path", sanitized["output"])
+        self.assertNotIn("execution", sanitized)
+        self.assertEqual(
+            "mag_dered",
+            sanitized["photometry"]["measurements"][0]["output"]["type"],
+        )
+
+        sanitized["photometry"]["measurements"][0]["output"]["type"] = (
+            "flux"
+        )
+        hydrated = hydrate_for_execution(sanitized, config).config
+
+        self.assertEqual("lsst_dp1", hydrated["metadata"]["release"])
+        self.assertEqual("/datasets/dp1", hydrated["input"]["catalog_path"])
+        self.assertEqual(config["execution"], hydrated["execution"])
+        self.assertEqual(
+            "flux",
+            hydrated["photometry"]["measurements"][0]["output"]["type"],
+        )
 
     def test_sanitize_does_not_mutate_source(self):
         original = deepcopy(self.default_config)
@@ -76,26 +137,32 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
 
     def test_hydrate_applies_public_edits_and_restores_protected_values(self):
         editable = sanitize_for_frontend(self.default_config)
-        editable["input"]["compute_magnitude"] = False
+        editable["photometry"]["measurements"][0]["output"]["type"] = "flux"
         editable["dust"]["use_dustmap"] = "planck"
-        editable["collection"]["margin_threshold"] = 15.0
+        editable["collection"]["margin"]["threshold_arcsec"] = 15.0
 
         result = hydrate_for_execution(editable, self.default_config)
         hydrated = result.config
 
         self.assertEqual((), result.warnings)
-        self.assertFalse(hydrated["input"]["compute_magnitude"])
+        self.assertEqual(
+            "flux",
+            hydrated["photometry"]["measurements"][0]["output"]["type"],
+        )
         self.assertEqual("planck", hydrated["dust"]["use_dustmap"])
-        self.assertEqual(15.0, hydrated["collection"]["margin_threshold"])
+        self.assertEqual(
+            15.0,
+            hydrated["collection"]["margin"]["threshold_arcsec"],
+        )
         self.assertEqual(
             "/datasets/lsst_dp1",
-            hydrated["input"]["catalog_folder"],
+            hydrated["input"]["catalog_path"],
         )
         self.assertEqual(
             "/datasets/dustmaps",
             hydrated["dust"]["path_to_dustmaps"],
         )
-        self.assertEqual("slurm", hydrated["executor"]["name"])
+        self.assertEqual("slurm", hydrated["execution"]["executor"])
 
     def test_hydrate_ignores_protected_fields_and_applies_other_edits(self):
         editable = sanitize_for_frontend(self.default_config)
@@ -115,9 +182,8 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
         self.assertNotIn("scratch_directory", hydrated)
         self.assertEqual(
             "/datasets/lsst_dp1",
-            hydrated["input"]["catalog_folder"],
+            hydrated["input"]["catalog_path"],
         )
-        self.assertNotIn("catalog_path", hydrated["input"])
         self.assertEqual("planck", hydrated["dust"]["use_dustmap"])
 
     def test_hydrate_ignores_replacing_parent_of_protected_fields(self):
@@ -164,11 +230,11 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
                     "label": "Default",
                 }
             ],
-            "collection": {"margin_threshold": 10.0},
+            "collection": {"margin": {"threshold_arcsec": 10.0}},
         }
         editable = {
             "sources": [],
-            "collection": {"margin_threshold": 20.0},
+            "collection": {"margin": {"threshold_arcsec": 20.0}},
         }
 
         with self.assertLogs("core.services.hats_config", level="WARNING") as logs:
@@ -178,17 +244,20 @@ class HatsConfigPolicyTestCase(SimpleTestCase):
         self.assertIn("list 'sources'", logs.output[0])
         self.assertIn("list 'sources'", result.warnings[0])
         self.assertEqual(default_config["sources"], hydrated["sources"])
-        self.assertEqual(20.0, hydrated["collection"]["margin_threshold"])
+        self.assertEqual(
+            20.0,
+            hydrated["collection"]["margin"]["threshold_arcsec"],
+        )
 
     def test_find_protected_paths_returns_nested_paths(self):
         config = {
-            "cluster": {"workers": 2},
+            "execution": {"executor": "local"},
             "input": {"catalog_path": "/datasets/catalog"},
             "sources": [{"cache_dir": "/tmp/cache"}],
         }
 
         self.assertEqual(
-            ["cluster", "input.catalog_path", "sources[0].cache_dir"],
+            ["execution", "input.catalog_path", "sources[0].cache_dir"],
             find_protected_paths(config),
         )
 

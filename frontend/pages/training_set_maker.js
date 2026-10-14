@@ -49,8 +49,8 @@ function TrainingSetMaker() {
   const warningColor = theme.palette.warning.main
   const [openDialog, setOpenDialog] = useState(false)
   const router = useRouter()
-  const [convertFluxToMag, setConvertFluxToMag] = useState(true)
-  const [disabledFluxToMag, setDisabledConvertFluxToMag] = useState(false)
+  const [convertFluxToMag, setConvertFluxToMag] = useState(false)
+  const [disabledFluxToMag, setDisabledConvertFluxToMag] = useState(true)
   const [combinedCatalogName, setCombinedCatalogName] = useState('')
   const [search, setSearch] = useState('')
   const [officialOnly, setOfficialOnly] = useState(false)
@@ -83,7 +83,7 @@ function TrainingSetMaker() {
       duplicate_criteria: 'closest',
       flux_type: 'cmodel',
       dereddening: 'sfd',
-      convert_flux_to_mag: true
+      convert_flux_to_mag: false
     }
   })
   const [data, setData] = useState(initialData)
@@ -221,17 +221,10 @@ function TrainingSetMaker() {
 
       loadHatsConfig(currentRelease)
 
-      if (currentRelease.has_mag_hats === true) {
-        setConvertFluxToMag(true)
-        if (currentRelease.has_flux_hats) {
-          setDisabledConvertFluxToMag(false)
-        } else {
-          setDisabledConvertFluxToMag(true)
-        }
-      } else {
-        setDisabledConvertFluxToMag(true)
-        setConvertFluxToMag(false)
-      }
+      setConvertFluxToMag(false)
+      setDisabledConvertFluxToMag(
+        currentRelease.can_convert_flux_to_mag !== true
+      )
 
       const fluxRelease = Array.isArray(currentRelease.fluxes)
         ? currentRelease.fluxes
@@ -285,15 +278,10 @@ function TrainingSetMaker() {
         if (Array.isArray(releasesData.results)) {
           const fetchedReleases = releasesData.results
 
-          // Remove releases that have neither mag_hats nor flux_hats
-          const filteredReleases = fetchedReleases.filter(
-            release =>
-              release.has_mag_hats === true || release.has_flux_hats === true
-          )
-          setReleases(filteredReleases)
+          setReleases(fetchedReleases)
 
-          if (filteredReleases.length > 0) {
-            handleReleaseInternal(filteredReleases[0].name, filteredReleases)
+          if (fetchedReleases.length > 0) {
+            handleReleaseInternal(fetchedReleases[0].name, fetchedReleases)
           } else {
             setSelectedLsstCatalog('')
             setFluxes([])
@@ -351,17 +339,10 @@ function TrainingSetMaker() {
 
     loadHatsConfig(currentRelease)
 
-    if (currentRelease.has_mag_hats === true) {
-      setConvertFluxToMag(true)
-      if (currentRelease.has_flux_hats) {
-        setDisabledConvertFluxToMag(false)
-      } else {
-        setDisabledConvertFluxToMag(true)
-      }
-    } else {
-      setDisabledConvertFluxToMag(true)
-      setConvertFluxToMag(false)
-    }
+    setConvertFluxToMag(false)
+    setDisabledConvertFluxToMag(
+      currentRelease.can_convert_flux_to_mag !== true
+    )
 
     const fluxRelease = Array.isArray(currentRelease.fluxes)
       ? currentRelease.fluxes

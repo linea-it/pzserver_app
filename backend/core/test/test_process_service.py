@@ -144,8 +144,15 @@ class ProcessServiceTestCase(TestCase):
                 "convert_flux_to_mag": True,
                 "hats_config": {
                     "input": {
-                        "catalog_folder": "/tmp/forbidden",
-                        "compute_magnitude": False,
+                        "catalog_path": "/tmp/forbidden",
+                    },
+                    "photometry": {
+                        "measurements": [
+                            {
+                                "name": "cModel",
+                                "output": {"type": "flux"},
+                            }
+                        ]
                     },
                     "dust": {
                         "path_to_dustmaps": "/tmp/forbidden",
@@ -158,15 +165,23 @@ class ProcessServiceTestCase(TestCase):
 
         handler_maestro_cls.return_value.hats_config.return_value = {
             "config": {
+                "metadata": {"release": "lsst_dp1"},
                 "input": {
-                    "catalog_folder": "/datasets/dp1/catalogs/object",
-                    "compute_magnitude": True,
+                    "catalog_path": "/datasets/dp1/catalogs/object",
+                },
+                "photometry": {
+                    "measurements": [
+                        {
+                            "name": "cModel",
+                            "output": {"type": "mag_dered"},
+                        }
+                    ]
                 },
                 "dust": {
                     "path_to_dustmaps": "/datasets/dustmaps",
                     "use_dustmap": "sfd",
                 },
-                "cluster": {"executor": "slurm"},
+                "execution": {"executor": "slurm"},
             }
         }
 
@@ -201,15 +216,18 @@ class ProcessServiceTestCase(TestCase):
         hats_config = submitted_config["param"]["hats_config"]
         self.assertEqual(
             "/datasets/dp1/catalogs/object",
-            hats_config["input"]["catalog_folder"],
+            hats_config["input"]["catalog_path"],
         )
-        self.assertFalse(hats_config["input"]["compute_magnitude"])
+        self.assertEqual(
+            "flux",
+            hats_config["photometry"]["measurements"][0]["output"]["type"],
+        )
         self.assertEqual(
             "/datasets/dustmaps",
             hats_config["dust"]["path_to_dustmaps"],
         )
         self.assertEqual("planck", hats_config["dust"]["use_dustmap"])
-        self.assertEqual({"executor": "slurm"}, hats_config["cluster"])
+        self.assertEqual({"executor": "slurm"}, hats_config["execution"])
 
         self.process.refresh_from_db()
         self.assertEqual(321, self.process.orchestration_process_id)

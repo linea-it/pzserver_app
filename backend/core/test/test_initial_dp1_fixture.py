@@ -11,8 +11,7 @@ class InitialDp1FixtureTestCase(TestCase):
         release = Release.objects.get(name="dp1")
         self.assertEqual(1, release.pk)
         self.assertEqual("objectId", release.indexing_column)
-        self.assertFalse(release.has_mag_hats)
-        self.assertTrue(release.has_flux_hats)
+        self.assertTrue(release.can_convert_flux_to_mag)
         self.assertEqual(
             [{"name": "cModel", "display_name": "cModel", "selected": True}],
             release.fluxes,

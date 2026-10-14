@@ -53,17 +53,25 @@ class ReleaseHatsConfigAPIViewTestCase(APITestCase):
             "release": "dp1",
             "last_modified": "2026-09-21T12:00:00Z",
             "config": {
+                "metadata": {"release": "lsst_dp1"},
                 "input": {
-                    "catalog_folder": "/datasets/dp1/catalogs",
-                    "which_release": "LSST_DP1",
-                    "compute_magnitude": True,
-                    "compute_dereddening": True,
+                    "catalog_path": "/datasets/dp1/catalogs",
+                    "ra_col": "coord_ra",
+                },
+                "photometry": {
+                    "measurements": [
+                        {
+                            "name": "cModel",
+                            "input": {"type": "flux"},
+                            "output": {"type": "mag_dered"},
+                        }
+                    ]
                 },
                 "output": {
                     "base_path": "/processes/science_catalogs",
-                    "save_as": "hats",
+                    "save_as": "parquet",
                 },
-                "cluster": {"executor": "slurm"},
+                "execution": {"executor": "slurm"},
                 "dust": {
                     "path_to_dustmaps": "/datasets/dustmaps",
                     "use_dustmap": "sfd",
@@ -79,11 +87,18 @@ class ReleaseHatsConfigAPIViewTestCase(APITestCase):
         self.assertEqual("dp1", response.data["release"])
         self.assertEqual(
             {
-                "input": {
-                    "compute_magnitude": True,
-                    "compute_dereddening": True,
+                "metadata": {},
+                "input": {"ra_col": "coord_ra"},
+                "photometry": {
+                    "measurements": [
+                        {
+                            "name": "cModel",
+                            "input": {"type": "flux"},
+                            "output": {"type": "mag_dered"},
+                        }
+                    ]
                 },
-                "output": {"save_as": "hats"},
+                "output": {"save_as": "parquet"},
                 "dust": {"use_dustmap": "sfd"},
             },
             response.data["config"],

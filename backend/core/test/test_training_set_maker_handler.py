@@ -35,8 +35,7 @@ class TrainingSetMakerHandlerTestCase(TestCase):
             name="dp1",
             display_name="DP1",
             indexing_column="objectId",
-            has_mag_hats=True,
-            has_flux_hats=True,
+            can_convert_flux_to_mag=True,
             dereddening=[{"name": "sfd", "display_name": "SFD", "selected": True}],
             fluxes=[{"name": "auto", "display_name": "Auto", "selected": True}],
         )
@@ -87,10 +86,17 @@ class TrainingSetMakerHandlerTestCase(TestCase):
             used_config={
                 "param": {
                     "hats_config": {
-                        "executor": {"name": "local"},
+                        "execution": {"executor": "local"},
                         "input": {
-                            "catalog_folder": "/tmp/forbidden",
-                            "compute_magnitude": False,
+                            "catalog_path": "/tmp/forbidden",
+                        },
+                        "photometry": {
+                            "measurements": [
+                                {
+                                    "name": "cModel",
+                                    "output": {"type": "flux"},
+                                }
+                            ]
                         },
                         "dust": {
                             "path_to_dustmaps": "/tmp/forbidden",
@@ -103,10 +109,18 @@ class TrainingSetMakerHandlerTestCase(TestCase):
         maestro_class.return_value.hats_config.return_value = {
             "release": "dp1",
             "config": {
-                "executor": {"name": "slurm"},
+                "metadata": {"release": "lsst_dp1"},
+                "execution": {"executor": "slurm"},
                 "input": {
-                    "catalog_folder": "/datasets/dp1/catalog",
-                    "compute_magnitude": True,
+                    "catalog_path": "/datasets/dp1/catalog",
+                },
+                "photometry": {
+                    "measurements": [
+                        {
+                            "name": "cModel",
+                            "output": {"type": "mag_dered"},
+                        }
+                    ]
                 },
                 "dust": {
                     "path_to_dustmaps": "/datasets/dustmaps",
@@ -124,12 +138,15 @@ class TrainingSetMakerHandlerTestCase(TestCase):
         maestro_class.assert_called_once_with(url="http://orchestrator")
         maestro_class.return_value.hats_config.assert_called_once_with("dp1")
         hats_config = config["param"]["hats_config"]
-        self.assertEqual("slurm", hats_config["executor"]["name"])
+        self.assertEqual("slurm", hats_config["execution"]["executor"])
         self.assertEqual(
             "/datasets/dp1/catalog",
-            hats_config["input"]["catalog_folder"],
+            hats_config["input"]["catalog_path"],
         )
-        self.assertFalse(hats_config["input"]["compute_magnitude"])
+        self.assertEqual(
+            "flux",
+            hats_config["photometry"]["measurements"][0]["output"]["type"],
+        )
         self.assertEqual(
             "/datasets/dustmaps",
             hats_config["dust"]["path_to_dustmaps"],

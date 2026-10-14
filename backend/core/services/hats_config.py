@@ -11,18 +11,17 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 
-PROTECTED_SECTION_NAMES = frozenset({"cluster", "dask", "executor"})
+PROTECTED_SECTION_NAMES = frozenset({"execution"})
 PROTECTED_FIELD_NAMES = frozenset(
     {
         "base_path",
-        "catalog_folder",
         "catalog_path",
         "catalog_pattern",
         "directory",
         "folder",
         "path",
         "path_to_dustmaps",
-        "which_release",
+        "release",
     }
 )
 PROTECTED_FIELD_PREFIXES = ("path_to_",)

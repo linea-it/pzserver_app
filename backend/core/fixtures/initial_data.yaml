@@ -10,8 +10,7 @@
       - name: none
         display_name: None
         selected: true
-    has_mag_hats: false
-    has_flux_hats: true
+    can_convert_flux_to_mag: true
     fluxes:
       - name: cModel
         display_name: cModel
