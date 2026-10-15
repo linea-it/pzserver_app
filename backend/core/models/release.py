@@ -7,8 +7,19 @@ class Release(models.Model):
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     indexing_column = models.CharField(max_length=255)
-    has_mag_hats = models.BooleanField(default=False)
-    has_flux_hats = models.BooleanField(default=True)
+    is_tsm_available = models.BooleanField(
+        default=True,
+        verbose_name="Available in Training Set Maker",
+        help_text="Show this release in the Training Set Maker pipeline.",
+    )
+    can_convert_flux_to_mag = models.BooleanField(
+        default=False,
+        verbose_name="Allow flux-to-magnitude conversion",
+        help_text=(
+            "Flux is the default. Enable this option to allow users to convert "
+            "flux measurements to magnitudes."
+        ),
+    )
     dereddening = models.JSONField(null=True, blank=True)
     fluxes = models.JSONField(null=True, blank=True)
     

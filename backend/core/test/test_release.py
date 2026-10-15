@@ -60,6 +60,24 @@ class ReleaseListCreateAPIViewTestCase(APITestCase):
         data = json.loads(response.content)
         self.assertTrue(len(data["results"]) == Release.objects.count())
 
+    def test_list_release_filters_tsm_availability(self):
+        available_release = Release.objects.create(
+            name="available",
+            display_name="Available",
+            is_tsm_available=True,
+        )
+        Release.objects.create(
+            name="unavailable",
+            display_name="Unavailable",
+            is_tsm_available=False,
+        )
+
+        response = self.client.get(self.url, {"is_tsm_available": "true"})
+
+        self.assertEqual(response.status_code, 200)
+        release_ids = [release["id"] for release in response.json()["results"]]
+        self.assertEqual(release_ids, [available_release.pk])
+
 
 class ReleaseDetailAPIViewTestCase(APITestCase):
     def setUp(self):
@@ -92,6 +110,10 @@ class ReleaseDetailAPIViewTestCase(APITestCase):
         serializer_data = ReleaseSerializer(instance=self.release).data
         response_data = json.loads(response.content)
         self.assertEqual(serializer_data, response_data)
+        self.assertTrue(response_data["is_tsm_available"])
+        self.assertFalse(response_data["can_convert_flux_to_mag"])
+        self.assertNotIn("has_mag_hats", response_data)
+        self.assertNotIn("has_flux_hats", response_data)
 
     def test_release_object_update_authorization(self):
         """

@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from unittest import mock
 
 from core.models import Pipeline, Process, Product, ProductStatus, ProductType, Release
 from core.process.pipelines.training_set_maker import TrainingSetMakerHandler
@@ -6,7 +7,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
 
-@override_settings(DATASETS_DIR="/datasets")
+@override_settings(DATASETS_DIR="/datasets", ORCHEST_URL="http://orchestrator")
 class TrainingSetMakerHandlerTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -31,11 +32,10 @@ class TrainingSetMakerHandlerTestCase(TestCase):
             status=ProductStatus.PROCESSING,
         )
         self.release = Release.objects.create(
-            name="dr2",
-            display_name="DR2",
-            indexing_column="coadd_object_id",
-            has_mag_hats=True,
-            has_flux_hats=True,
+            name="dp1",
+            display_name="DP1",
+            indexing_column="objectId",
+            can_convert_flux_to_mag=True,
             dereddening=[{"name": "sfd", "display_name": "SFD", "selected": True}],
             fluxes=[{"name": "auto", "display_name": "Auto", "selected": True}],
         )
@@ -58,9 +58,9 @@ class TrainingSetMakerHandlerTestCase(TestCase):
 
         config = TrainingSetMakerHandler(SimpleNamespace(data={}), process).build_config()
 
-        self.assertEqual("/datasets/dr2", config["inputs"]["dataset"]["path"])
+        self.assertEqual("/datasets/dp1", config["inputs"]["dataset"]["path"])
         self.assertEqual(
-            {"id": "coadd_object_id"},
+            {"id": "objectId"},
             config["inputs"]["dataset"]["columns"],
         )
         self.assertEqual(
@@ -71,3 +71,85 @@ class TrainingSetMakerHandlerTestCase(TestCase):
             },
             config["param"],
         )
+
+    @mock.patch("core.process.pipelines.training_set_maker.Maestro")
+    def test_build_config_hydrates_hats_config_and_ignores_protected_edits(
+        self,
+        maestro_class,
+    ):
+        process = Process.objects.create(
+            display_name="Training Set",
+            pipeline=self.pipeline,
+            upload=self.upload,
+            user=self.user,
+            release=self.release,
+            used_config={
+                "param": {
+                    "hats_config": {
+                        "execution": {"executor": "local"},
+                        "input": {
+                            "catalog_path": "/tmp/forbidden",
+                        },
+                        "photometry": {
+                            "measurements": [
+                                {
+                                    "name": "cModel",
+                                    "output": {"type": "flux"},
+                                }
+                            ]
+                        },
+                        "dust": {
+                            "path_to_dustmaps": "/tmp/forbidden",
+                            "use_dustmap": "planck",
+                        },
+                    }
+                }
+            },
+        )
+        maestro_class.return_value.hats_config.return_value = {
+            "release": "dp1",
+            "config": {
+                "metadata": {"release": "lsst_dp1"},
+                "execution": {"executor": "slurm"},
+                "input": {
+                    "catalog_path": "/datasets/dp1/catalog",
+                },
+                "photometry": {
+                    "measurements": [
+                        {
+                            "name": "cModel",
+                            "output": {"type": "mag_dered"},
+                        }
+                    ]
+                },
+                "dust": {
+                    "path_to_dustmaps": "/datasets/dustmaps",
+                    "use_dustmap": "sfd",
+                },
+            },
+        }
+
+        with self.assertLogs("core.services.hats_config", level="WARNING") as logs:
+            config = TrainingSetMakerHandler(
+                SimpleNamespace(data={}),
+                process,
+            ).build_config()
+
+        maestro_class.assert_called_once_with(url="http://orchestrator")
+        maestro_class.return_value.hats_config.assert_called_once_with("dp1")
+        hats_config = config["param"]["hats_config"]
+        self.assertEqual("slurm", hats_config["execution"]["executor"])
+        self.assertEqual(
+            "/datasets/dp1/catalog",
+            hats_config["input"]["catalog_path"],
+        )
+        self.assertEqual(
+            "flux",
+            hats_config["photometry"]["measurements"][0]["output"]["type"],
+        )
+        self.assertEqual(
+            "/datasets/dustmaps",
+            hats_config["dust"]["path_to_dustmaps"],
+        )
+        self.assertEqual("planck", hats_config["dust"]["use_dustmap"])
+        self.assertIn("Ignoring protected HATS configuration fields", logs.output[0])

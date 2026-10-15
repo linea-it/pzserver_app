@@ -831,7 +831,9 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                 source_signature="b" * 64,
             )
             token = ProductDownloadArchiveService.build_download_token(
-                archive, self.user
+                archive,
+                self.user,
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
             )
 
             with override_settings(
@@ -855,7 +857,7 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             "attachment; filename=existing.zip",
         )
 
-    def test_download_file_rejects_unauthenticated_request_even_with_valid_token(self):
+    def test_download_file_accepts_unauthenticated_request_with_valid_token(self):
         with tempfile.TemporaryDirectory() as media_root:
             archive_relative_path = Path("downloads/products/1/existing.zip")
             archive_path = Path(media_root) / archive_relative_path
@@ -873,7 +875,9 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                 source_signature="b" * 64,
             )
             token = ProductDownloadArchiveService.build_download_token(
-                archive, self.user
+                archive,
+                self.user,
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
             )
 
             self.client.credentials()
@@ -887,7 +891,11 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                     {"token": token},
                 )
 
-        self.assertIn(response.status_code, [401, 403])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["X-Accel-Redirect"],
+            "/internal-downloads/products/1/existing.zip",
+        )
 
     def test_download_file_accepts_token_generated_for_another_user_with_access(self):
         with tempfile.TemporaryDirectory() as media_root:
@@ -912,7 +920,9 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                 password="you_know_nothing",
             )
             token = ProductDownloadArchiveService.build_download_token(
-                archive, another_user
+                archive,
+                another_user,
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
             )
 
             with override_settings(
@@ -927,15 +937,13 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_download_file_rejects_authenticated_user_without_product_access(self):
+    def test_download_file_rejects_token_user_without_product_access(self):
         restricted_group = Group.objects.create(name="release-group-restricted")
         restricted_release = Release.objects.create(
             name="release-restricted",
             display_name="Release Restricted",
             description="Restricted release.",
             indexing_column="id",
-            has_mag_hats=False,
-            has_flux_hats=True,
             is_public=False,
         )
         restricted_release.access_groups.add(restricted_group)
@@ -947,7 +955,6 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
             email="blocked@north.com",
             password="you_know_nothing",
         )
-        blocked_token = Token.objects.create(user=blocked_user)
 
         with tempfile.TemporaryDirectory() as media_root:
             archive_relative_path = Path("downloads/products/1/existing.zip")
@@ -966,12 +973,12 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                 source_signature="b" * 64,
             )
             token = ProductDownloadArchiveService.build_download_token(
-                archive, self.user
+                archive,
+                blocked_user,
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
             )
 
-            self.client.credentials(
-                HTTP_AUTHORIZATION="Token " + blocked_token.key
-            )
+            self.client.credentials()
             with override_settings(
                 MEDIA_ROOT=media_root,
                 PRODUCT_DOWNLOAD_ROOT=Path(media_root) / "downloads",
@@ -982,7 +989,72 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                     {"token": token},
                 )
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+
+    def test_download_file_rejects_token_for_inactive_user(self):
+        inactive_user = User.objects.create_user(
+            username="inactive_user",
+            email="inactive@north.com",
+            password="you_know_nothing",
+            is_active=False,
+        )
+        archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            status=ProductDownloadArchiveStatus.READY,
+            archive_path="downloads/products/1/existing.zip",
+            filename="existing.zip",
+            size=9,
+            checksum="a" * 64,
+            source_signature="b" * 64,
+        )
+        token = ProductDownloadArchiveService.build_download_token(
+            archive,
+            inactive_user,
+            ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
+        )
+
+        self.client.credentials()
+        response = self.client.get(
+            f"/api/products/{self.product.pk}/download/file/",
+            {"token": token},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_download_file_rejects_token_with_wrong_scope(self):
+        archive = ProductDownloadArchive.objects.create(
+            product=self.product,
+            created_by=self.user,
+            status=ProductDownloadArchiveStatus.READY,
+            archive_path="downloads/products/1/existing.zip",
+            filename="existing.zip",
+            size=9,
+            checksum="a" * 64,
+            source_signature="b" * 64,
+        )
+        token = ProductDownloadArchiveService.build_download_token(
+            archive,
+            self.user,
+            ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_MAIN_FILE,
+        )
+
+        self.client.credentials()
+        response = self.client.get(
+            f"/api/products/{self.product.pk}/download/file/",
+            {"token": token},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_download_file_rejects_missing_token(self):
+        self.client.credentials()
+
+        response = self.client.get(
+            f"/api/products/{self.product.pk}/download/file/"
+        )
+
+        self.assertEqual(response.status_code, 403)
 
     def test_download_file_rejects_invalid_token(self):
         response = self.client.get(
@@ -1175,7 +1247,9 @@ class ProductDownloadArchiveEndpointTestCase(APITestCase):
                     source_signature=source_signature,
                 )
                 token = ProductDownloadArchiveService.build_download_token(
-                    archive, self.user
+                    archive,
+                    self.user,
+                    ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_MAIN_FILE,
                 )
                 response = self.client.get(
                     f"/api/products/{self.product.pk}/download/main-file/file/",
