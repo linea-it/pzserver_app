@@ -24,6 +24,7 @@ class ReleaseViewSet(AccessControlMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = [
         "id",
         "name",
+        "is_tsm_available",
     ]
     search_fields = [
         "display_name",

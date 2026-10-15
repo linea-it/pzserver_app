@@ -33,7 +33,7 @@ import SearchField from '../components/SearchField'
 import SearchRadius from '../components/SearchRadius'
 import { getPipelineByName } from '../services/pipeline'
 import { submitProcess } from '../services/process'
-import { getReleaseHatsConfig, getReleases } from '../services/release'
+import { getReleaseHatsConfig, getTsmReleases } from '../services/release'
 import {
   customizeHatsConfig,
   parseHatsConfig,
@@ -289,7 +289,7 @@ function TrainingSetMaker() {
 
     const fetchReleases = async () => {
       try {
-        const releasesData = await getReleases()
+        const releasesData = await getTsmReleases()
 
         if (Array.isArray(releasesData.results)) {
           const fetchedReleases = releasesData.results
@@ -303,7 +303,7 @@ function TrainingSetMaker() {
             setFluxes([])
             setDereddening([])
             loadHatsConfig(null)
-            setSnackbarMessage('No permission to access the objects catalogs.')
+            setSnackbarMessage('No objects catalogs are available for TSM.')
             setSnackbarColor(warningColor)
             setSnackbarOpen(true)
           }
@@ -356,9 +356,7 @@ function TrainingSetMaker() {
     loadHatsConfig(currentRelease)
 
     setConvertFluxToMag(false)
-    setDisabledConvertFluxToMag(
-      currentRelease.can_convert_flux_to_mag !== true
-    )
+    setDisabledConvertFluxToMag(currentRelease.can_convert_flux_to_mag !== true)
 
     const fluxRelease = Array.isArray(currentRelease.fluxes)
       ? currentRelease.fluxes

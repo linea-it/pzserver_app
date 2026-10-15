@@ -29,8 +29,15 @@ class ProductTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Release)
 class ReleaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "display_name", "is_public", "created_at")
-    list_filter = ("is_public", "created_at")
+    list_display = (
+        "id",
+        "name",
+        "display_name",
+        "is_tsm_available",
+        "is_public",
+        "created_at",
+    )
+    list_filter = ("is_tsm_available", "is_public", "created_at")
     filter_horizontal = ("access_groups",)
     search_fields = ("name", "display_name")
 
@@ -40,6 +47,7 @@ class ReleaseAdmin(admin.ModelAdmin):
             "Data Configuration",
             {
                 "fields": (
+                    "is_tsm_available",
                     "can_convert_flux_to_mag",
                     "dereddening",
                     "fluxes",
