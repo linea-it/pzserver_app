@@ -23,6 +23,9 @@ from django.utils import timezone
 
 
 class ProductDownloadArchiveService:
+    DOWNLOAD_TOKEN_SCOPE_PRODUCT = "product"
+    DOWNLOAD_TOKEN_SCOPE_MAIN_FILE = "main_file"
+
     metadata_filename = "product_metadata.yaml"
     download_token_salt = "product-download-archive"
 
@@ -500,7 +503,11 @@ class ProductDownloadArchiveService:
 
     @classmethod
     def build_download_url(cls, archive, user, request=None):
-        token = cls.build_download_token(archive, user)
+        token = cls.build_download_token(
+            archive,
+            user,
+            cls.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
+        )
         path = (
             f"/api/products/{archive.product_id}/download/file/"
             f"?{urlencode({'token': token})}"
@@ -513,7 +520,11 @@ class ProductDownloadArchiveService:
 
     @classmethod
     def build_main_file_download_url(cls, archive, user, request=None):
-        token = cls.build_download_token(archive, user)
+        token = cls.build_download_token(
+            archive,
+            user,
+            cls.DOWNLOAD_TOKEN_SCOPE_MAIN_FILE,
+        )
         path = (
             f"/api/products/{archive.product_id}/download/main-file/file/"
             f"?{urlencode({'token': token})}"
@@ -525,12 +536,13 @@ class ProductDownloadArchiveService:
         return path
 
     @classmethod
-    def build_download_token(cls, archive, user):
+    def build_download_token(cls, archive, user, scope):
         return signing.dumps(
             {
                 "archive_id": archive.pk,
                 "product_id": archive.product_id,
                 "user_id": user.pk,
+                "scope": scope,
             },
             salt=cls.download_token_salt,
         )

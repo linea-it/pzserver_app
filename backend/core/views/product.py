@@ -25,12 +25,14 @@ from core.tasks import (
 )
 from core.utils import format_query_to_char
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core import signing
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
@@ -338,7 +340,7 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         )
         return response
 
-    def __load_ready_archive_from_token(self, product, token):
+    def __load_ready_archive_from_token(self, product_id, token, expected_scope):
         if not token:
             raise exceptions.PermissionDenied("Missing download token.")
 
@@ -349,14 +351,39 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         except signing.BadSignature:
             raise exceptions.PermissionDenied("Invalid download token.")
 
-        if str(payload.get("product_id")) != str(product.pk):
+        if not isinstance(payload, dict):
             raise exceptions.PermissionDenied("Invalid download token.")
 
-        return ProductDownloadArchive.objects.select_related("product").get(
+        if (
+            str(payload.get("product_id")) != str(product_id)
+            or payload.get("scope") != expected_scope
+        ):
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        token_user = (
+            get_user_model()
+            .objects.filter(pk=payload.get("user_id"), is_active=True)
+            .first()
+        )
+        if token_user is None:
+            raise exceptions.PermissionDenied("Invalid download token.")
+
+        archive = ProductDownloadArchive.objects.select_related(
+            "product",
+            "product__release",
+        ).get(
             pk=payload.get("archive_id"),
-            product_id=product.pk,
+            product_id=product_id,
             status=ProductDownloadArchiveStatus.READY,
         )
+
+        if not AccessControlService.user_can_access_product(
+            token_user,
+            archive.product,
+        ):
+            raise exceptions.PermissionDenied("Download access has been revoked.")
+
+        return archive
 
     def __prepare_or_queue_main_file_archive(self, archive, product, log_context):
         if ProductDownloadArchiveService.get_main_file_path(product).is_dir():
@@ -463,13 +490,15 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
         methods=["GET"],
         detail=True,
         url_path="download/file",
+        permission_classes=[AllowAny],
+        authentication_classes=[],
     )
     def download_file(self, request, **kwargs):
-        product = self.get_object()
         try:
             archive = self.__load_ready_archive_from_token(
-                product,
+                kwargs.get("pk"),
                 request.GET.get("token"),
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_PRODUCT,
             )
         except ProductDownloadArchive.DoesNotExist:
             return Response(
@@ -553,13 +582,19 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
             self.__serialize_download_archive(archive, request, main_file=True)
         )
 
-    @action(methods=["GET"], detail=True, url_path="download/main-file/file")
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="download/main-file/file",
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
     def download_main_file_file(self, request, **kwargs):
-        product = self.get_object()
         try:
             archive = self.__load_ready_archive_from_token(
-                product,
+                kwargs.get("pk"),
                 request.GET.get("token"),
+                ProductDownloadArchiveService.DOWNLOAD_TOKEN_SCOPE_MAIN_FILE,
             )
         except ProductDownloadArchive.DoesNotExist:
             return Response(
@@ -567,7 +602,9 @@ class ProductViewSet(AccessControlMixin, viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if archive.source_signature != self.__get_current_main_file_signature(product):
+        if archive.source_signature != self.__get_current_main_file_signature(
+            archive.product
+        ):
             return Response(
                 {"error": "Download archive not found."},
                 status=status.HTTP_404_NOT_FOUND,
