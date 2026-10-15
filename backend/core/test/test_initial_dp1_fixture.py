@@ -11,6 +11,7 @@ class InitialDp1FixtureTestCase(TestCase):
         release = Release.objects.get(name="dp1")
         self.assertEqual(1, release.pk)
         self.assertEqual("objectId", release.indexing_column)
+        self.assertTrue(release.is_tsm_available)
         self.assertTrue(release.can_convert_flux_to_mag)
         self.assertEqual(
             [{"name": "cModel", "display_name": "cModel", "selected": True}],
