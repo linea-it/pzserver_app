@@ -81,7 +81,7 @@ function TrainingSetMaker() {
         output_catalog_name: 'tsm_cross_001'
       },
       duplicate_criteria: 'closest',
-      flux_type: 'cmodel',
+      flux_type: 'cModel',
       dereddening: 'sfd',
       convert_flux_to_mag: false
     }
@@ -89,18 +89,34 @@ function TrainingSetMaker() {
   const [data, setData] = useState(initialData)
   const [fieldErrors] = useState({})
 
+  const selectedFluxName = useMemo(() => {
+    const configuredFlux = String(data?.param?.flux_type || '')
+    const matchingFlux =
+      fluxes.find(flux => flux?.name === configuredFlux) ||
+      fluxes.find(
+        flux =>
+          String(flux?.name || '').toLowerCase() ===
+          configuredFlux.toLowerCase()
+      )
+    const defaultFlux =
+      fluxes.find(flux => flux?.selected && !flux?.disabled) ||
+      fluxes.find(flux => !flux?.disabled)
+
+    return matchingFlux?.name || defaultFlux?.name || configuredFlux
+  }, [data?.param?.flux_type, fluxes])
+
   const basicHatsConfig = useMemo(
     () =>
       customizeHatsConfig(hatsConfigTemplate, {
-        flux: data?.param?.flux_type,
+        flux: selectedFluxName,
         dereddening: data?.param?.dereddening,
         useMagnitude: convertFluxToMag
       }),
     [
       convertFluxToMag,
       data?.param?.dereddening,
-      data?.param?.flux_type,
-      hatsConfigTemplate
+      hatsConfigTemplate,
+      selectedFluxName
     ]
   )
 
@@ -451,7 +467,7 @@ function TrainingSetMaker() {
               output_catalog_name: sanitizedCatalogName
             },
             duplicate_criteria: data.param.duplicate_criteria,
-            flux_type: data.param.flux_type,
+            flux_type: selectedFluxName,
             dereddening: data.param.dereddening,
             convert_flux_to_mag: convertFluxToMag,
             hats_config: hatsConfig
@@ -677,7 +693,7 @@ function TrainingSetMaker() {
                         <Typography variant="body1" component="div" mr="16px">
                           Flux type:
                           <Select
-                            value={data.param.flux_type}
+                            value={selectedFluxName}
                             onChange={event => {
                               setData({
                                 ...data,
