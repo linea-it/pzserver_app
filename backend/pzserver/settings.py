@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import logging
-import json
 import os
 import time
 from pathlib import Path
@@ -229,9 +228,6 @@ ORCHEST_URL = os.getenv("ORCHEST_URL", None)
 if ORCHEST_URL:
     ORCHEST_CLIENT_ID = os.getenv("ORCHEST_CLIENT_ID")
     ORCHEST_CLIENT_SECRET = os.getenv("ORCHEST_CLIENT_SECRET")
-
-# Trusted partner endpoints; verified usernames must exactly match local users.
-JUPYTERHUB_PARTNERS = json.loads(os.getenv("JUPYTERHUB_PARTNERS_JSON", "{}"))
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",

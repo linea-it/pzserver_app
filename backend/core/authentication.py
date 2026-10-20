@@ -1,10 +1,10 @@
 """Authentication through explicitly trusted partner JupyterHubs."""
 
-from urllib.parse import urlsplit
-
 import requests
-from django.conf import settings
+from core.hub_urls import normalize_hub_url
+from core.models import JupyterHubConsent, TrustedJupyterHub
 from django.contrib.auth import get_user_model
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.exceptions import APIException, AuthenticationFailed
 
@@ -16,7 +16,7 @@ class HubUnavailable(APIException):
 
 
 class JupyterHubAuthentication(BaseAuthentication):
-    """Accept ``Authorization: JupyterHub <partner-id> <hub-token>``.
+    """Accept ``Authorization: JupyterHub <hub-url> <hub-token>``.
 
     Only server-configured HTTPS endpoints are contacted. The verified Hub
     username must exactly match an active local account. Hub groups and admin
@@ -24,7 +24,10 @@ class JupyterHubAuthentication(BaseAuthentication):
     """
 
     def authenticate_header(self, request):
-        return "JupyterHub"
+        parts = get_authorization_header(request).split()
+        if parts and parts[0].lower() == b"jupyterhub":
+            return "JupyterHub"
+        return OAuth2Authentication().authenticate_header(request)
 
     def authenticate(self, request):
         parts = get_authorization_header(request).split()
@@ -33,24 +36,31 @@ class JupyterHubAuthentication(BaseAuthentication):
         if len(parts) != 3:
             raise AuthenticationFailed("Malformed JupyterHub authorization.")
         try:
-            partner_id, token = (part.decode("ascii") for part in parts[1:])
+            hub_url, token = (part.decode("ascii") for part in parts[1:])
         except UnicodeDecodeError:
             raise AuthenticationFailed("Malformed JupyterHub authorization.") from None
 
-        partner = getattr(settings, "JUPYTERHUB_PARTNERS", {}).get(partner_id)
-        if not partner or partner.get("enabled") is not True:
-            raise AuthenticationFailed("Unknown or disabled JupyterHub partner.")
-        endpoint = partner.get("user_url", "")
-        parsed = urlsplit(endpoint)
-        if (
-            parsed.scheme != "https"
-            or not parsed.hostname
-            or parsed.username
-            or parsed.password
-            or parsed.query
-            or parsed.fragment
-        ):
+        try:
+            hub_url = normalize_hub_url(hub_url)
+        except ValueError:
+            raise AuthenticationFailed("Invalid JupyterHub URL.") from None
+        # Include disabled entries when detecting ambiguity; never try another Hub.
+        matches = [
+            hub
+            for hub in TrustedJupyterHub.objects.all()
+            if hub_url in [hub.public_url, *hub.aliases]
+        ]
+        if len(matches) > 1:
             raise HubUnavailable()
+        if not matches or not matches[0].enabled:
+            raise AuthenticationFailed("Unknown or disabled JupyterHub partner.")
+        partner = matches[0]
+        partner_id = partner.public_url
+        endpoint = partner.user_url
+        try:
+            normalize_hub_url(endpoint)
+        except ValueError:
+            raise HubUnavailable() from None
 
         try:
             response = requests.get(
@@ -86,5 +96,19 @@ class JupyterHubAuthentication(BaseAuthentication):
         # Enforce exact matching even if the database uses a case-insensitive collation.
         if user.username != name:
             raise AuthenticationFailed("No matching active PzServer account.")
+        # Recheck partner state after the upstream request (configuration may change).
+        current = TrustedJupyterHub.objects.filter(pk=partner.pk, enabled=True).first()
+        if current is None or current.consent_signature != partner.consent_signature:
+            raise AuthenticationFailed("JupyterHub configuration changed. Try again.")
+        if not JupyterHubConsent.objects.filter(
+            user=user,
+            hub=partner,
+            enabled=True,
+            hub_signature=partner.consent_signature,
+        ).exists():
+            raise AuthenticationFailed(
+                "Authorize this Hub in PzServer at /hub_access before using notebook access.",
+                code="hub_consent_required",
+            )
         # Do not retain the bearer secret in request.auth or return it to clients.
         return user, {"partner": partner_id, "hub_user": name}

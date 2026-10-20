@@ -11,3 +11,7 @@ from core.models.product_download_archive import (
     ProductDownloadArchive,
     ProductDownloadArchiveStatus,
 )
+
+from core.models.trusted_jupyterhub import TrustedJupyterHub
+
+from core.models.jupyterhub_consent import JupyterHubConsent

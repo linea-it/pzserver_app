@@ -196,6 +196,7 @@ function Header(props) {
             onClose={handleClose}
           >
             <MenuItem onClick={handleTokenOpen}>API Token</MenuItem>
+            <MenuItem onClick={() => { handleClose(); router.push('/hub_access') }}>JupyterHub access</MenuItem>
             <MenuItem onClick={logout}>
               <ListItemIcon>
                 <Logout fontSize="small" />
