@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from core.authentication import JupyterHubAuthentication
 from core.models import JupyterHubConsent, TrustedJupyterHub
 from core.views.hub_access import HubAccessView
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
@@ -128,7 +129,7 @@ class ConsentTests(TestCase):
             HTTP_X_CSRFTOKEN=secret,
         )
         req.user = self.user
-        req.COOKIES["csrftoken"] = secret
+        req.COOKIES[settings.CSRF_COOKIE_NAME] = secret
         self.assertEqual(
             HubAccessView.as_view()(req, hub_id=self.hub.pk).status_code, 200
         )
