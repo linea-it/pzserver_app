@@ -4,6 +4,7 @@ import requests
 from core.authentication import HubUnavailable, JupyterHubAuthentication
 from core.models import JupyterHubConsent, TrustedJupyterHub
 from django.contrib.auth import get_user_model
+from django.core.cache import caches
 from django.test import TestCase
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -14,6 +15,8 @@ from rest_framework.views import APIView
 
 class JupyterHubAuthenticationTests(TestCase):
     def setUp(self):
+        caches["jupyterhub"].clear()
+        self.addCleanup(caches["jupyterhub"].clear)
         self.user = get_user_model().objects.create_user(username="singulani")
         self.hub = TrustedJupyterHub.objects.create(
             name="LIneA",
@@ -173,6 +176,76 @@ class JupyterHubAuthenticationTests(TestCase):
         with self.assertRaises(HubUnavailable):
             self.authenticate()
         self.http.assert_not_called()
+
+    def test_cached_identity_expires_after_five_minutes(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        now = timezone.now()
+        with patch("django.core.cache.backends.db.tz_now", return_value=now):
+            self.authenticate()
+        with patch(
+            "django.core.cache.backends.db.tz_now",
+            return_value=now + timedelta(seconds=299),
+        ):
+            self.authenticate()
+        self.assertEqual(self.http.call_count, 1)
+        with patch(
+            "django.core.cache.backends.db.tz_now",
+            return_value=now + timedelta(seconds=301),
+        ):
+            self.authenticate()
+        self.assertEqual(self.http.call_count, 2)
+
+    def test_cached_identity_still_requires_local_consent_and_active_user(self):
+        self.authenticate()
+        JupyterHubConsent.objects.filter(hub=self.hub).update(enabled=False)
+        with self.assertRaises(AuthenticationFailed):
+            self.authenticate()
+        JupyterHubConsent.objects.filter(hub=self.hub).update(enabled=True)
+        self.user.is_active = False
+        self.user.save()
+        with self.assertRaises(AuthenticationFailed):
+            self.authenticate()
+        self.assertEqual(self.http.call_count, 1)
+
+    def test_cached_identity_does_not_allow_disabled_hub(self):
+        self.authenticate()
+        self.hub.enabled = False
+        self.hub.save()
+        with self.assertRaises(AuthenticationFailed):
+            self.authenticate()
+        self.assertEqual(self.http.call_count, 1)
+
+    def test_cache_is_scoped_to_token_and_configuration(self):
+        self.authenticate()
+        self.authenticate("JupyterHub https://jupyter-dev.linea.org.br another-token")
+        self.assertEqual(self.http.call_count, 2)
+        self.hub.user_url = "https://jupyter-dev.linea.org.br/new/api/user"
+        self.hub.save()
+        JupyterHubConsent.objects.filter(hub=self.hub).update(
+            enabled=True, hub_signature=self.hub.consent_signature
+        )
+        self.authenticate()
+        self.assertEqual(self.http.call_count, 3)
+
+    def test_cache_contains_no_raw_token_and_hits_do_not_renew_expiry(self):
+        cache = caches["jupyterhub"]
+        with patch.object(cache, "set", wraps=cache.set) as write:
+            self.authenticate()
+            self.authenticate()
+        write.assert_called_once()
+        key, value = write.call_args.args
+        self.assertNotIn("fake-secret", key)
+        self.assertEqual(value, self.user.username)
+        self.assertEqual(write.call_args.kwargs["timeout"], 300)
+
+    def test_failed_validation_is_not_cached(self):
+        self.response.status_code = 401
+        for _ in range(2):
+            with self.assertRaises(AuthenticationFailed):
+                self.authenticate()
+        self.assertEqual(self.http.call_count, 2)
 
 
 class AuthenticationChallengeTests(TestCase):

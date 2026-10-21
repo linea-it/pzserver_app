@@ -508,3 +508,14 @@ if os.getenv("AUTH_SHIB_URL", None):
             "url": [("https://linea.org.br/", "pt-br")],
         },
     }
+
+
+# Shared across API workers; no Hub bearer secrets are stored in this cache.
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "jupyterhub": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "jupyterhub_validation_cache",
+        "TIMEOUT": 300,
+    },
+}

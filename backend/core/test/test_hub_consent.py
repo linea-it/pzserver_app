@@ -6,6 +6,7 @@ from core.models import JupyterHubConsent, TrustedJupyterHub
 from core.views.hub_access import HubAccessView
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import caches
 from django.test import TestCase
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application
@@ -15,6 +16,8 @@ from rest_framework.test import APIRequestFactory
 
 class ConsentTests(TestCase):
     def setUp(self):
+        caches["jupyterhub"].clear()
+        self.addCleanup(caches["jupyterhub"].clear)
         self.user = get_user_model().objects.create_user(username="alice")
         self.other = get_user_model().objects.create_user(username="bob")
         self.hub = TrustedJupyterHub.objects.create(

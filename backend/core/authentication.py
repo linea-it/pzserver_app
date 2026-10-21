@@ -1,9 +1,13 @@
 """Authentication through explicitly trusted partner JupyterHubs."""
 
+import json
+
 import requests
 from core.hub_urls import normalize_hub_url
 from core.models import JupyterHubConsent, TrustedJupyterHub
 from django.contrib.auth import get_user_model
+from django.core.cache import caches
+from django.utils.crypto import salted_hmac
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.exceptions import APIException, AuthenticationFailed
@@ -62,32 +66,44 @@ class JupyterHubAuthentication(BaseAuthentication):
         except ValueError:
             raise HubUnavailable() from None
 
-        try:
-            response = requests.get(
-                endpoint,
-                headers={"Authorization": f"token {token}"},
-                timeout=(5, 10),
-                allow_redirects=False,
-            )
-        except requests.RequestException:
-            raise HubUnavailable() from None
-        try:
-            if response.status_code in (401, 403):
-                raise AuthenticationFailed("Invalid JupyterHub credential.")
-            if response.status_code != 200:
-                raise HubUnavailable()
+        cache = caches["jupyterhub"]
+        cache_key = (
+            "hub-auth:v1:"
+            + salted_hmac(
+                "jupyterhub-validation",
+                json.dumps([partner.pk, partner.consent_signature, token]),
+                algorithm="sha256",
+            ).hexdigest()
+        )
+        name = cache.get(cache_key)
+        cache_miss = name is None
+        if cache_miss:
             try:
-                identity = response.json()
-            except ValueError:
+                response = requests.get(
+                    endpoint,
+                    headers={"Authorization": f"token {token}"},
+                    timeout=(5, 10),
+                    allow_redirects=False,
+                )
+            except requests.RequestException:
                 raise HubUnavailable() from None
-        finally:
-            response.close()
+            try:
+                if response.status_code in (401, 403):
+                    raise AuthenticationFailed("Invalid JupyterHub credential.")
+                if response.status_code != 200:
+                    raise HubUnavailable()
+                try:
+                    identity = response.json()
+                except ValueError:
+                    raise HubUnavailable() from None
+            finally:
+                response.close()
 
-        if not isinstance(identity, dict) or identity.get("kind") != "user":
-            raise AuthenticationFailed("A JupyterHub user identity is required.")
-        name = identity.get("name")
-        if not isinstance(name, str) or not name:
-            raise AuthenticationFailed("Invalid JupyterHub identity.")
+            if not isinstance(identity, dict) or identity.get("kind") != "user":
+                raise AuthenticationFailed("A JupyterHub user identity is required.")
+            name = identity.get("name")
+            if not isinstance(name, str) or not name:
+                raise AuthenticationFailed("Invalid JupyterHub identity.")
         user_model = get_user_model()
         try:
             user = user_model.objects.get(username=name, is_active=True)
@@ -110,5 +126,8 @@ class JupyterHubAuthentication(BaseAuthentication):
                 "Authorize this Hub in PzServer at /hub_access before using notebook access.",
                 code="hub_consent_required",
             )
+        if cache_miss:
+            # Cache successful authentications only; hits never extend the TTL.
+            cache.set(cache_key, name, timeout=300)
         # Do not retain the bearer secret in request.auth or return it to clients.
         return user, {"partner": partner_id, "hub_user": name}
