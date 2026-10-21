@@ -221,3 +221,14 @@ LOGIN_REDIRECT_URL = "/"
 OAUTH2_PROVIDER = {
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
 }
+
+
+# Shared across API workers; no Hub bearer secrets are stored in this cache.
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "jupyterhub": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "jupyterhub_validation_cache",
+        "TIMEOUT": 300,
+    },
+}

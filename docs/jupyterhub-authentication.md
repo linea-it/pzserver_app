@@ -99,3 +99,22 @@ consents on save, including when reverting a change later. Users must reload the
 page and explicitly authorize again. A stale confirmation is rejected. Changing
 only the display name does not revoke consent. Disabling a partner blocks access;
 re-enabling it with the same identity preserves individual authorizations.
+
+
+## Hub validation cache
+
+Apply migration `0065_jupyterhub_validation_cache` before serving requests.
+Successful Hub authentications are cached for 300 seconds (five minutes) in a
+shared database cache, so all API workers can reuse the validated username.
+The cache stores only that username under an HMAC-derived key scoped to the
+Hub, its configuration and the token. It does not store the raw Hub token.
+Cache hits do not renew the expiration; failed authentications are not cached.
+Concurrent cache misses may each contact the Hub.
+
+Every request still checks the enabled Hub, active local user and current
+individual consent. Local permissions remain enforced as usual. Revoking
+consent or disabling the Hub/user blocks subsequent requests even with a warm
+cache. Changing Hub URLs or the validation endpoint causes a cache miss.
+Revocation or identity changes at the partner Hub may take up to five minutes
+to be observed. Once an entry expires, upstream failures are not bypassed by
+using stale cached identities. No Python client changes are required.
