@@ -34,6 +34,7 @@ from core.views import (
     teste,
     which_environment,
 )
+from core.views.hub_access import HubAccessView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
@@ -65,6 +66,8 @@ urlpatterns = [
     path("which_environment/", which_environment),
     path("api/teste/", teste, name="teste"),
     path("api/", include(route.urls)),
+    path("api/hub-access/", HubAccessView.as_view(), name="hub_access"),
+    path("api/hub-access/<int:hub_id>/", HubAccessView.as_view(), name="hub_access_detail"),
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),

@@ -7,6 +7,7 @@ from core.models import (
     ProductFile,
     ProductType,
     Release,
+    TrustedJupyterHub,
 )
 from django import forms
 from django.contrib import admin
@@ -186,3 +187,15 @@ class GroupMetadataAdmin(admin.ModelAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+
+
+@admin.register(TrustedJupyterHub)
+class TrustedJupyterHubAdmin(admin.ModelAdmin):
+    list_display = ("name", "public_url", "enabled", "updated_at")
+    list_filter = ("enabled",)
+    search_fields = ("name", "public_url")
+    readonly_fields = ("created_at", "updated_at")
+    actions = None
+
+    def has_delete_permission(self, request, obj=None):
+        return False

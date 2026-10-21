@@ -10,6 +10,7 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
 from oauthlib.common import generate_token
 from rest_framework import status, viewsets
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -72,6 +73,7 @@ class GetToken(APIView):
 
 
 class CsrfToOauth(APIView):
+    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
