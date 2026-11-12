@@ -45,8 +45,9 @@ RUN groupadd --gid ${GROUPID} $USERNAME \
 WORKDIR /app
 COPY . /app
 
-COPY --chmod=0775 ./entrypoint.sh /entrypoint.sh
-COPY --chmod=0775 ./start.sh /start.sh
+COPY ./entrypoint.sh /entrypoint.sh
+COPY ./start.sh /start.sh
+RUN chmod 0775 /entrypoint.sh /start.sh
 
 # Switch to non-priviliged user and run app
 USER $USERNAME

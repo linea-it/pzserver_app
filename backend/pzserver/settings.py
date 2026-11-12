@@ -31,6 +31,7 @@ class LocalTimeFormatter(logging.Formatter):
 
     converter = time.localtime
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -382,6 +383,13 @@ RUBIN_REGISTER_URL = os.getenv(
     "https://register-dev.linea.org.br/Shibboleth.sso/Login?SAMLDS=1&target=https://register-dev.linea.org.br/registry/co_petitions/start/coef:231&entityID=https://satosa-dev.linea.org.br/linea_saml_mirror/proxy/aHR0cHM6Ly9kYXRhLmxzc3QuY2xvdWQ=",
 )
 
+# Local development has no /accounts/login page. SAML overrides this below.
+LOGIN_URL = "/admin/login/"
+
+# CSP is currently handled outside djangosaml2. Define this globally so
+# management commands and deployments without SAML do not emit a warning.
+SAML_CSP_HANDLER = ""
+
 if os.getenv("AUTH_SHIB_URL", None):
     FQDN = os.getenv("URI", "http://localhost")
     CERT_DIR = "/saml2/certificates"
@@ -411,9 +419,6 @@ if os.getenv("AUTH_SHIB_URL", None):
 
     # Cria usuário Django a partir da asserção SAML caso o mesmo não exista
     SAML_CREATE_UNKNOWN_USER = True
-
-    # https://djangosaml2.readthedocs.io/contents/security.html#content-security-policy
-    SAML_CSP_HANDLER = ""
 
     # URL para redirecionamento após a autenticação
     LOGIN_REDIRECT_URL = "/"
@@ -519,3 +524,49 @@ CACHES = {
         "TIMEOUT": 300,
     },
 }
+
+
+# Browser approval for the Python client.
+OAUTH2_PROVIDER["OAUTH_DEVICE_VERIFICATION_URI"] = (
+    os.environ["URI"].rstrip("/") + "/api/device-oauth/device/"
+)
+
+
+def positive_int_env(name, default):
+    """Read a strictly positive integer, failing startup on bad configuration."""
+    raw_value = os.getenv(name, str(default))
+    try:
+        value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{name} must be a positive integer.") from error
+    if value <= 0:
+        raise ValueError(f"{name} must be a positive integer.")
+    return value
+
+
+# Only clients registered with the Device Flow grant use these lifetimes.
+PZSERVER_DEVICE_ACCESS_TOKEN_SECONDS = positive_int_env(
+    "PZSERVER_DEVICE_ACCESS_TOKEN_SECONDS", 3600
+)
+PZSERVER_DEVICE_REFRESH_TOKEN_SECONDS = positive_int_env(
+    "PZSERVER_DEVICE_REFRESH_TOKEN_SECONDS", 2592000
+)
+
+# Must match the frontend DJANGO_OAUTH_CLIENT_ID; fail closed if unset.
+PZSERVER_WEB_CLIENT_ID = os.getenv(
+    "PZSERVER_WEB_CLIENT_ID", os.getenv("DJANGO_OAUTH_CLIENT_ID", "")
+)
+
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
+
+# Device authorization limits; shared database counters apply across workers.
+PZSERVER_DEVICE_CODE_SECONDS = positive_int_env("PZSERVER_DEVICE_CODE_SECONDS", 900)
+PZSERVER_DEVICE_MAX_CODE_ERRORS = positive_int_env("PZSERVER_DEVICE_MAX_CODE_ERRORS", 3)
+PZSERVER_DEVICE_VERIFY_PER_MINUTE = positive_int_env(
+    "PZSERVER_DEVICE_VERIFY_PER_MINUTE", 30
+)
+PZSERVER_DEVICE_RATE_LIMIT_RETENTION_SECONDS = positive_int_env(
+    "PZSERVER_DEVICE_RATE_LIMIT_RETENTION_SECONDS", 86400
+)
+
+OAUTH2_PROVIDER_DEVICE_GRANT_MODEL = "oauth2_provider.DeviceGrant"

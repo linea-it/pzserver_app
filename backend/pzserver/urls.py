@@ -34,6 +34,11 @@ from core.views import (
     teste,
     which_environment,
 )
+from core.views.device_access import DeviceAccessView
+from core.views.device_oauth import (
+    WebConvertTokenView,
+    WebTokenView,
+)
 from core.views.hub_access import HubAccessView
 from django.conf import settings
 from django.contrib import admin
@@ -44,6 +49,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from rest_framework import routers
+from rest_framework.authtoken import views
 
 route = routers.DefaultRouter()
 
@@ -59,15 +65,20 @@ if settings.ORCHEST_URL:
     route.register(r"pipelines", PipelineViewSet, basename="pipelines")
     route.register(r"processes", ProcessViewSet, basename="processes")
 
-from rest_framework.authtoken import views
-
 urlpatterns = [
+    path("api/auth/convert-token", WebConvertTokenView.as_view()),
+    path("api/auth/convert-token/", WebConvertTokenView.as_view()),
+    path("api/auth/token", WebTokenView.as_view()),
+    path("api/auth/token/", WebTokenView.as_view()),
+    path("api/device-oauth/", include("core.device_oauth_urls")),
     path("admin/", admin.site.urls),
     path("which_environment/", which_environment),
     path("api/teste/", teste, name="teste"),
     path("api/", include(route.urls)),
     path("api/hub-access/", HubAccessView.as_view(), name="hub_access"),
     path("api/hub-access/<int:hub_id>/", HubAccessView.as_view(), name="hub_access_detail"),
+    path("api/device-access/", DeviceAccessView.as_view()),
+    path("api/device-access/<uuid:access_id>/", DeviceAccessView.as_view()),
     # Autenticacao
     path("api/auth/", include("drf_social_oauth2.urls", namespace="drf")),
     path("api/obtain_token/", views.obtain_auth_token),

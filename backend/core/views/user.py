@@ -12,7 +12,6 @@ from oauthlib.common import generate_token
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -98,6 +97,12 @@ class CsrfToOauth(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # Only the configured frontend may exchange a browser session for tokens.
+        if (
+            app.client_id != getattr(settings, "PZSERVER_WEB_CLIENT_ID", "")
+            or app.authorization_grant_type == Application.GRANT_DEVICE_CODE
+        ):
+            return Response({"error": "invalid_client"}, status=400)
         log.debug(f"Application: {app}")
 
         user = request.user
@@ -117,7 +122,7 @@ class CsrfToOauth(APIView):
         )
         log.debug(f"Access Token : {access_token}")
 
-        refresh_token = RefreshToken(
+        refresh_token = RefreshToken.objects.create(
             user=user,
             token=generate_token(),
             application=app,
@@ -140,14 +145,14 @@ class CsrfToOauth(APIView):
 
         response.set_cookie(
             "pzserver.access_token",
-            str(access_token),
+            access_token.token,
             expires=expire_seconds,
             domain=settings.SESSION_COOKIE_DOMAIN,
             secure=settings.SESSION_COOKIE_SECURE or None,
         )
         response.set_cookie(
             "pzserver.refresh_token",
-            str(refresh_token),
+            refresh_token.token,
             max_age=(30 * 24 * 60 * 60),
             domain=settings.SESSION_COOKIE_DOMAIN,
             secure=settings.SESSION_COOKIE_SECURE or None,

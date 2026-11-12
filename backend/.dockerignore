@@ -1,0 +1,13 @@
+.env
+.env.*
+.git
+.gitignore
+.pytest_cache
+.vscode
+__pycache__
+**/__pycache__
+*.py[cod]
+*.sqlite3
+archive
+django_static
+htmlcov
