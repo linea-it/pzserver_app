@@ -8,7 +8,7 @@ class ProductFileSerializer(serializers.ModelSerializer):
         queryset=Product.objects.all(), many=False
     )
 
-    file = serializers.FileField()
+    file = serializers.FileField(use_url=False)
 
     can_delete = serializers.SerializerMethodField()
 

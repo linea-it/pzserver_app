@@ -31,7 +31,6 @@ from core.views import (
     ProductViewSet,
     ReleaseViewSet,
     UserViewSet,
-    teste,
     which_environment,
 )
 from core.views.device_access import DeviceAccessView
@@ -73,7 +72,6 @@ urlpatterns = [
     path("api/device-oauth/", include("core.device_oauth_urls")),
     path("admin/", admin.site.urls),
     path("which_environment/", which_environment),
-    path("api/teste/", teste, name="teste"),
     path("api/", include(route.urls)),
     path("api/hub-access/", HubAccessView.as_view(), name="hub_access"),
     path("api/hub-access/<int:hub_id>/", HubAccessView.as_view(), name="hub_access_detail"),

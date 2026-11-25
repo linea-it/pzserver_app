@@ -229,6 +229,50 @@ class ProductFileDetailAPIViewTestCase(APITestCase):
 
         self.assertEqual(response_data, expected)
 
+    def test_file_returns_relative_storage_path(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.data["file"], self.product_file.file.name)
+        self.assertFalse(response.data["file"].startswith(("/", "http://", "https://")))
+        product = self.client.get(reverse("products-detail", kwargs={"pk": self.product.pk}))
+        self.assertEqual(product.status_code, 200)
+        self.assertNotIn("/archive/data", product.content.decode())
+        self.assertNotIn("path", product.data)
+
+    def test_content_requires_authentication(self):
+        self.client.credentials()
+        response = self.client.get(reverse("product_files-content", kwargs={"pk": self.product_file.pk}))
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_content_returns_file_for_owner(self):
+        response = self.client.get(reverse("product_files-content", kwargs={"pk": self.product_file.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(b"".join(response.streaming_content), Path(self.product_file.file.path).read_bytes())
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        response.close()
+
+    def test_content_rejects_inaccessible_product(self):
+        from django.contrib.auth.models import Group
+        group = Group.objects.create(name="private-download")
+        self.release.is_public = False
+        self.release.save()
+        self.release.access_groups.add(group)
+        other = User.objects.create_user("other-download", password="test")
+        self.client.force_authenticate(user=other)
+        response = self.client.get(reverse("product_files-content", kwargs={"pk": self.product_file.pk}))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_content_rejects_directories_and_missing_files(self):
+        url = reverse("product_files-content", kwargs={"pk": self.product_file.pk})
+        self.product_file.is_directory = True
+        self.product_file.save()
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.product_file.is_directory = False
+        self.product_file.save()
+        Path(self.product_file.file.path).unlink()
+        self.assertEqual(self.client.get(url).status_code, 404)
+
     def test_product_file_update(self):
         """
         Test to verify if update is Not avalialble
