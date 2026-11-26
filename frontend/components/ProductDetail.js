@@ -1,3 +1,4 @@
+import ProtectedProductPreview from './ProtectedProductPreview'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -13,7 +14,6 @@ import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardMedia from '@mui/material/CardMedia'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
@@ -659,7 +659,7 @@ export default function ProductDetail({ productId, internalName }) {
             </Paper>
           </Grid>
           {(isTabular || configFiles) && (
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={{ minWidth: 0 }}>
               <Card elevation={2}>
                 <CardContent>
                   <Tabs
@@ -675,17 +675,11 @@ export default function ProductDetail({ productId, internalName }) {
                     <ProductDataGrid productId={product.id} />
                   )}
                   {activeTab === 1 && hasHtmlFile && (
-                    <Box>
+                    <Box sx={{ width: '100%', minWidth: 0, overflowX: 'auto' }}>
                       {files.map(file => {
                         if (file.name.toLowerCase().endsWith('.html')) {
                           return (
-                            <CardMedia
-                              component="iframe"
-                              src={file.file}
-                              height="800"
-                              key={file.id}
-                              sx={{ border: 'none' }}
-                            />
+                            <ProtectedProductPreview key={file.id} fileId={file.id} />
                           )
                         }
                         return null

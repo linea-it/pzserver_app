@@ -30,6 +30,9 @@ SECRET_KEY = "huDsVcmarNAU7FS6XO6y_Tf2B2PLoEN-jhW2suTMnYY"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# CSP is handled outside djangosaml2 in this project.
+SAML_CSP_HANDLER = ""
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -96,6 +99,18 @@ DATABASES = {
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
+
+# Opt-in PostgreSQL database for row-lock and concurrent redemption tests.
+if os.getenv("PZSERVER_TEST_POSTGRES_HOST"):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "pzserver_device_tests",
+        "USER": os.getenv("PZSERVER_TEST_POSTGRES_USER", "postgres"),
+        "PASSWORD": os.getenv("PZSERVER_TEST_POSTGRES_PASSWORD", ""),
+        "HOST": os.environ["PZSERVER_TEST_POSTGRES_HOST"],
+        "PORT": os.getenv("PZSERVER_TEST_POSTGRES_PORT", "5432"),
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -232,3 +247,15 @@ CACHES = {
         "TIMEOUT": 300,
     },
 }
+
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
+
+OAUTH2_PROVIDER_DEVICE_GRANT_MODEL = "oauth2_provider.DeviceGrant"
+
+# Device Flow defaults used by tests that exercise the real project URLConf.
+PZSERVER_DEVICE_CODE_SECONDS = 900
+PZSERVER_DEVICE_MAX_CODE_ERRORS = 3
+PZSERVER_DEVICE_ACCESS_TOKEN_SECONDS = 3600
+PZSERVER_DEVICE_REFRESH_TOKEN_SECONDS = 2592000
+PZSERVER_DEVICE_VERIFY_PER_MINUTE = 30
+PZSERVER_DEVICE_RATE_LIMIT_RETENTION_SECONDS = 86400

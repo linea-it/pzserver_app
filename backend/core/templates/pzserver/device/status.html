@@ -1,0 +1,14 @@
+{% extends "pzserver/device/base.html" %}
+{% block title %}Authorization result{% endblock %}
+{% block content %}
+{% if object.status == 'authorized' %}
+<div class="status-icon" aria-hidden="true">✓</div><p class="eyebrow">Request approved</p><h1>Your environment is authorized</h1><p class="intro">Return to your notebook or terminal to continue. You can close this page.</p>
+{% elif object.status == 'denied' %}
+<div class="status-icon" aria-hidden="true">×</div><p class="eyebrow">Request denied</p><h1>Access was not granted</h1><p class="intro">This request cannot receive an access token. You can start a new sign-in from your environment if needed.</p>
+{% elif object.status == 'expired' %}
+<p class="eyebrow">Request expired</p><h1>Start a new sign-in</h1><p class="intro">Return to your notebook or terminal to request a new authorization code.</p>
+{% else %}
+<p class="eyebrow">Authorization</p><h1>Request pending</h1><p class="intro">This request has not been approved yet.</p>
+{% endif %}
+<div class="actions"><a class="button secondary" href="/">Back to PzServer</a></div>
+{% endblock %}

@@ -6,6 +6,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Test python API
+    services:
+      postgres:
+        image: postgres:13.6-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres-test-only
+          POSTGRES_DB: pzserver_device_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
     - uses: actions/checkout@v4
     - name: Set up uWSGI dependencies
@@ -31,6 +45,12 @@ jobs:
     - name: Run tests and collect coverage
       working-directory: ./backend    
       run: pytest --cov=./ --cov-report=xml
+    - name: Test Device Flow with PostgreSQL
+      working-directory: ./backend
+      env:
+        PZSERVER_TEST_POSTGRES_HOST: 127.0.0.1
+        PZSERVER_TEST_POSTGRES_PASSWORD: postgres-test-only
+      run: pytest core/test/test_device_flow.py -q
     - name: Upload coverage reports to Codecov with GitHub Action
       uses: codecov/codecov-action@v4
       with:

@@ -17,7 +17,16 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user
 
   useEffect(() => {
-    const { 'pzserver.access_token': access_token } = parseCookies()
+    let { 'pzserver.access_token': access_token } = parseCookies()
+
+    // Older session bridges stored the model's display text instead of a token.
+    // Bearer credentials cannot contain whitespace; recover via the Django session.
+    if (access_token && /\s/.test(access_token)) {
+      destroyCookie(null, 'pzserver.access_token', { path: '/' })
+      destroyCookie(null, 'pzserver.refresh_token', { path: '/' })
+      delete api.defaults.headers.Authorization
+      access_token = null
+    }
 
     if (access_token) {
       recoverUserInformation()
@@ -42,8 +51,10 @@ export function AuthProvider({ children }) {
         
         csrfToOauth(returnUrl)
           .then(res => {
+            const { 'pzserver.access_token': token } = parseCookies()
+            if (token) api.defaults.headers.Authorization = `Bearer ${token}`
             // Load user data after login to avoid blank username on first render
-            recoverUserInformation().then(loggedUser => {
+            return recoverUserInformation().then(loggedUser => {
               setUser(loggedUser)
               const sanitizedReturnUrl = sanitizeRedirectUrl(returnUrl, '/')
               console.log('SAML2 login successful, redirecting to:', sanitizedReturnUrl)

@@ -15,3 +15,7 @@ from core.models.product_download_archive import (
 from core.models.trusted_jupyterhub import TrustedJupyterHub
 
 from core.models.jupyterhub_consent import JupyterHubConsent
+
+from core.models.device_access import DeviceAccess
+
+from core.models.device_authorization import DeviceAuthorizationAttempt, DeviceRateLimit

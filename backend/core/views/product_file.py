@@ -1,4 +1,10 @@
 import logging
+from pathlib import Path
+
+from django.http import FileResponse, Http404
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from core.services.access_control import AccessControlService
 
 from core.file_utils import get_file_extension
 from core.models import Product, ProductFile
@@ -16,7 +22,23 @@ class ProductFileViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    permission_classes = [IsAuthenticated]
     queryset = ProductFile.objects.all()
+
+    def get_queryset(self):
+        products = AccessControlService.filter_accessible_products(self.request.user)
+        return super().get_queryset().filter(product__in=products)
+
+    @action(methods=["GET"], detail=True)
+    def content(self, request, pk=None):
+        product_file = self.get_object()
+        path = Path(product_file.file.path)
+        if product_file.is_directory or not path.is_file():
+            raise Http404("File not found. Use the main-file download API for directories.")
+        response = FileResponse(path.open("rb"), as_attachment=True, filename=product_file.name)
+        response["Cache-Control"] = "private, no-store"
+        return response
+
     serializer_class = ProductFileSerializer
     filterset_fields = ("id", "product_id")
     ordering_fields = ["id", "role"]

@@ -1,0 +1,14 @@
+{% extends "pzserver/device/base.html" %}
+{% block content %}
+<p class="eyebrow">Step 1 of 2 · Connect your environment</p>
+<h1>Enter your authorization code</h1>
+<p class="intro">Use the code displayed in your notebook or terminal. You have {{ code_minutes }} minutes to finish and up to {{ max_code_errors }} incorrect code entries. You will review the access request before approving it.</p>
+<div class="account"><span>Signed in as</span><strong>{{ request.user.get_username }}</strong></div>
+<form method="post">{% csrf_token %}
+<label for="id_user_code">Authorization code</label>
+<input id="id_user_code" name="user_code" value="{{ form.user_code.value|default_if_none:'' }}" required autocomplete="off" spellcheck="false" autocapitalize="characters" aria-describedby="code-help code-errors" {% if form.user_code.errors %}aria-invalid="true"{% endif %}>
+<div id="code-errors" class="errors" role="alert">{{ form.user_code.errors }}{{ form.non_field_errors }}</div>
+<p id="code-help" class="hint">Enter the code exactly as shown. If it has expired, start a new sign-in from your environment.</p>
+<div class="actions"><button type="submit">Continue</button><a class="button secondary" href="/">Cancel</a></div>
+</form>
+{% endblock %}
