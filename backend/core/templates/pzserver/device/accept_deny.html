@@ -1,0 +1,13 @@
+{% extends "pzserver/device/base.html" %}
+{% block title %}Review access{% endblock %}
+{% block content %}
+<p class="eyebrow">Step 2 of 2 · Review request</p>
+<h1>Authorize Python access?</h1>
+<p class="intro"><span class="app">{{ application.name }}</span> is requesting access to your PzServer account.</p>
+<div class="account"><span>Authorize as</span><strong>{{ request.user.get_username }}</strong></div>
+<p><strong>Requested permissions</strong></p>
+<ul class="permissions">{% for scope in scopes_descriptions %}<li>{{ scope }}</li>{% empty %}<li>Access with your existing account permissions.</li>{% endfor %}</ul>
+<p class="hint">Your existing product permissions still apply. Approve only if this request came from your notebook or terminal.</p>
+<form method="post">{% csrf_token %}<div class="errors" role="alert">{{ form.errors }}</div>
+<div class="actions"><button type="submit" name="action" value="accept">Authorize access</button><button class="secondary" type="submit" name="action" value="deny">Deny request</button></div></form>
+{% endblock %}

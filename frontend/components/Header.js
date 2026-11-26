@@ -6,6 +6,7 @@ import {
   List,
   ListItem,
   ListItemIcon,
+  ListSubheader,
   Menu,
   MenuItem,
   Link as MuiLink,
@@ -195,8 +196,25 @@ function Header(props) {
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
-            <MenuItem onClick={handleTokenOpen}>API Token</MenuItem>
-            <MenuItem onClick={() => { handleClose(); router.push('/hub_access') }}>JupyterHub access</MenuItem>
+            {user?.username && (
+              <ListSubheader
+                disableSticky
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  maxWidth: 280,
+                  whiteSpace: 'normal',
+                  overflowWrap: 'anywhere'
+                }}
+              >
+                {user.username}
+              </ListSubheader>
+            )}
+            {user?.username && <Divider />}
+            {/* <MenuItem onClick={handleTokenOpen}>API Token</MenuItem> */}
+            <MenuItem onClick={() => { handleClose(); router.push('/connected_applications') }}>Connected applications</MenuItem>
+            {/* <MenuItem onClick={() => { handleClose(); router.push('/hub_access') }}>JupyterHub access</MenuItem> */}
             <MenuItem onClick={logout}>
               <ListItemIcon>
                 <Logout fontSize="small" />
